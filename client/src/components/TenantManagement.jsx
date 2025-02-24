@@ -1,4 +1,3 @@
-import '@mui/x-data-grid/styles.css';
 import React, { useState, useEffect } from 'react';
 import { 
   DataGrid, GridToolbar, GridActionsCellItem 
@@ -10,6 +9,7 @@ import {
 } from '@mui/material';
 import { mockTenants, mockProperties } from '../mockData';
 import { PersonAdd, Edit, Payment } from '@mui/icons-material';
+import '@mui/x-data-grid/dist/styles.css';
 
 const TenantManagement = () => {
   const [tenants, setTenants] = useState([]);
@@ -168,6 +168,12 @@ const TenantManagement = () => {
           }}
           density="compact"
           disableRowSelectionOnClick
+          sx={{ 
+            '& .MuiDataGrid-root': { 
+              border: 'none',
+              minHeight: 400 
+            } 
+          }}
         />
       </Box>
 
