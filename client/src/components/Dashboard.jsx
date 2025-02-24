@@ -1,9 +1,34 @@
-// Dashboard.jsx (Enhanced)
 import React, { useState, useEffect } from 'react';
-import { Grid, Card, CardContent, Typography, Box, Button, List, ListItem, ListItemText } from '@mui/material';
+import { Grid, Card, CardContent, Typography, Box, List, ListItem, ListItemText } from '@mui/material';
 import { BarChart, LineChart } from '@mui/x-charts';
-import { Link } from 'react-router-dom';
+import Navigation from './Navigation';
 import { mockProperties, mockPayments, mockNotifications } from '../mockData';
+
+const TrendIndicator = ({ trend }) => (
+  <Typography 
+    variant="body2" 
+    color={trend.startsWith('+') ? 'success.main' : 'error.main'}
+    sx={{ ml: 1 }}
+  >
+    {trend}
+  </Typography>
+);
+
+const MetricCard = ({ title, value, color = 'primary', trend }) => (
+  <Grid item xs={12} sm={6} md={3}>
+    <Card sx={{ 
+      bgcolor: `${color}.light`, 
+      backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05))',
+      p: 2 
+    }}>
+      <Typography variant="subtitle2" color="text.secondary">{title}</Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Typography variant="h4" color={`${color}.dark`}>{value}</Typography>
+        {trend && <TrendIndicator trend={trend} />}
+      </Box>
+    </Card>
+  </Grid>
+);
 
 const Dashboard = () => {
   const [metrics, setMetrics] = useState({
@@ -37,7 +62,6 @@ const Dashboard = () => {
       </Typography>
       
       <Grid container spacing={3}>
-        {/* Key Metrics */}
         <Grid item container spacing={3} xs={12}>
           <MetricCard title="Total Properties" value={metrics.totalProperties} trend="+2.1%"/>
           <MetricCard title="Occupied Units" value={metrics.occupiedUnits} color="success"/>
@@ -45,7 +69,6 @@ const Dashboard = () => {
           <MetricCard title="Monthly Income" value={`$${metrics.monthlyIncome.toLocaleString()}`}/>
         </Grid>
 
-        {/* Charts Section */}
         <Grid item xs={12} md={8}>
           <Card sx={{ p: 2, height: 400 }}>
             <Typography variant="h6" gutterBottom>
@@ -61,7 +84,6 @@ const Dashboard = () => {
           </Card>
         </Grid>
 
-        {/* Notifications */}
         <Grid item xs={12} md={4}>
           <Card sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>
@@ -84,22 +106,5 @@ const Dashboard = () => {
     </Box>
   );
 };
-
-// MetricCard Component
-const MetricCard = ({ title, value, color = 'primary', trend }) => (
-  <Grid item xs={12} sm={6} md={3}>
-    <Card sx={{ 
-      bgcolor: `${color}.light`, 
-      backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05))',
-      p: 2 
-    }}>
-      <Typography variant="subtitle2" color="text.secondary">{title}</Typography>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Typography variant="h4" color={`${color}.dark`}>{value}</Typography>
-        {trend && <TrendIndicator trend={trend} />}
-      </Box>
-    </Card>
-  </Grid>
-);
 
 export default Dashboard;
