@@ -1,45 +1,31 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import { ThemeProvider, CssBaseline } from '@mui/material';
+// src/App.jsx
+import { CssBaseline, ThemeProvider } from '@mui/material';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import theme from './theme';
 import Dashboard from './components/Dashboard';
 import PropertyManagement from './components/PropertyManagement';
 import TenantManagement from './components/TenantManagement';
-import theme from './theme'; // This import now resolves correctly
+import RentPayment from './components/RentPayment';
+import MaintenanceRequests from './components/MaintenanceRequests';
+import ReportsAnalytics from './components/ReportsAnalytics';
 
-const App = () => {
+function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
-        <div>
-          {/* Navigation Bar */}
-          <nav
-            style={{
-              display: 'flex',
-              gap: '1rem',
-              padding: '1rem',
-              backgroundColor: '#f5f5f5',
-              borderBottom: '1px solid #ddd'
-            }}
-          >
-            <Link to="/dashboard">Dashboard</Link>
-            <Link to="/properties">Properties</Link>
-            <Link to="/tenants">Tenants</Link>
-          </nav>
-
-          {/* Page Content */}
-          <div style={{ padding: '1rem' }}>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/properties" element={<PropertyManagement />} />
-              <Route path="/tenants" element={<TenantManagement />} />
-            </Routes>
-          </div>
-        </div>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/properties" element={<PropertyManagement />} />
+          <Route path="/tenants" element={<TenantManagement />} />
+          <Route path="/payments" element={<RentPayment />} />
+          <Route path="/maintenance" element={<MaintenanceRequests />} />
+          <Route path="/reports" element={<ReportsAnalytics />} />
+        </Routes>
       </Router>
     </ThemeProvider>
   );
-};
+}
 
 export default App;
