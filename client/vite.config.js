@@ -8,8 +8,10 @@ export default defineConfig({
     host: true
   },
   build: {
-    outDir: 'dist',
-    emptyOutDir: true,
-    sourcemap: false
+    rollupOptions: {
+      external: [
+        // No need to externalize DataGrid CSS since it's not imported
+      ]
+    }
   }
 });
