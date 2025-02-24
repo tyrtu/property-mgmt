@@ -7,8 +7,18 @@ export default defineConfig({
     port: 5173,
   },
   build: {
-    commonjsOptions: {
-      transformMixedEsModules: true
+    rollupOptions: {
+      plugins: [
+        {
+          name: 'configure-rollup',
+          resolveId(source) {
+            if (source === '@mui/x-data-grid/theme/material/styles.css') {
+              return this.resolve('@mui/x-data-grid/theme/material/styles.css');
+            }
+            return null;
+          }
+        }
+      ]
     }
   }
 });

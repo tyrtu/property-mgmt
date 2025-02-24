@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 import { mockTenants, mockProperties } from '../mockData';
 import { PersonAdd, Edit, Payment } from '@mui/icons-material';
-import '@mui/x-data-grid/theme/material/styles.css';
+import '@mui/x-data-grid/dist/styles.css';
 
 const TenantManagement = () => {
   const [tenants, setTenants] = useState([]);
