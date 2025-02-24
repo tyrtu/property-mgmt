@@ -9,22 +9,25 @@ import RentPayment from './components/RentPayment';
 import MaintenanceRequests from './components/MaintenanceRequests';
 import ReportsAnalytics from './components/ReportsAnalytics';
 import Navigation from './components/Navigation';
+import ErrorBoundary from './components/ErrorBoundary';
 
 function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
-        <Navigation />
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/properties" element={<PropertyManagement />} />
-          <Route path="/tenants" element={<TenantManagement />} />
-          <Route path="/payments" element={<RentPayment />} />
-          <Route path="/maintenance" element={<MaintenanceRequests />} />
-          <Route path="/reports" element={<ReportsAnalytics />} />
-        </Routes>
+        <ErrorBoundary>
+          <Navigation />
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/properties" element={<PropertyManagement />} />
+            <Route path="/tenants" element={<TenantManagement />} />
+            <Route path="/payments" element={<RentPayment />} />
+            <Route path="/maintenance" element={<MaintenanceRequests />} />
+            <Route path="/reports" element={<ReportsAnalytics />} />
+          </Routes>
+        </ErrorBoundary>
       </Router>
     </ThemeProvider>
   );
