@@ -4,13 +4,12 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 5173
+    port: 5173,
+    host: true // Allows external network access
   },
   build: {
-    rollupOptions: {
-      external: [
-        '@mui/x-data-grid/theme/material/styles.css'
-      ]
-    }
+    outDir: 'dist',
+    emptyOutDir: true,
+    sourcemap: false // Disable for production
   }
 });

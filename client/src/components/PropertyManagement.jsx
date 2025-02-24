@@ -1,17 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  DataGrid, GridActionsCellItem, GridToolbar
-} from '@mui/x-data-grid';
-import { 
-  Card, Typography, Button, TextField, 
-  Grid, Box, Chip, Avatar, InputAdornment,
-  Dialog, DialogTitle, DialogContent, DialogActions
+  Card, Typography, Button, TextField, Grid, Box, Chip, 
+  Avatar, InputAdornment, Dialog, DialogTitle, DialogContent, DialogActions,
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper
 } from '@mui/material';
-import { 
-  Add, Edit, Delete, Search, Apartment, HomeWork 
-} from '@mui/icons-material';
+import { Add, Edit, Delete, Search, Apartment } from '@mui/icons-material';
 import { mockProperties } from '../mockData';
-import '@mui/x-data-grid/theme/material/styles.css';
 
 const PropertyManagement = () => {
   const [properties, setProperties] = useState([]);
@@ -31,86 +25,6 @@ const PropertyManagement = () => {
   useEffect(() => {
     setProperties(mockProperties);
   }, []);
-
-  const columns = [
-    { 
-      field: 'photo', 
-      headerName: '', 
-      width: 80,
-      renderCell: () => (
-        <Avatar sx={{ bgcolor: 'primary.main' }}>
-          <Apartment />
-        </Avatar>
-      )
-    },
-    { field: 'name', headerName: 'Property Name', width: 200 },
-    { field: 'address', headerName: 'Address', width: 250 },
-    { 
-      field: 'status', 
-      headerName: 'Status', 
-      width: 120,
-      renderCell: ({ value }) => (
-        <Chip 
-          label={value} 
-          color={value === 'Occupied' ? 'success' : 'warning'}
-          variant="outlined"
-        />
-      )
-    },
-    { 
-      field: 'occupancy', 
-      headerName: 'Occupancy', 
-      width: 150,
-      renderCell: ({ row }) => {
-        const percentage = row.totalUnits > 0 
-          ? (row.occupiedUnits / row.totalUnits * 100).toFixed(1)
-          : 0;
-        return (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography variant="body2">{row.occupiedUnits}/{row.totalUnits}</Typography>
-            <Typography variant="caption" color="text.secondary">
-              ({percentage}%)
-            </Typography>
-          </Box>
-        )
-      }
-    },
-    { 
-      field: 'rentAmount', 
-      headerName: 'Rent', 
-      width: 120,
-      valueFormatter: ({ value }) => `$${value.toLocaleString()}`
-    },
-    { 
-      field: 'amenities', 
-      headerName: 'Amenities', 
-      width: 200,
-      renderCell: ({ value }) => (
-        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-          {value?.map((amenity, index) => (
-            <Chip key={index} label={amenity} size="small" />
-          ))}
-        </Box>
-      )
-    },
-    {
-      field: 'actions',
-      type: 'actions',
-      width: 100,
-      getActions: ({ id }) => [
-        <GridActionsCellItem
-          icon={<Edit />}
-          label="Edit"
-          onClick={() => handleEdit(id)}
-        />,
-        <GridActionsCellItem
-          icon={<Delete color="error" />}
-          label="Delete"
-          onClick={() => handleDelete(id)}
-        />
-      ]
-    }
-  ];
 
   const handleSearch = (e) => setSearchText(e.target.value);
 
@@ -204,28 +118,71 @@ const PropertyManagement = () => {
         </Box>
       </Card>
 
-      <Box sx={{ height: 600, width: '100%' }}>
-        <DataGrid
-          rows={filteredProperties}
-          columns={columns}
-          slots={{ toolbar: GridToolbar }}
-          pageSizeOptions={[10, 25, 50]}
-          getRowId={(row) => row.id}
-          initialState={{
-            pagination: { 
-              paginationModel: { pageSize: 10 } 
-            }
-          }}
-          density="compact"
-          disableRowSelectionOnClick
-          sx={{ 
-            '& .MuiDataGrid-root': { 
-              border: 'none',
-              minHeight: 400 
-            } 
-          }}
-        />
-      </Box>
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Property</TableCell>
+              <TableCell>Address</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Occupancy</TableCell>
+              <TableCell>Rent</TableCell>
+              <TableCell>Amenities</TableCell>
+              <TableCell>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {filteredProperties.map((property) => (
+              <TableRow key={property.id}>
+                <TableCell>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Avatar sx={{ bgcolor: 'primary.main' }}>
+                      <Apartment />
+                    </Avatar>
+                    {property.name}
+                  </Box>
+                </TableCell>
+                <TableCell>{property.address}</TableCell>
+                <TableCell>
+                  <Chip 
+                    label={property.status} 
+                    color={property.status === 'Occupied' ? 'success' : 'warning'}
+                    variant="outlined"
+                  />
+                </TableCell>
+                <TableCell>
+                  {property.occupiedUnits}/{property.totalUnits} {' '}
+                  ({((property.occupiedUnits / property.totalUnits) * 100).toFixed(1)}%)
+                </TableCell>
+                <TableCell>${property.rentAmount.toLocaleString()}</TableCell>
+                <TableCell>
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                    {property.amenities?.map((amenity, index) => (
+                      <Chip key={index} label={amenity} size="small" />
+                    ))}
+                  </Box>
+                </TableCell>
+                <TableCell>
+                  <Button 
+                    startIcon={<Edit />} 
+                    onClick={() => handleEdit(property.id)}
+                    sx={{ mr: 1 }}
+                  >
+                    Edit
+                  </Button>
+                  <Button 
+                    startIcon={<Delete />} 
+                    onClick={() => handleDelete(property.id)}
+                    color="error"
+                  >
+                    Delete
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
         <DialogTitle>{editMode ? 'Edit Property' : 'Add New Property'}</DialogTitle>
@@ -286,7 +243,7 @@ const PropertyManagement = () => {
               <Box sx={{ mt: 2 }}>
                 <Button 
                   variant="outlined" 
-                  startIcon={<HomeWork />}
+                  startIcon={<Apartment />}
                   onClick={() => {/* Implement photo upload logic */}}
                 >
                   Upload Photos

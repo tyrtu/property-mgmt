@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  DataGrid, GridToolbar, GridActionsCellItem 
-} from '@mui/x-data-grid';
-import { 
   Card, Typography, Button, TextField, Grid, Box,
   Chip, Avatar, Dialog, DialogTitle, DialogContent,
-  DialogActions, MenuItem, Select, InputAdornment
+  DialogActions, MenuItem, Select, InputAdornment,
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper
 } from '@mui/material';
 import { mockTenants, mockProperties } from '../mockData';
 import { PersonAdd, Edit, Payment } from '@mui/icons-material';
-import '@mui/x-data-grid/theme/material/styles.css';
 
 const TenantManagement = () => {
   const [tenants, setTenants] = useState([]);
@@ -30,74 +27,6 @@ const TenantManagement = () => {
   useEffect(() => {
     setTenants(mockTenants);
   }, []);
-
-  const columns = [
-    { 
-      field: 'avatar', 
-      headerName: '', 
-      width: 80,
-      renderCell: ({ row }) => (
-        <Avatar src={`https://i.pravatar.cc/80?u=${row.id}`}>
-          {row.name[0]}
-        </Avatar>
-      )
-    },
-    { field: 'name', headerName: 'Tenant Name', width: 200 },
-    { field: 'email', headerName: 'Email', width: 250 },
-    { 
-      field: 'property', 
-      headerName: 'Property', 
-      width: 180,
-      valueGetter: ({ row }) => 
-        mockProperties.find(p => p.id === row.propertyId)?.name || 'N/A'
-    },
-    { 
-      field: 'paymentStatus', 
-      headerName: 'Payment', 
-      width: 120,
-      renderCell: ({ value }) => (
-        <Chip 
-          label={value} 
-          color={
-            value === 'Paid' ? 'success' : 
-            value === 'Pending' ? 'warning' : 'error'
-          }
-          size="small"
-        />
-      )
-    },
-    { 
-      field: 'leaseDuration', 
-      headerName: 'Lease', 
-      width: 150,
-      valueGetter: ({ row }) => {
-        try {
-          const start = new Date(row.leaseStart).toLocaleDateString();
-          const end = new Date(row.leaseEnd).toLocaleDateString();
-          return `${start} - ${end}`;
-        } catch {
-          return 'Invalid Date';
-        }
-      }
-    },
-    {
-      field: 'actions',
-      type: 'actions',
-      width: 100,
-      getActions: ({ id }) => [
-        <GridActionsCellItem
-          icon={<Edit />}
-          label="Edit"
-          onClick={() => handleEdit(id)}
-        />,
-        <GridActionsCellItem
-          icon={<Payment />}
-          label="Record Payment"
-          onClick={() => handlePayment(id)}
-        />
-      ]
-    }
-  ];
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -154,28 +83,68 @@ const TenantManagement = () => {
         </Button>
       </Box>
 
-      <Box sx={{ height: 600, width: '100%' }}>
-        <DataGrid
-          rows={tenants}
-          columns={columns}
-          slots={{ toolbar: GridToolbar }}
-          pageSizeOptions={[10, 25, 50]}
-          getRowId={(row) => row.id}
-          initialState={{
-            pagination: { 
-              paginationModel: { pageSize: 10 } 
-            }
-          }}
-          density="compact"
-          disableRowSelectionOnClick
-          sx={{ 
-            '& .MuiDataGrid-root': { 
-              border: 'none',
-              minHeight: 400 
-            } 
-          }}
-        />
-      </Box>
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Tenant</TableCell>
+              <TableCell>Email</TableCell>
+              <TableCell>Property</TableCell>
+              <TableCell>Payment</TableCell>
+              <TableCell>Lease Dates</TableCell>
+              <TableCell>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {tenants.map((tenant) => (
+              <TableRow key={tenant.id}>
+                <TableCell>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Avatar src={`https://i.pravatar.cc/80?u=${tenant.id}`}>
+                      {tenant.name[0]}
+                    </Avatar>
+                    {tenant.name}
+                  </Box>
+                </TableCell>
+                <TableCell>{tenant.email}</TableCell>
+                <TableCell>
+                  {mockProperties.find(p => p.id === tenant.propertyId)?.name || 'N/A'}
+                </TableCell>
+                <TableCell>
+                  <Chip 
+                    label={tenant.paymentStatus} 
+                    color={
+                      tenant.paymentStatus === 'Paid' ? 'success' : 
+                      tenant.paymentStatus === 'Pending' ? 'warning' : 'error'
+                    }
+                    size="small"
+                  />
+                </TableCell>
+                <TableCell>
+                  {new Date(tenant.leaseStart).toLocaleDateString()} - {' '}
+                  {new Date(tenant.leaseEnd).toLocaleDateString()}
+                </TableCell>
+                <TableCell>
+                  <Button 
+                    startIcon={<Edit />} 
+                    onClick={() => handleEdit(tenant.id)}
+                    sx={{ mr: 1 }}
+                  >
+                    Edit
+                  </Button>
+                  <Button 
+                    startIcon={<Payment />} 
+                    onClick={() => handlePayment(tenant.id)}
+                    color="success"
+                  >
+                    Payment
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
       <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth maxWidth="md">
         <DialogTitle>{editMode ? 'Edit Tenant' : 'Add New Tenant'}</DialogTitle>
