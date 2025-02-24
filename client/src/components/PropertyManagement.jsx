@@ -200,7 +200,11 @@ const PropertyManagement = () => {
           columns={columns}
           slots={{ toolbar: GridToolbar }}
           pageSizeOptions={[10, 25, 50]}
-          initialState={{ pagination: { paginationModel: { pageSize: 10 } }}
+          initialState={{ 
+            pagination: { 
+              paginationModel: { pageSize: 10 }  // Fixed missing brace
+            } 
+          }}
           density="compact"
           disableRowSelectionOnClick
         />
