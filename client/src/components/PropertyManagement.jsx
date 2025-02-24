@@ -27,14 +27,15 @@ const PropertyManagement = () => {
     photos: []
   });
 
-  // Initialize with mock data
   useEffect(() => {
     setProperties(mockProperties);
   }, []);
 
   const columns = [
     { 
-      field: 'photo', headerName: '', width: 80,
+      field: 'photo', 
+      headerName: '', 
+      width: 80,
       renderCell: () => (
         <Avatar sx={{ bgcolor: 'primary.main' }}>
           <Apartment />
@@ -44,7 +45,9 @@ const PropertyManagement = () => {
     { field: 'name', headerName: 'Property Name', width: 200 },
     { field: 'address', headerName: 'Address', width: 250 },
     { 
-      field: 'status', headerName: 'Status', width: 120,
+      field: 'status', 
+      headerName: 'Status', 
+      width: 120,
       renderCell: ({ value }) => (
         <Chip 
           label={value} 
@@ -54,7 +57,9 @@ const PropertyManagement = () => {
       )
     },
     { 
-      field: 'occupancy', headerName: 'Occupancy', width: 150,
+      field: 'occupancy', 
+      headerName: 'Occupancy', 
+      width: 150,
       renderCell: ({ row }) => {
         const percentage = row.totalUnits > 0 
           ? (row.occupiedUnits / row.totalUnits * 100).toFixed(1)
@@ -70,14 +75,18 @@ const PropertyManagement = () => {
       }
     },
     { 
-      field: 'rentAmount', headerName: 'Rent', width: 120,
+      field: 'rentAmount', 
+      headerName: 'Rent', 
+      width: 120,
       valueFormatter: ({ value }) => `$${value.toLocaleString()}`
     },
     { 
-      field: 'amenities', headerName: 'Amenities', width: 200,
+      field: 'amenities', 
+      headerName: 'Amenities', 
+      width: 200,
       renderCell: ({ value }) => (
         <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-          {value.map((amenity, index) => (
+          {value?.map((amenity, index) => (
             <Chip key={index} label={amenity} size="small" />
           ))}
         </Box>
@@ -194,16 +203,17 @@ const PropertyManagement = () => {
         </Box>
       </Card>
 
-      <Box sx={{ height: 'calc(100vh - 240px)', width: '100%' }}>
+      <Box sx={{ height: 600, width: '100%' }}>
         <DataGrid
           rows={filteredProperties}
           columns={columns}
           slots={{ toolbar: GridToolbar }}
           pageSizeOptions={[10, 25, 50]}
-          initialState={{ 
+          getRowId={(row) => row.id}
+          initialState={{
             pagination: { 
-              paginationModel: { pageSize: 10 }  // Fixed missing brace
-            } 
+              paginationModel: { pageSize: 10 } 
+            }
           }}
           density="compact"
           disableRowSelectionOnClick

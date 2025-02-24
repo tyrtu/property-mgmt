@@ -8,7 +8,6 @@ import {
   DialogActions, MenuItem, Select, InputAdornment
 } from '@mui/material';
 import { mockTenants, mockProperties } from '../mockData';
-import { LineChart } from '@mui/x-charts';
 import { PersonAdd, Edit, Payment } from '@mui/icons-material';
 
 const TenantManagement = () => {
@@ -122,7 +121,6 @@ const TenantManagement = () => {
   };
 
   const handlePayment = (id) => {
-    // Implement payment recording logic
     console.log('Record payment for tenant:', id);
   };
 
@@ -142,10 +140,6 @@ const TenantManagement = () => {
     });
   };
 
-  const paymentHistory = tenants.flatMap(t => 
-    t.paymentHistory?.map(p => ({ ...p, tenant: t.name })) || []
-  );
-
   return (
     <Box sx={{ p: 3, height: '100vh' }}>
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between' }}>
@@ -159,42 +153,22 @@ const TenantManagement = () => {
         </Button>
       </Box>
 
-      <Grid container spacing={3} sx={{ height: 'calc(100vh - 180px)' }}>
-        <Grid item xs={12} md={8}>
-          <Box sx={{ height: '100%', width: '100%' }}>
-            <DataGrid
-              rows={tenants}
-              columns={columns}
-              slots={{ toolbar: GridToolbar }}
-              pageSizeOptions={[10, 25, 50]}
-              disableRowSelectionOnClick
-              density="comfortable"
-            />
-          </Box>
-        </Grid>
-
-        <Grid item xs={12} md={4}>
-          <Card sx={{ height: '100%', p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Payment History
-            </Typography>
-            <Box sx={{ height: 'calc(100% - 40px)' }}>
-              <LineChart
-                xAxis={[{ 
-                  data: paymentHistory.map(p => new Date(p.date)), 
-                  scaleType: 'time' 
-                }]}
-                series={[{
-                  data: paymentHistory.map(p => p.amount),
-                  label: 'Payments',
-                  color: '#4caf50'
-                }]}
-                height={400}
-              />
-            </Box>
-          </Card>
-        </Grid>
-      </Grid>
+      <Box sx={{ height: 600, width: '100%' }}>
+        <DataGrid
+          rows={tenants}
+          columns={columns}
+          slots={{ toolbar: GridToolbar }}
+          pageSizeOptions={[10, 25, 50]}
+          getRowId={(row) => row.id}
+          initialState={{
+            pagination: { 
+              paginationModel: { pageSize: 10 } 
+            }
+          }}
+          density="compact"
+          disableRowSelectionOnClick
+        />
+      </Box>
 
       <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth maxWidth="md">
         <DialogTitle>{editMode ? 'Edit Tenant' : 'Add New Tenant'}</DialogTitle>
