@@ -11,7 +11,7 @@ import {
   Add, Edit, Delete, Search, Apartment, HomeWork 
 } from '@mui/icons-material';
 import { mockProperties } from '../mockData';
-import '@mui/x-data-grid/dist/styles.css';
+import '@mui/x-data-grid/theme/material/styles.css';
 
 const PropertyManagement = () => {
   const [properties, setProperties] = useState([]);

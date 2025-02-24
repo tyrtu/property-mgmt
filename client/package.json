@@ -14,7 +14,7 @@
     "@mui/icons-material": "^6.4.5",
     "@mui/material": "^6.4.5",
     "@mui/x-charts": "^7.27.0",
-    "@mui/x-data-grid": "^7.27.0",
+    "@mui/x-data-grid": "^6.0.0",
     "@mui/x-data-grid-pro": "^7.27.0",
     "@mui/x-date-pickers": "^7.27.0",
     "react": "^18.2.0",
