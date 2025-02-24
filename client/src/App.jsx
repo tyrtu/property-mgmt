@@ -8,12 +8,14 @@ import TenantManagement from './components/TenantManagement';
 import RentPayment from './components/RentPayment';
 import MaintenanceRequests from './components/MaintenanceRequests';
 import ReportsAnalytics from './components/ReportsAnalytics';
+import Navigation from './components/Navigation';
 
 function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
+        <Navigation />
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/dashboard" element={<Dashboard />} />

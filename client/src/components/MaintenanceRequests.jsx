@@ -1,44 +1,50 @@
+// src/components/MaintenanceRequests.jsx
+import React from 'react';
+import { DataGrid, GridToolbar } from '@mui/x-data-grid';
+import { Box, Typography, Chip, Select, MenuItem } from '@mui/material';
+
 const MaintenanceRequests = () => {
-    const [requests, setRequests] = useState(mockMaintenance);
-    const [openDialog, setOpenDialog] = useState(false);
-  
-    const columns = [
-      { field: 'title', headerName: 'Request', width: 250 },
-      { field: 'property', headerName: 'Property', width: 200 },
-      { field: 'tenant', headerName: 'Tenant', width: 200 },
-      { field: 'date', headerName: 'Date', type: 'date', width: 150 },
-      { field: 'status', headerName: 'Status', width: 150,
-        renderCell: (params) => (
-          <Select
-            value={params.value}
-            onChange={(e) => handleStatusChange(params.id, e.target.value)}
-            sx={{ minWidth: 120 }}
-          >
-            <MenuItem value="Pending">Pending</MenuItem>
-            <MenuItem value="In Progress">In Progress</MenuItem>
-            <MenuItem value="Completed">Completed</MenuItem>
-          </Select>
-        )
-      }
-    ];
-  
-    return (
-      <Box sx={{ p: 3 }}>
-        <Navigation />
-        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between' }}>
-          <Typography variant="h4">Maintenance Requests</Typography>
-          <Button variant="contained" onClick={() => setOpenDialog(true)}>
-            New Request
-          </Button>
-        </Box>
-  
+  const columns = [
+    { field: 'id', headerName: 'ID', width: 70 },
+    { field: 'title', headerName: 'Request', width: 200 },
+    { field: 'property', headerName: 'Property', width: 150 },
+    { field: 'date', headerName: 'Date', width: 120 },
+    { 
+      field: 'status', 
+      headerName: 'Status', 
+      width: 150,
+      renderCell: (params) => (
+        <Select
+          value={params.value}
+          size="small"
+          sx={{ minWidth: 120 }}
+        >
+          <MenuItem value="Pending">Pending</MenuItem>
+          <MenuItem value="In Progress">In Progress</MenuItem>
+          <MenuItem value="Completed">Completed</MenuItem>
+        </Select>
+      )
+    }
+  ];
+
+  const rows = [
+    { id: 1, title: 'Leaky Faucet', property: 'Sunrise Apartments', date: '2024-03-01', status: 'Pending' },
+    { id: 2, title: 'Broken AC', property: 'Ocean View Villas', date: '2024-03-02', status: 'In Progress' }
+  ];
+
+  return (
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h4" gutterBottom>Maintenance Requests</Typography>
+      <Box sx={{ height: 600, width: '100%' }}>
         <DataGrid
-          rows={requests}
+          rows={rows}
           columns={columns}
-          sx={{ height: 600 }}
+          slots={{ toolbar: GridToolbar }}
+          pageSizeOptions={[10, 25, 50]}
         />
-  
-        <MaintenanceDialog open={openDialog} onClose={() => setOpenDialog(false)} />
       </Box>
-    );
-  };
+    </Box>
+  );
+};
+
+export default MaintenanceRequests;

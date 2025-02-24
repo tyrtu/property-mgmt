@@ -1,16 +1,18 @@
+// src/components/RentPayment.jsx
+import React from 'react';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
-import { DatePicker } from '@mui/x-date-pickers';
+import { Box, Typography, Chip, Button } from '@mui/material';
 
 const RentPayment = () => {
-  const [payments, setPayments] = useState(mockPayments);
-  const [filter, setFilter] = useState('all');
-
   const columns = [
-    { field: 'property', headerName: 'Property', width: 200 },
+    { field: 'id', headerName: 'ID', width: 70 },
     { field: 'tenant', headerName: 'Tenant', width: 200 },
-    { field: 'amount', headerName: 'Amount', type: 'number', width: 120 },
-    { field: 'dueDate', headerName: 'Due Date', type: 'date', width: 150 },
-    { field: 'status', headerName: 'Status', width: 120,
+    { field: 'amount', headerName: 'Amount', width: 120 },
+    { field: 'dueDate', headerName: 'Due Date', width: 120 },
+    { 
+      field: 'status', 
+      headerName: 'Status', 
+      width: 120,
       renderCell: (params) => (
         <Chip 
           label={params.value} 
@@ -23,27 +25,24 @@ const RentPayment = () => {
     }
   ];
 
+  const rows = [
+    { id: 1, tenant: 'John Doe', amount: 1200, dueDate: '2024-03-01', status: 'Paid' },
+    { id: 2, tenant: 'Jane Smith', amount: 1500, dueDate: '2024-03-05', status: 'Pending' }
+  ];
+
   return (
     <Box sx={{ p: 3 }}>
-      <Navigation />
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between' }}>
-        <Typography variant="h4">Rent Payments</Typography>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <DatePicker label="Filter by Date" />
-          <Button variant="outlined">Export CSV</Button>
-        </Box>
+      <Typography variant="h4" gutterBottom>Rent Payments</Typography>
+      <Box sx={{ height: 600, width: '100%' }}>
+        <DataGrid
+          rows={rows}
+          columns={columns}
+          slots={{ toolbar: GridToolbar }}
+          pageSizeOptions={[10, 25, 50]}
+        />
       </Box>
-
-      <DataGrid
-        rows={payments}
-        columns={columns}
-        slots={{ toolbar: GridToolbar }}
-        initialState={{
-          pagination: { paginationModel: { pageSize: 10 } },
-        }}
-        pageSizeOptions={[10, 25, 50]}
-        sx={{ height: 600 }}
-      />
     </Box>
   );
 };
+
+export default RentPayment;
