@@ -1,27 +1,24 @@
-// PropertyManagement.jsx
 import React, { useState, useEffect } from 'react';
 import { 
-  DataGrid, GridActionsCellItem, GridToolbar, 
-  GridRowModes, GridRowEditMode 
+  DataGrid, GridActionsCellItem, GridToolbar
 } from '@mui/x-data-grid';
 import { 
-  Card, CardContent, Typography, Button, TextField, 
-  Grid, Box, Chip, Avatar, IconButton, InputAdornment,
+  Card, Typography, Button, TextField, 
+  Grid, Box, Chip, Avatar, InputAdornment,
   Dialog, DialogTitle, DialogContent, DialogActions
 } from '@mui/material';
 import { 
-  Add, Edit, Delete, Search, Apartment, 
-  CheckCircle, Cancel, HomeWork 
+  Add, Edit, Delete, Search, Apartment, HomeWork 
 } from '@mui/icons-material';
-import { Link } from 'react-router-dom';
-import { mockProperties, mockTenants } from '../mockData';
+import { mockProperties } from '../mockData';
 
 const PropertyManagement = () => {
-  const [properties, setProperties] = useState(mockProperties);
+  const [properties, setProperties] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [propertyDetails, setPropertyDetails] = useState({
+    id: null,
     name: '',
     address: '',
     totalUnits: 0,
@@ -30,10 +27,15 @@ const PropertyManagement = () => {
     photos: []
   });
 
+  // Initialize with mock data
+  useEffect(() => {
+    setProperties(mockProperties);
+  }, []);
+
   const columns = [
     { 
       field: 'photo', headerName: '', width: 80,
-      renderCell: (params) => (
+      renderCell: () => (
         <Avatar sx={{ bgcolor: 'primary.main' }}>
           <Apartment />
         </Avatar>
@@ -43,35 +45,39 @@ const PropertyManagement = () => {
     { field: 'address', headerName: 'Address', width: 250 },
     { 
       field: 'status', headerName: 'Status', width: 120,
-      renderCell: (params) => (
+      renderCell: ({ value }) => (
         <Chip 
-          label={params.value} 
-          color={params.value === 'Occupied' ? 'success' : 'warning'}
+          label={value} 
+          color={value === 'Occupied' ? 'success' : 'warning'}
           variant="outlined"
         />
       )
     },
     { 
       field: 'occupancy', headerName: 'Occupancy', width: 150,
-      valueGetter: (params) => `${params.row.occupiedUnits}/${params.row.totalUnits}`,
-      renderCell: (params) => (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography variant="body2">{params.value}</Typography>
-          <Typography variant="caption" color="text.secondary">
-            ({(params.row.occupiedUnits / params.row.totalUnits * 100).toFixed(1)}%)
-          </Typography>
-        </Box>
-      )
+      renderCell: ({ row }) => {
+        const percentage = row.totalUnits > 0 
+          ? (row.occupiedUnits / row.totalUnits * 100).toFixed(1)
+          : 0;
+        return (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="body2">{row.occupiedUnits}/{row.totalUnits}</Typography>
+            <Typography variant="caption" color="text.secondary">
+              ({percentage}%)
+            </Typography>
+          </Box>
+        )
+      }
     },
     { 
       field: 'rentAmount', headerName: 'Rent', width: 120,
-      valueFormatter: (params) => `$${params.value.toLocaleString()}`
+      valueFormatter: ({ value }) => `$${value.toLocaleString()}`
     },
     { 
       field: 'amenities', headerName: 'Amenities', width: 200,
-      renderCell: (params) => (
+      renderCell: ({ value }) => (
         <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-          {params.value.map((amenity, index) => (
+          {value.map((amenity, index) => (
             <Chip key={index} label={amenity} size="small" />
           ))}
         </Box>
@@ -81,16 +87,16 @@ const PropertyManagement = () => {
       field: 'actions',
       type: 'actions',
       width: 100,
-      getActions: (params) => [
+      getActions: ({ id }) => [
         <GridActionsCellItem
           icon={<Edit />}
           label="Edit"
-          onClick={() => handleEdit(params.row)}
+          onClick={() => handleEdit(id)}
         />,
         <GridActionsCellItem
           icon={<Delete color="error" />}
           label="Delete"
-          onClick={() => handleDelete(params.id)}
+          onClick={() => handleDelete(id)}
         />
       ]
     }
@@ -105,17 +111,23 @@ const PropertyManagement = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const newProperty = {
-      id: properties.length + 1,
-      ...propertyDetails,
-      occupiedUnits: 0,
-      status: 'Vacant'
-    };
-    setProperties([...properties, newProperty]);
+    if (editMode) {
+      setProperties(properties.map(prop => 
+        prop.id === propertyDetails.id ? propertyDetails : prop
+      ));
+    } else {
+      setProperties([...properties, {
+        ...propertyDetails,
+        id: Math.max(...properties.map(p => p.id)) + 1,
+        occupiedUnits: 0,
+        status: 'Vacant'
+      }]);
+    }
     handleCloseDialog();
   };
 
-  const handleEdit = (property) => {
+  const handleEdit = (id) => {
+    const property = properties.find(p => p.id === id);
     setPropertyDetails(property);
     setEditMode(true);
     setOpenDialog(true);
@@ -129,6 +141,7 @@ const PropertyManagement = () => {
     setOpenDialog(false);
     setEditMode(false);
     setPropertyDetails({
+      id: null,
       name: '',
       address: '',
       totalUnits: 0,
@@ -139,7 +152,7 @@ const PropertyManagement = () => {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 3, height: '100vh' }}>
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="h4">Property Management</Typography>
         <Button 
@@ -168,21 +181,28 @@ const PropertyManagement = () => {
             onChange={handleSearch}
           />
           <Chip label={`Total: ${properties.length}`} variant="outlined" />
-          <Chip label={`Occupied: ${properties.filter(p => p.status === 'Occupied').length}`} color="success" variant="outlined" />
-          <Chip label={`Vacant: ${properties.filter(p => p.status === 'Vacant').length}`} color="warning" variant="outlined" />
+          <Chip 
+            label={`Occupied: ${properties.filter(p => p.status === 'Occupied').length}`} 
+            color="success" 
+            variant="outlined" 
+          />
+          <Chip 
+            label={`Vacant: ${properties.filter(p => p.status === 'Vacant').length}`} 
+            color="warning" 
+            variant="outlined" 
+          />
         </Box>
       </Card>
 
-      <Box sx={{ height: 600, width: '100%' }}>
+      <Box sx={{ height: 'calc(100vh - 240px)', width: '100%' }}>
         <DataGrid
           rows={filteredProperties}
           columns={columns}
           slots={{ toolbar: GridToolbar }}
           pageSizeOptions={[10, 25, 50]}
-          initialState={{
-            pagination: { paginationModel: { pageSize: 10 } },
-          }}
+          initialState={{ pagination: { paginationModel: { pageSize: 10 } }}
           density="compact"
+          disableRowSelectionOnClick
         />
       </Box>
 
@@ -213,7 +233,10 @@ const PropertyManagement = () => {
                 type="number"
                 margin="normal"
                 value={propertyDetails.totalUnits}
-                onChange={e => setPropertyDetails({...propertyDetails, totalUnits: e.target.value})}
+                onChange={e => setPropertyDetails({
+                  ...propertyDetails, 
+                  totalUnits: Math.max(0, parseInt(e.target.value))
+                })}
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -224,7 +247,10 @@ const PropertyManagement = () => {
                 margin="normal"
                 InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }}
                 value={propertyDetails.rentAmount}
-                onChange={e => setPropertyDetails({...propertyDetails, rentAmount: e.target.value})}
+                onChange={e => setPropertyDetails({
+                  ...propertyDetails, 
+                  rentAmount: Math.max(0, parseFloat(e.target.value))
+                })}
               />
               <TextField
                 fullWidth
@@ -233,7 +259,7 @@ const PropertyManagement = () => {
                 value={propertyDetails.amenities.join(', ')}
                 onChange={e => setPropertyDetails({
                   ...propertyDetails, 
-                  amenities: e.target.value.split(',').map(a => a.trim())
+                  amenities: e.target.value.split(',').map(a => a.trim()).filter(a => a)
                 })}
               />
               <Box sx={{ mt: 2 }}>
