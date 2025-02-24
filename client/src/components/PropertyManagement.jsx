@@ -1,3 +1,4 @@
+import '@mui/x-data-grid/styles.css';
 import React, { useState, useEffect } from 'react';
 import { 
   DataGrid, GridActionsCellItem, GridToolbar
