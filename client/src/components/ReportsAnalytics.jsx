@@ -1,5 +1,4 @@
-// src/components/ReportsAnalytics.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Box, 
   Typography, 
@@ -17,15 +16,15 @@ import {
 import { 
   LineChart, 
   BarChart, 
-  PieChart,
-  DataGrid
+  PieChart 
 } from '@mui/x-charts';
+import { DataGrid } from '@mui/x-data-grid'; // Correct import
 import { DatePicker } from '@mui/x-date-pickers';
 import { mockFinancialData, mockPropertyMetrics } from '../mockData';
 
 const ReportsAnalytics = () => {
-  const [tabValue, setTabValue] = React.useState(0);
-  const [timeRange, setTimeRange] = React.useState('last_month');
+  const [tabValue, setTabValue] = useState(0);
+  const [timeRange, setTimeRange] = useState('last_month');
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
