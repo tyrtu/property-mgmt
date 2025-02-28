@@ -13,14 +13,14 @@
     "@fontsource/roboto": "^5.0.0",
     "@mui/icons-material": "^5.16.14",
     "@mui/material": "^5.16.14",
-    "@mui/x-charts": "^7.0.0",         // Updated from 6.x
-    "@mui/x-data-grid": "^7.0.0",      // Updated from 5.x
-    "@mui/x-date-pickers": "^7.0.0",   // New addition
-    "date-fns": "^2.30.0",             // Updated from 4.x
+    "@mui/x-charts": "^7.0.0",
+    "@mui/x-data-grid": "^7.0.0",
+    "@mui/x-date-pickers": "^7.0.0",
+    "date-fns": "^2.30.0",
+    "prop-types": "^15.8.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^7.2.0",
-    "prop-types": "^15.8.1"            // New addition
+    "react-router-dom": "^7.2.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",
