@@ -136,14 +136,14 @@ export const mockMaintenance = [
 export const mockNotifications = [
   {
     id: 1,
-    type: "payment",
+    type: "alert", // updated from "payment" to "alert"
     title: "Payment Received - $2200",
     date: "2023-10-01",
     details: "From John Doe (Unit 101A)"
   },
   {
     id: 2,
-    type: "maintenance",
+    type: "info", // updated from "maintenance" to "info"
     title: "New Maintenance Request",
     date: "2023-10-15",
     details: "Kitchen Faucet Leak reported"
@@ -151,8 +151,8 @@ export const mockNotifications = [
 ];
 
 export const financialData = {
-  income: [65000, 72000, 81000, 78000, 85000, 92000],
-  expenses: [32000, 35000, 38000, 41000, 39000, 42000],
+  income: [65000, 72000, 81000, 78000, 85000], // reduced to 5 elements
+  expenses: [32000, 35000, 38000, 41000, 39000], // reduced to 5 elements
   categories: [
     { name: "Maintenance", value: 12000 },
     { name: "Utilities", value: 8000 },
