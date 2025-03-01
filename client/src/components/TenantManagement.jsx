@@ -58,6 +58,25 @@ const TenantManagement = () => {
     setTenants(mockTenants);
   }, []);
 
+  // FIX: Added handleCloseDialog to close the dialog and reset form state
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setEditMode(false);
+    setCurrentTenant({
+      id: null,
+      name: '',
+      email: '',
+      phone: '',
+      emergencyContact: '',
+      propertyId: '',
+      rentAmount: '',
+      leaseStart: null,
+      leaseEnd: null,
+      paymentStatus: 'Pending',
+      leaseDocument: null,
+    });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (editMode) {
@@ -84,7 +103,7 @@ const TenantManagement = () => {
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setCurrentTenant({...currentTenant, leaseDocument: file.name});
+      setCurrentTenant({ ...currentTenant, leaseDocument: file.name });
     }
   };
 
@@ -246,7 +265,7 @@ const TenantManagement = () => {
                     required
                     variant="outlined"
                     value={currentTenant.name}
-                    onChange={e => setCurrentTenant({...currentTenant, name: e.target.value})}
+                    onChange={e => setCurrentTenant({ ...currentTenant, name: e.target.value })}
                     InputProps={{
                       startAdornment: <ContactPhone sx={{ color: 'action.active', mr: 1 }} />,
                     }}
@@ -258,7 +277,7 @@ const TenantManagement = () => {
                     required
                     variant="outlined"
                     value={currentTenant.email}
-                    onChange={e => setCurrentTenant({...currentTenant, email: e.target.value})}
+                    onChange={e => setCurrentTenant({ ...currentTenant, email: e.target.value })}
                     sx={{ mt: 2 }}
                   />
                   <TextField
@@ -267,7 +286,7 @@ const TenantManagement = () => {
                     required
                     variant="outlined"
                     value={currentTenant.phone}
-                    onChange={e => setCurrentTenant({...currentTenant, phone: e.target.value})}
+                    onChange={e => setCurrentTenant({ ...currentTenant, phone: e.target.value })}
                     sx={{ mt: 2 }}
                   />
                   <TextField
@@ -275,7 +294,7 @@ const TenantManagement = () => {
                     label="Emergency Contact"
                     variant="outlined"
                     value={currentTenant.emergencyContact}
-                    onChange={e => setCurrentTenant({...currentTenant, emergencyContact: e.target.value})}
+                    onChange={e => setCurrentTenant({ ...currentTenant, emergencyContact: e.target.value })}
                     sx={{ mt: 2 }}
                   />
                 </Grid>
@@ -287,7 +306,7 @@ const TenantManagement = () => {
                     required
                     variant="outlined"
                     value={currentTenant.propertyId}
-                    onChange={e => setCurrentTenant({...currentTenant, propertyId: e.target.value})}
+                    onChange={e => setCurrentTenant({ ...currentTenant, propertyId: e.target.value })}
                   >
                     {mockProperties.map(property => (
                       <MenuItem key={property.id} value={property.id}>
@@ -306,21 +325,21 @@ const TenantManagement = () => {
                       startAdornment: <InputAdornment position="start">$</InputAdornment>,
                     }}
                     value={currentTenant.rentAmount}
-                    onChange={e => setCurrentTenant({...currentTenant, rentAmount: e.target.value})}
+                    onChange={e => setCurrentTenant({ ...currentTenant, rentAmount: e.target.value })}
                     sx={{ mt: 2 }}
                   />
 
                   <DatePicker
                     label="Lease Start Date"
                     value={currentTenant.leaseStart}
-                    onChange={(newValue) => setCurrentTenant({...currentTenant, leaseStart: newValue})}
+                    onChange={(newValue) => setCurrentTenant({ ...currentTenant, leaseStart: newValue })}
                     renderInput={(params) => <TextField {...params} fullWidth sx={{ mt: 2 }} />}
                   />
 
                   <DatePicker
                     label="Lease End Date"
                     value={currentTenant.leaseEnd}
-                    onChange={(newValue) => setCurrentTenant({...currentTenant, leaseEnd: newValue})}
+                    onChange={(newValue) => setCurrentTenant({ ...currentTenant, leaseEnd: newValue })}
                     renderInput={(params) => <TextField {...params} fullWidth sx={{ mt: 2 }} />}
                   />
 
@@ -337,7 +356,7 @@ const TenantManagement = () => {
                   {currentTenant.leaseDocument && (
                     <Chip
                       label={currentTenant.leaseDocument}
-                      onDelete={() => setCurrentTenant({...currentTenant, leaseDocument: null})}
+                      onDelete={() => setCurrentTenant({ ...currentTenant, leaseDocument: null })}
                       sx={{ mt: 1 }}
                       deleteIcon={<Delete fontSize="small" />}
                     />
@@ -367,7 +386,7 @@ const TenantManagement = () => {
                   label="Payment Amount"
                   variant="outlined"
                   value={paymentDetails.amount}
-                  onChange={(e) => setPaymentDetails({...paymentDetails, amount: e.target.value})}
+                  onChange={(e) => setPaymentDetails({ ...paymentDetails, amount: e.target.value })}
                   InputProps={{
                     startAdornment: <InputAdornment position="start">$</InputAdornment>,
                   }}
@@ -377,7 +396,7 @@ const TenantManagement = () => {
                 <DatePicker
                   label="Payment Date"
                   value={paymentDetails.paymentDate}
-                  onChange={(newValue) => setPaymentDetails({...paymentDetails, paymentDate: newValue})}
+                  onChange={(newValue) => setPaymentDetails({ ...paymentDetails, paymentDate: newValue })}
                   renderInput={(params) => <TextField {...params} fullWidth />}
                 />
               </Grid>
@@ -386,7 +405,7 @@ const TenantManagement = () => {
                   fullWidth
                   label="Payment Method"
                   value={paymentDetails.paymentMethod}
-                  onChange={(e) => setPaymentDetails({...paymentDetails, paymentMethod: e.target.value})}
+                  onChange={(e) => setPaymentDetails({ ...paymentDetails, paymentMethod: e.target.value })}
                 >
                   <MenuItem value="Bank Transfer">Bank Transfer</MenuItem>
                   <MenuItem value="Credit Card">Credit Card</MenuItem>
@@ -400,7 +419,7 @@ const TenantManagement = () => {
                   label="Reference Number"
                   variant="outlined"
                   value={paymentDetails.referenceNumber}
-                  onChange={(e) => setPaymentDetails({...paymentDetails, referenceNumber: e.target.value})}
+                  onChange={(e) => setPaymentDetails({ ...paymentDetails, referenceNumber: e.target.value })}
                 />
               </Grid>
             </Grid>
