@@ -58,7 +58,6 @@ const TenantManagement = () => {
     setTenants(mockTenants);
   }, []);
 
-  // FIX: Added handleCloseDialog to close the dialog and reset form state
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setEditMode(false);
@@ -132,7 +131,12 @@ const TenantManagement = () => {
       field: 'property', 
       headerName: 'Property', 
       width: 200,
-      valueGetter: (params) => mockProperties.find(p => p.id === params.row.propertyId)?.name 
+      valueGetter: (params) => {
+        const propertyId = params?.row?.propertyId;
+        if (!propertyId) return '';
+        const property = mockProperties.find(p => p.id === propertyId);
+        return property ? property.name : '';
+      }
     },
     { 
       field: 'paymentStatus', 
@@ -155,8 +159,7 @@ const TenantManagement = () => {
       headerName: 'Lease Duration', 
       width: 200,
       valueGetter: (params) => 
-        `${new Date(params.row.leaseStart).toLocaleDateString()} - 
-         ${new Date(params.row.leaseEnd).toLocaleDateString()}`
+        `${new Date(params.row.leaseStart).toLocaleDateString()} - ${new Date(params.row.leaseEnd).toLocaleDateString()}`
     },
     { 
       field: 'actions', 
