@@ -21,7 +21,7 @@
     "@mui/x-date-pickers": "^7.27.1",
     "@mui/x-date-pickers-pro": "^7.27.1",
     "@date-io/date-fns": "^2.16.1",
-    "date-fns": "^2.29.3",
+    "date-fns": "^2.6.3",
     "prop-types": "^15.8.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -36,6 +36,6 @@
     "eslint-plugin-react": "^7.37.4",
     "vite": "^5.0.0",
     "vitest": "^1.6.1",
-    "@types/date-fns": "^2.29.3"
+    "@types/date-fns": "^2.6.3"
   }
 }
