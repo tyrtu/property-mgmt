@@ -36,6 +36,6 @@
     "eslint-plugin-react": "^7.37.4",
     "vite": "^5.0.0",
     "vitest": "^1.6.1",
-    "@types/date-fns": "^2.30.0"
+    "@types/date-fns": "^2.29.3"
   }
 }
