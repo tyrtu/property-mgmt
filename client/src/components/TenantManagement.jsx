@@ -132,9 +132,8 @@ const TenantManagement = () => {
       headerName: 'Property', 
       width: 200,
       valueGetter: (params) => {
-        const propertyId = params?.row?.propertyId;
-        if (!propertyId) return '';
-        const property = mockProperties.find(p => p.id === propertyId);
+        if (!params || !params.row || !params.row.propertyId) return '';
+        const property = mockProperties.find(p => p.id === params.row.propertyId);
         return property ? property.name : '';
       }
     },
@@ -158,8 +157,10 @@ const TenantManagement = () => {
       field: 'leaseDuration', 
       headerName: 'Lease Duration', 
       width: 200,
-      valueGetter: (params) => 
-        `${new Date(params.row.leaseStart).toLocaleDateString()} - ${new Date(params.row.leaseEnd).toLocaleDateString()}`
+      valueGetter: (params) => {
+        if (!params || !params.row || !params.row.leaseStart || !params.row.leaseEnd) return '';
+        return `${new Date(params.row.leaseStart).toLocaleDateString()} - ${new Date(params.row.leaseEnd).toLocaleDateString()}`;
+      }
     },
     { 
       field: 'actions', 
