@@ -20,7 +20,7 @@ function App() {
         <ErrorBoundary>
           {/* Temporarily show the Tenant Portal as the landing page */}
           <Routes>
-            <Route path="/" element={<TenantPortal />} />
+            <Route path="/*" element={<TenantPortal />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/properties" element={<PropertyManagement />} />
             <Route path="/tenants" element={<TenantManagement />} />
