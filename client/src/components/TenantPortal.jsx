@@ -5,6 +5,7 @@ import TenantPaymentHistory from './TenantPaymentHistory';
 import TenantMaintenance from './TenantMaintenance';
 import TenantNotifications from './TenantNotifications';
 import TenantProfile from './TenantProfile';
+import TenantRegister from './TenantRegister';
 
 const TenantPortal = () => {
   return (
@@ -16,6 +17,7 @@ const TenantPortal = () => {
       <Route path="/tenant/notifications" element={<TenantNotifications />} />
       <Route path="/tenant/profile" element={<TenantProfile />} />
       <Route path="*" element={<Navigate to="/tenant/login" />} />
+      <Route path="/tenant/register" element={<TenantRegister />} />
     </Routes>
   );
 };
