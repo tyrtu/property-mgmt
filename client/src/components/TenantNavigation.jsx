@@ -22,19 +22,19 @@ const TenantNavigation = () => {
         gap: 2
       }}
     >
-      <Button component={Link} to="dashboard"> {/* Removed `/tenant/` prefix */}
+      <Button component={Link} to="/tenant/dashboard"> {/* Now absolute path */}
         Dashboard
       </Button>
-      <Button component={Link} to="payments">
+      <Button component={Link} to="/tenant/payments">
         Payments
       </Button>
-      <Button component={Link} to="maintenance">
+      <Button component={Link} to="/tenant/maintenance">
         Maintenance
       </Button>
-      <Button component={Link} to="notifications">
+      <Button component={Link} to="/tenant/notifications">
         Notifications
       </Button>
-      <Button component={Link} to="profile">
+      <Button component={Link} to="/tenant/profile">
         Profile
       </Button>
       <Button onClick={handleLogout} color="error">
