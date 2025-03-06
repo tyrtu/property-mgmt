@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 import { Box, Button, IconButton, Drawer, List, ListItem, ListItemText } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu"; // Hamburger Icon
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { auth } from "../firebase"; // Firebase auth
 import { signOut } from "firebase/auth"; // Firebase sign-out function
 
 const TenantNavigation = () => {
   const [open, setOpen] = useState(false); // Toggle state for menu
   const navigate = useNavigate();
+  const location = useLocation(); // Get current route
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -40,7 +41,16 @@ const TenantNavigation = () => {
       {/* Full Navigation (Visible on larger screens) */}
       <Box sx={{ display: { xs: "none", md: "flex" }, gap: 2 }}>
         {navLinks.map((link) => (
-          <Button key={link.text} component={Link} to={link.path}>
+          <Button
+            key={link.text}
+            component={Link}
+            to={link.path}
+            sx={{
+              color: location.pathname === link.path ? "primary.main" : "inherit", // Highlight active page
+              fontWeight: location.pathname === link.path ? "bold" : "normal",
+              borderBottom: location.pathname === link.path ? "2px solid #1976d2" : "none", // Add bottom border
+            }}
+          >
             {link.text}
           </Button>
         ))}
@@ -54,7 +64,17 @@ const TenantNavigation = () => {
         <Box sx={{ width: 250 }}>
           <List>
             {navLinks.map((link) => (
-              <ListItem button key={link.text} component={Link} to={link.path} onClick={toggleDrawer(false)}>
+              <ListItem
+                button
+                key={link.text}
+                component={Link}
+                to={link.path}
+                onClick={toggleDrawer(false)}
+                sx={{
+                  backgroundColor: location.pathname === link.path ? "#e3f2fd" : "inherit", // Highlight active page
+                  fontWeight: location.pathname === link.path ? "bold" : "normal",
+                }}
+              >
                 <ListItemText primary={link.text} />
               </ListItem>
             ))}
