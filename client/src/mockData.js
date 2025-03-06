@@ -1,4 +1,5 @@
 // src/mockData.js
+
 export const mockProperties = [
   {
     id: 1,
@@ -13,7 +14,8 @@ export const mockProperties = [
     leaseTerms: "12-month minimum",
     managementContact: "manager@sunriseapts.com",
     yearBuilt: 2015,
-    lastRenovated: 2020
+    lastRenovated: 2020,
+    type: "Apartment" // Added from additional snippet
   },
   {
     id: 2,
@@ -28,7 +30,8 @@ export const mockProperties = [
     leaseTerms: "6-month flexible",
     managementContact: "villas@oceanview.com",
     yearBuilt: 2018,
-    lastRenovated: 2022
+    lastRenovated: 2022,
+    type: "Villa" // Added from additional snippet
   }
 ];
 
@@ -72,6 +75,13 @@ export const mockTenants = [
     notes: "Renewal pending",
     paymentHistory: [],
     leaseDocuments: []
+  },
+  // New minimal record from the additional snippet (id adjusted to avoid conflict)
+  {
+    id: 3,
+    name: "Jane Smith",
+    email: "jane@example.com",
+    propertyId: 2
   }
 ];
 
@@ -187,13 +197,13 @@ export const mockFinancialData = {
     { id: 1, label: 'Utilities', value: 8000 },
     { id: 2, label: 'Insurance', value: 15000 },
     { id: 3, label: 'Taxes', value: 22000 },
-    { id: 4, label: 'Repairs', value: 18000 },
+    { id: 4, label: 'Repairs', value: 18000 }
   ],
   transactions: [
     { id: 1, date: '2024-03-01', description: 'Monthly Rent Collection', category: 'Income', amount: 65000, property: 'Sunrise Apartments', status: 'Completed' },
     { id: 2, date: '2024-03-05', description: 'Plumbing Repair', category: 'Maintenance', amount: -1200, property: 'Ocean View Villas', status: 'Paid' },
     { id: 3, date: '2024-03-10', description: 'Property Insurance Payment', category: 'Insurance', amount: -15000, property: 'All Properties', status: 'Paid' },
-    { id: 4, date: '2024-03-15', description: 'Tax Payment', category: 'Taxes', amount: -22000, property: 'All Properties', status: 'Pending' },
+    { id: 4, date: '2024-03-15', description: 'Tax Payment', category: 'Taxes', amount: -22000, property: 'All Properties', status: 'Pending' }
   ]
 };
 

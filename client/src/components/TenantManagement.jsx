@@ -9,13 +9,14 @@ import {
 import { 
   PersonAdd, Edit, Payment, 
   Delete, Search, CloudUpload,
-  Description, ContactPhone, CalendarToday
+  Description, ContactPhone, CalendarToday, Send
 } from '@mui/icons-material';
 import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { mockTenants, mockProperties } from '../mockData';
 import { styled } from '@mui/material/styles';
+import SendNotification from './SendNotification'; // Import the SendNotification component
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
   '& .MuiBadge-badge': {
@@ -53,6 +54,8 @@ const TenantManagement = () => {
     paymentMethod: 'Bank Transfer',
     referenceNumber: ''
   });
+
+  const [notificationOpen, setNotificationOpen] = useState(false); // State for SendNotification dialog
 
   useEffect(() => {
     setTenants(mockTenants);
@@ -200,11 +203,10 @@ const TenantManagement = () => {
             </Typography>
             <Button 
               variant="contained" 
-              startIcon={<PersonAdd />}
-              onClick={() => setOpenDialog(true)}
-              sx={{ borderRadius: 2 }}
+              startIcon={<Send />}
+              onClick={() => setNotificationOpen(true)}
             >
-              Add New Tenant
+              Send Notification
             </Button>
           </Box>
 
@@ -437,6 +439,13 @@ const TenantManagement = () => {
             </Button>
           </DialogActions>
         </Dialog>
+
+        {/* Send Notification Dialog */}
+        <SendNotification
+          tenants={tenants} // Pass the list of tenants
+          open={notificationOpen}
+          onClose={() => setNotificationOpen(false)}
+        />
       </Container>
     </LocalizationProvider>
   );
