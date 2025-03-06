@@ -2,6 +2,7 @@
   "dependencies": {
     "@mui/material": "^5.14.0",
     "@mui/x-data-grid": "^6.0.0",
-    "firebase": "^11.4.0"
+    "firebase": "^11.4.0",
+    "react-firebase-hooks": "^5.1.1"
   }
 }
