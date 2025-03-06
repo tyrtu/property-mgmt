@@ -28,6 +28,9 @@ const TenantNavigation = () => (
     <Button component={Link} to="/tenant/profile">
       Profile
     </Button>
+    <Button component={Link} to="/" color="error">
+      Logout
+    </Button>
   </Box>
 );
 
