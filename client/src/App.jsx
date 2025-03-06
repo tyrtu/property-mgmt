@@ -10,6 +10,7 @@ import MaintenanceRequests from './components/MaintenanceRequests';
 import ReportsAnalytics from './components/ReportsAnalytics';
 import Navigation from './components/Navigation';
 import ErrorBoundary from './components/ErrorBoundary';
+import TenantPortal from './components/TenantPortal';
 
 function App() {
   return (
@@ -17,9 +18,9 @@ function App() {
       <CssBaseline />
       <Router>
         <ErrorBoundary>
-          <Navigation />
+          {/* Temporarily show the Tenant Portal as the landing page */}
           <Routes>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={<TenantPortal />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/properties" element={<PropertyManagement />} />
             <Route path="/tenants" element={<TenantManagement />} />
