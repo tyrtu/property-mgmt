@@ -1,6 +1,6 @@
 // src/App.jsx
 import { CssBaseline, ThemeProvider } from '@mui/material';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import theme from './theme';
 import Dashboard from './components/Dashboard';
 import PropertyManagement from './components/PropertyManagement';
@@ -11,6 +11,7 @@ import ReportsAnalytics from './components/ReportsAnalytics';
 import Navigation from './components/Navigation';
 import ErrorBoundary from './components/ErrorBoundary';
 import TenantPortal from './components/TenantPortal';
+import TenantDashboard from './components/TenantDashboard';
 
 function App() {
   return (
@@ -18,18 +19,20 @@ function App() {
       <CssBaseline />
       <Router>
         <ErrorBoundary>
-          <Navigation /> {/* Admin Navigation */}
           <Routes>
-            {/* Admin Routes */}
+            {/* 🔹 First page ("/") now goes to Tenant Dashboard */}
+            <Route path="/" element={<Navigate to="/tenant/dashboard" />} />
+
+            {/* 🔹 Tenant Portal (All tenant-related pages) */}
+            <Route path="/tenant/*" element={<TenantPortal />} />
+
+            {/* 🔹 Admin Pages */}
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/properties" element={<PropertyManagement />} />
             <Route path="/tenants" element={<TenantManagement />} />
             <Route path="/payments" element={<RentPayment />} />
             <Route path="/maintenance" element={<MaintenanceRequests />} />
             <Route path="/reports" element={<ReportsAnalytics />} />
-
-            {/* Tenant Portal */}
-            <Route path="/tenant/*" element={<TenantPortal />} /> 
           </Routes>
         </ErrorBoundary>
       </Router>

@@ -10,14 +10,15 @@ import TenantProfile from './TenantProfile';
 const TenantPortal = () => {
   return (
     <>
-      <TenantNavigation /> {/* Navigation at the top */}
+      <TenantNavigation /> {/* Tenant navigation always visible */}
       <Routes>
-        <Route path="/tenant/dashboard" element={<TenantDashboard />} /> 
-        <Route path="/tenant/payments" element={<TenantPaymentHistory />} />
-        <Route path="/tenant/maintenance" element={<TenantMaintenance />} />
-        <Route path="/tenant/notifications" element={<TenantNotifications />} />
-        <Route path="/tenant/profile" element={<TenantProfile />} />
-        <Route path="/tenant" element={<Navigate to="/tenant/dashboard" />} /> {/* Default Redirect */}
+        <Route path="/dashboard" element={<TenantDashboard />} />
+        <Route path="/payments" element={<TenantPaymentHistory />} />
+        <Route path="/maintenance" element={<TenantMaintenance />} />
+        <Route path="/notifications" element={<TenantNotifications />} />
+        <Route path="/profile" element={<TenantProfile />} />
+        {/* 🔹 Default: Redirect to Tenant Dashboard */}
+        <Route path="*" element={<Navigate to="/tenant/dashboard" />} />
       </Routes>
     </>
   );
