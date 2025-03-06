@@ -1,4 +1,3 @@
-// src/App.jsx
 import { CssBaseline, ThemeProvider } from '@mui/material';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import theme from './theme';
@@ -11,6 +10,8 @@ import ReportsAnalytics from './components/ReportsAnalytics';
 import Navigation from './components/Navigation';
 import ErrorBoundary from './components/ErrorBoundary';
 import TenantPortal from './components/TenantPortal';
+import TenantLogin from './components/TenantLogin';
+import TenantRegister from './components/TenantRegister';
 
 function App() {
   return (
@@ -19,10 +20,14 @@ function App() {
       <Router>
         <ErrorBoundary>
           <Routes>
-            {/* 🔹 First page ("/") now goes to Tenant Dashboard */}
-            <Route path="/" element={<Navigate to="/tenant/dashboard" />} />
+            {/* 🔹 First page redirects to Login */}
+            <Route path="/" element={<Navigate to="/tenant/login" />} />
 
-            {/* 🔹 Tenant Portal (All tenant-related pages) */}
+            {/* 🔹 Tenant Authentication Pages */}
+            <Route path="/tenant/login" element={<TenantLogin />} />
+            <Route path="/tenant/register" element={<TenantRegister />} />
+
+            {/* 🔹 Tenant Portal (Protected Routes) */}
             <Route path="/tenant/*" element={<TenantPortal />} />
 
             {/* 🔹 Admin Pages */}

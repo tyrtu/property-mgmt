@@ -4,9 +4,9 @@ import { auth } from '../firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
 
 const PrivateRoute = ({ children }) => {
-  const [user, loading] = useAuthState(auth); // ✅ Get current Firebase user
+  const [user, loading] = useAuthState(auth); // ✅ Get Firebase user
 
-  if (loading) return <div>Loading...</div>; // Show loading while checking auth
+  if (loading) return <div>Loading...</div>; // ✅ Show loading while checking auth
   return user ? children : <Navigate to="/tenant/login" />; // ✅ Redirect if not logged in
 };
 

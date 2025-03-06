@@ -5,7 +5,7 @@ import TenantPaymentHistory from './TenantPaymentHistory';
 import TenantMaintenance from './TenantMaintenance';
 import TenantNotifications from './TenantNotifications';
 import TenantProfile from './TenantProfile';
-import PrivateRoute from './PrivateRoute'; // ✅ Import PrivateRoute
+import PrivateRoute from './PrivateRoute'; // ✅ Protect routes
 
 const TenantPortal = () => {
   return (
