@@ -1,16 +1,46 @@
 // src/components/TenantPaymentHistory.jsx
-import React from 'react';
-import { Box, Typography, Chip } from '@mui/material';
+import React, { useState } from 'react';
+import { Box, Typography, Chip, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from '@mui/material';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 import TenantNavigation from './TenantNavigation';
 
 const TenantPaymentHistory = () => {
-  // Dummy payment records; replace with real tenant payment data.
-  const payments = [
+  // Payment records in state to allow updates
+  const [payments, setPayments] = useState([
     { id: 1, amount: 1200, dueDate: '2024-03-01', status: 'Paid' },
     { id: 2, amount: 1200, dueDate: '2024-04-01', status: 'Pending' },
     { id: 3, amount: 1200, dueDate: '2024-05-01', status: 'Upcoming' }
-  ];
+  ]);
+
+  const [openPaymentModal, setOpenPaymentModal] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState(null);
+
+  // Open modal for selected payment record
+  const handleOpenPaymentModal = (payment) => {
+    setSelectedPayment(payment);
+    setOpenPaymentModal(true);
+  };
+
+  // Close the payment modal
+  const handleClosePaymentModal = () => {
+    setOpenPaymentModal(false);
+    setSelectedPayment(null);
+  };
+
+  // Simulate confirming the payment; update the status to "Paid"
+  const handleConfirmPayment = () => {
+    setPayments((prevPayments) =>
+      prevPayments.map((payment) =>
+        payment.id === selectedPayment.id ? { ...payment, status: 'Paid' } : payment
+      )
+    );
+    handleClosePaymentModal();
+  };
+
+  // Calculate total outstanding amount for payments not marked as Paid
+  const totalOutstanding = payments.reduce((acc, payment) => {
+    return payment.status !== 'Paid' ? acc + payment.amount : acc;
+  }, 0);
 
   const columns = [
     { field: 'id', headerName: 'ID', width: 70 },
@@ -37,14 +67,34 @@ const TenantPaymentHistory = () => {
           }
         />
       )
+    },
+    {
+      field: 'action',
+      headerName: 'Action',
+      width: 150,
+      renderCell: (params) => {
+        if (params.row.status === 'Paid') return null;
+        return (
+          <Button
+            variant="contained"
+            size="small"
+            onClick={() => handleOpenPaymentModal(params.row)}
+          >
+            Pay Now
+          </Button>
+        );
+      }
     }
   ];
 
   return (
     <Box sx={{ backgroundColor: 'background.default', minHeight: '100vh', p: 3 }}>
       <TenantNavigation />
-      <Typography variant="h4" sx={{ mb: 3 }}>
+      <Typography variant="h4" sx={{ mb: 2 }}>
         Payment History
+      </Typography>
+      <Typography variant="h6" sx={{ mb: 2 }}>
+        Total Outstanding Amount: ${totalOutstanding}
       </Typography>
       <Box sx={{ height: 600 }}>
         <DataGrid
@@ -54,6 +104,34 @@ const TenantPaymentHistory = () => {
           pageSizeOptions={[5, 10, 25]}
         />
       </Box>
+
+      {/* Payment Modal */}
+      <Dialog open={openPaymentModal} onClose={handleClosePaymentModal}>
+        <DialogTitle>Make Payment</DialogTitle>
+        <DialogContent>
+          {selectedPayment && (
+            <>
+              <Typography variant="body1">
+                <strong>Amount:</strong> ${selectedPayment.amount}
+              </Typography>
+              <Typography variant="body1">
+                <strong>Due Date:</strong> {selectedPayment.dueDate}
+              </Typography>
+              <Typography variant="body1">
+                <strong>Status:</strong> {selectedPayment.status}
+              </Typography>
+              {/* Optional: Add additional inputs for payment method, transaction details, etc. */}
+              <TextField label="Payment Method" fullWidth margin="normal" />
+            </>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClosePaymentModal}>Cancel</Button>
+          <Button variant="contained" onClick={handleConfirmPayment}>
+            Confirm Payment
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
