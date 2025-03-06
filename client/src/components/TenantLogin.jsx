@@ -13,6 +13,8 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
+import { signInWithEmailAndPassword } from 'firebase/auth'; // ✅ Import Firebase Auth
+import { auth } from '../firebase'; // ✅ Import Firebase config
 
 const TenantLogin = () => {
   const [email, setEmail] = useState('');
@@ -27,38 +29,25 @@ const TenantLogin = () => {
     setShowPassword((prev) => !prev);
   };
 
-  // Handle login submission
+  // Handle login with Firebase
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
-    // Basic input validation
     if (!email || !password) {
       setError('Please fill in all fields.');
       setLoading(false);
       return;
     }
 
-    // Simulate API call for authentication
     try {
-      // Replace with actual API call
-      const response = await fetch('/api/tenant/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('tenantToken', data.token); // Store token in localStorage
-        navigate('/tenant/dashboard'); // Redirect to tenant dashboard
-      } else {
-        const errorData = await response.json();
-        setError(errorData.message || 'Login failed. Please try again.');
-      }
+      // ✅ Firebase login
+      await signInWithEmailAndPassword(auth, email, password);
+      localStorage.setItem('tenantToken', 'dummy_token'); // Store a fake token for now
+      navigate('/tenant/dashboard'); // ✅ Redirect to Tenant Dashboard
     } catch (err) {
-      setError('An error occurred. Please try again later.');
+      setError(err.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }

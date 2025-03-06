@@ -1,4 +1,3 @@
-// src/components/TenantRegister.jsx
 import React, { useState } from 'react';
 import {
   Box,
@@ -14,6 +13,8 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
+import { createUserWithEmailAndPassword } from 'firebase/auth'; // ✅ Import Firebase
+import { auth } from '../firebase'; // ✅ Import Firebase Auth
 
 const TenantRegister = () => {
   const [name, setName] = useState('');
@@ -53,22 +54,17 @@ const TenantRegister = () => {
     }
 
     try {
-      // Simulate API request for registration
-      const response = await fetch('/api/tenant/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, phone, password }),
-      });
+      // ✅ Register user with Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
 
-      if (response.ok) {
-        setSuccess('Registration successful! Redirecting to login...');
-        setTimeout(() => navigate('/tenant/login'), 2000); // Redirect to login after 2 seconds
-      } else {
-        const errorData = await response.json();
-        setError(errorData.message || 'Registration failed. Please try again.');
-      }
+      // ✅ Store additional data (For now, in localStorage. Later, use Firestore)
+      localStorage.setItem('tenantUser', JSON.stringify({ uid: user.uid, name, email, phone }));
+
+      setSuccess('Registration successful! Redirecting to login...');
+      setTimeout(() => navigate('/tenant/login'), 2000); // Redirect after 2s
     } catch (err) {
-      setError('An error occurred. Please try again later.');
+      setError(err.message);
     } finally {
       setLoading(false);
     }

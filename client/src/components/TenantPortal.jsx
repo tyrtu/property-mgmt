@@ -1,4 +1,3 @@
-// src/components/TenantPortal.jsx
 import { Routes, Route } from 'react-router-dom';
 import TenantNavigation from './TenantNavigation';
 import TenantDashboard from './TenantDashboard';
@@ -6,19 +5,19 @@ import TenantPaymentHistory from './TenantPaymentHistory';
 import TenantMaintenance from './TenantMaintenance';
 import TenantNotifications from './TenantNotifications';
 import TenantProfile from './TenantProfile';
+import PrivateRoute from './PrivateRoute'; // ✅ Import PrivateRoute
 
 const TenantPortal = () => {
   return (
     <>
-      <TenantNavigation /> {/* Tenant navigation always visible */}
+      <TenantNavigation /> {/* Always visible */}
       <Routes>
-        <Route path="dashboard" element={<TenantDashboard />} />
-        <Route path="payments" element={<TenantPaymentHistory />} />
-        <Route path="maintenance" element={<TenantMaintenance />} />
-        <Route path="notifications" element={<TenantNotifications />} />
-        <Route path="profile" element={<TenantProfile />} />
-        {/* 🔹 Default: Show Tenant Dashboard instead of redirecting */}
-        <Route path="*" element={<TenantDashboard />} />
+        <Route path="dashboard" element={<PrivateRoute><TenantDashboard /></PrivateRoute>} />
+        <Route path="payments" element={<PrivateRoute><TenantPaymentHistory /></PrivateRoute>} />
+        <Route path="maintenance" element={<PrivateRoute><TenantMaintenance /></PrivateRoute>} />
+        <Route path="notifications" element={<PrivateRoute><TenantNotifications /></PrivateRoute>} />
+        <Route path="profile" element={<PrivateRoute><TenantProfile /></PrivateRoute>} />
+        <Route path="*" element={<PrivateRoute><TenantDashboard /></PrivateRoute>} />
       </Routes>
     </>
   );
