@@ -11,7 +11,6 @@ import ReportsAnalytics from './components/ReportsAnalytics';
 import Navigation from './components/Navigation';
 import ErrorBoundary from './components/ErrorBoundary';
 import TenantPortal from './components/TenantPortal';
-import TenantDashboard from './components/TenantDashboard';
 
 function App() {
   return (

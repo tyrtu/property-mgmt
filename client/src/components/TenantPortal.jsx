@@ -1,5 +1,5 @@
 // src/components/TenantPortal.jsx
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import TenantNavigation from './TenantNavigation';
 import TenantDashboard from './TenantDashboard';
 import TenantPaymentHistory from './TenantPaymentHistory';
@@ -12,13 +12,13 @@ const TenantPortal = () => {
     <>
       <TenantNavigation /> {/* Tenant navigation always visible */}
       <Routes>
-        <Route path="/dashboard" element={<TenantDashboard />} />
-        <Route path="/payments" element={<TenantPaymentHistory />} />
-        <Route path="/maintenance" element={<TenantMaintenance />} />
-        <Route path="/notifications" element={<TenantNotifications />} />
-        <Route path="/profile" element={<TenantProfile />} />
-        {/* 🔹 Default: Redirect to Tenant Dashboard */}
-        <Route path="*" element={<Navigate to="/tenant/dashboard" />} />
+        <Route path="dashboard" element={<TenantDashboard />} />
+        <Route path="payments" element={<TenantPaymentHistory />} />
+        <Route path="maintenance" element={<TenantMaintenance />} />
+        <Route path="notifications" element={<TenantNotifications />} />
+        <Route path="profile" element={<TenantProfile />} />
+        {/* 🔹 Default: Show Tenant Dashboard instead of redirecting */}
+        <Route path="*" element={<TenantDashboard />} />
       </Routes>
     </>
   );
