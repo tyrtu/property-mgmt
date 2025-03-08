@@ -126,4 +126,5 @@ const TenantRegister = () => {
 
       {/* Success Snackbar */}
       <Snackbar open={!!success} autoHideDuration={6000} onClose={() => setSuccess("")}>
-        <Alert severity="success">{success
+         <Alert severity="success">{success}</Alert> {/* ✅ Fix: Close Alert properly */}
+      </Snackbar>
