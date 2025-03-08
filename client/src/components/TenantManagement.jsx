@@ -122,9 +122,11 @@ const TenantManagement = () => {
               {params.row.name[0]}
             </Avatar>
           </StyledBadge>
-          <Box>
-            <Typography variant="subtitle1">{params.row.name}</Typography>
-            <Typography variant="caption" color="text.secondary">
+          <Box sx={{ overflow: 'hidden' }}>
+            <Typography variant="subtitle1" noWrap>
+              {params.row.name}
+            </Typography>
+            <Typography variant="caption" color="text.secondary" noWrap>
               {params.row.email}
             </Typography>
           </Box>
