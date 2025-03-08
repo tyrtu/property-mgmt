@@ -20,6 +20,7 @@ import {
 } from '@mui/x-charts';
 import { DataGrid } from '@mui/x-data-grid';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import Navigation from './Navigation';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { mockFinancialData, mockPropertyMetrics } from '../mockData';
 

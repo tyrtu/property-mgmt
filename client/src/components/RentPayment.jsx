@@ -1,6 +1,7 @@
 // src/components/RentPayment.jsx
 import React from 'react';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
+import Navigation from './Navigation';
 import { Box, Typography, Chip, Button } from '@mui/material';
 
 const RentPayment = () => {

@@ -5,6 +5,7 @@ import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper
 } from '@mui/material';
 import { Add, Edit, Delete, Search, Apartment } from '@mui/icons-material';
+import Navigation from './Navigation';
 import { mockProperties } from '../mockData';
 
 const PropertyManagement = () => {

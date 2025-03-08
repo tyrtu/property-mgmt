@@ -16,6 +16,7 @@ import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { mockTenants, mockProperties } from '../mockData';
 import { styled } from '@mui/material/styles';
+import Navigation from './Navigation';
 import SendNotification from './SendNotification'; // Import the SendNotification component
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
