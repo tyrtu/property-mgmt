@@ -15,7 +15,7 @@ export const mockProperties = [
     managementContact: "manager@sunriseapts.com",
     yearBuilt: 2015,
     lastRenovated: 2020,
-    type: "Apartment" // Added from additional snippet
+    type: "Apartment",
   },
   {
     id: 2,
@@ -31,8 +31,8 @@ export const mockProperties = [
     managementContact: "villas@oceanview.com",
     yearBuilt: 2018,
     lastRenovated: 2022,
-    type: "Villa" // Added from additional snippet
-  }
+    type: "Villa",
+  },
 ];
 
 export const mockTenants = [
@@ -50,11 +50,18 @@ export const mockTenants = [
     emergencyContact: {
       name: "Jane Doe",
       relationship: "Spouse",
-      phone: "555-987-6543"
+      phone: "555-987-6543",
     },
     notes: "Prefers email communication",
-    paymentHistory: [],
-    leaseDocuments: []
+    paymentHistory: [
+      {
+        id: 1,
+        amount: 2200,
+        date: "2023-10-01",
+        status: "Paid",
+      },
+    ],
+    leaseDocuments: ["lease_agreement_1.pdf"],
   },
   {
     id: 2,
@@ -70,19 +77,46 @@ export const mockTenants = [
     emergencyContact: {
       name: "Mike Smith",
       relationship: "Partner",
-      phone: "555-876-5432"
+      phone: "555-876-5432",
     },
     notes: "Renewal pending",
-    paymentHistory: [],
-    leaseDocuments: []
+    paymentHistory: [
+      {
+        id: 1,
+        amount: 3200,
+        date: "2023-10-03",
+        status: "Paid",
+      },
+    ],
+    leaseDocuments: ["lease_agreement_2.pdf"],
   },
-  // New minimal record from the additional snippet (id adjusted to avoid conflict)
   {
     id: 3,
     name: "Jane Smith",
     email: "jane@example.com",
-    propertyId: 2
-  }
+    phone: "555-345-6789",
+    propertyId: 2,
+    unitNumber: "205C",
+    leaseStart: "2023-05-01",
+    leaseEnd: "2024-05-01",
+    rentAmount: 3200,
+    paymentMethod: "Credit Card",
+    emergencyContact: {
+      name: "John Smith",
+      relationship: "Partner",
+      phone: "555-765-4321",
+    },
+    notes: "Prefers phone communication",
+    paymentHistory: [
+      {
+        id: 1,
+        amount: 3200,
+        date: "2023-10-05",
+        status: "Paid",
+      },
+    ],
+    leaseDocuments: ["lease_agreement_3.pdf"],
+  },
 ];
 
 export const mockPayments = [
@@ -96,7 +130,7 @@ export const mockPayments = [
     paymentDate: "2023-10-01",
     method: "ACH",
     reference: "CHK12345",
-    invoiceNumber: "INV-2023-001"
+    invoiceNumber: "INV-2023-001",
   },
   {
     id: 2,
@@ -106,8 +140,8 @@ export const mockPayments = [
     status: "Pending",
     dueDate: "2023-11-01",
     method: "ACH",
-    reference: "",
-    invoiceNumber: "INV-2023-002"
+    reference: "CHK67890",
+    invoiceNumber: "INV-2023-002",
   },
   {
     id: 3,
@@ -119,8 +153,8 @@ export const mockPayments = [
     paymentDate: "2023-10-03",
     method: "Credit Card",
     reference: "CC98765",
-    invoiceNumber: "INV-2023-003"
-  }
+    invoiceNumber: "INV-2023-003",
+  },
 ];
 
 export const mockMaintenance = [
@@ -138,7 +172,7 @@ export const mockMaintenance = [
     updatedAt: "2023-10-16",
     photos: ["https://via.placeholder.com/200"],
     cost: 250,
-    completionDate: "2023-10-17"
+    completionDate: "2023-10-17",
   },
   {
     id: 2,
@@ -149,13 +183,13 @@ export const mockMaintenance = [
     category: "HVAC",
     priority: "Urgent",
     status: "Pending",
-    assignedTo: "",
+    assignedTo: "CoolAir HVAC",
     createdAt: "2023-10-18",
     updatedAt: "2023-10-18",
     photos: [],
-    cost: null,
-    completionDate: null
-  }
+    cost: 500,
+    completionDate: "2023-10-20",
+  },
 ];
 
 export const mockNotifications = [
@@ -166,7 +200,7 @@ export const mockNotifications = [
     date: "2023-10-01",
     details: "From John Doe (Unit 101A)",
     category: "Payment",
-    read: false
+    read: false,
   },
   {
     id: 2,
@@ -175,7 +209,7 @@ export const mockNotifications = [
     date: "2023-10-15",
     details: "Kitchen Faucet Leak reported",
     category: "Maintenance",
-    read: false
+    read: false,
   },
   {
     id: 3,
@@ -184,34 +218,66 @@ export const mockNotifications = [
     date: "2023-11-01",
     details: "Lease for Unit 305B expiring in 30 days",
     category: "Lease",
-    read: false
-  }
+    read: false,
+  },
 ];
 
 export const mockFinancialData = {
-  months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+  months: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
   income: [65000, 72000, 81000, 78000, 85000, 92000],
   expenses: [32000, 35000, 38000, 41000, 39000, 42000],
   expenseCategories: [
-    { id: 0, label: 'Maintenance', value: 12000 },
-    { id: 1, label: 'Utilities', value: 8000 },
-    { id: 2, label: 'Insurance', value: 15000 },
-    { id: 3, label: 'Taxes', value: 22000 },
-    { id: 4, label: 'Repairs', value: 18000 }
+    { id: 0, label: "Maintenance", value: 12000 },
+    { id: 1, label: "Utilities", value: 8000 },
+    { id: 2, label: "Insurance", value: 15000 },
+    { id: 3, label: "Taxes", value: 22000 },
+    { id: 4, label: "Repairs", value: 18000 },
   ],
   transactions: [
-    { id: 1, date: '2024-03-01', description: 'Monthly Rent Collection', category: 'Income', amount: 65000, property: 'Sunrise Apartments', status: 'Completed' },
-    { id: 2, date: '2024-03-05', description: 'Plumbing Repair', category: 'Maintenance', amount: -1200, property: 'Ocean View Villas', status: 'Paid' },
-    { id: 3, date: '2024-03-10', description: 'Property Insurance Payment', category: 'Insurance', amount: -15000, property: 'All Properties', status: 'Paid' },
-    { id: 4, date: '2024-03-15', description: 'Tax Payment', category: 'Taxes', amount: -22000, property: 'All Properties', status: 'Pending' }
-  ]
+    {
+      id: 1,
+      date: "2024-03-01",
+      description: "Monthly Rent Collection",
+      category: "Income",
+      amount: 65000,
+      property: "Sunrise Apartments",
+      status: "Completed",
+    },
+    {
+      id: 2,
+      date: "2024-03-05",
+      description: "Plumbing Repair",
+      category: "Maintenance",
+      amount: -1200,
+      property: "Ocean View Villas",
+      status: "Paid",
+    },
+    {
+      id: 3,
+      date: "2024-03-10",
+      description: "Property Insurance Payment",
+      category: "Insurance",
+      amount: -15000,
+      property: "All Properties",
+      status: "Paid",
+    },
+    {
+      id: 4,
+      date: "2024-03-15",
+      description: "Tax Payment",
+      category: "Taxes",
+      amount: -22000,
+      property: "All Properties",
+      status: "Pending",
+    },
+  ],
 };
 
 export const mockPropertyMetrics = {
-  properties: ['Sunrise', 'Ocean View', 'Mountain Top', 'City Center'],
+  properties: ["Sunrise", "Ocean View", "Mountain Top", "City Center"],
   occupancyRates: [92, 88, 95, 82],
-  months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+  months: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
   maintenanceCosts: [3200, 2800, 4100, 3700, 3900, 4500],
   tenantSatisfaction: [4.8, 4.5, 4.9, 4.3],
-  rentalYield: [6.2, 5.8, 7.1, 5.5]
+  rentalYield: [6.2, 5.8, 7.1, 5.5],
 };
