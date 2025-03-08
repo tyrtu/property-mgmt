@@ -40,7 +40,7 @@ const TenantManagement = () => {
     name: '',
     email: '',
     phone: '',
-    emergencyContact: '',
+    emergencyContact: { name: '', relationship: '', phone: '' }, // Updated to match mock data
     propertyId: '',
     rentAmount: '',
     leaseStart: null,
@@ -74,7 +74,7 @@ const TenantManagement = () => {
       name: '',
       email: '',
       phone: '',
-      emergencyContact: '',
+      emergencyContact: { name: '', relationship: '', phone: '' }, // Reset to match structure
       propertyId: '',
       rentAmount: '',
       leaseStart: null,
@@ -313,10 +313,26 @@ const TenantManagement = () => {
                   />
                   <TextField
                     fullWidth
-                    label="Emergency Contact"
+                    label="Emergency Contact Name"
                     variant="outlined"
-                    value={currentTenant.emergencyContact}
-                    onChange={e => setCurrentTenant({ ...currentTenant, emergencyContact: e.target.value })}
+                    value={currentTenant.emergencyContact.name}
+                    onChange={e => setCurrentTenant({ ...currentTenant, emergencyContact: { ...currentTenant.emergencyContact, name: e.target.value } })}
+                    sx={{ mt: 2 }}
+                  />
+                  <TextField
+                    fullWidth
+                    label="Emergency Contact Relationship"
+                    variant="outlined"
+                    value={currentTenant.emergencyContact.relationship}
+                    onChange={e => setCurrentTenant({ ...currentTenant, emergencyContact: { ...currentTenant.emergencyContact, relationship: e.target.value } })}
+                    sx={{ mt: 2 }}
+                  />
+                  <TextField
+                    fullWidth
+                    label="Emergency Contact Phone"
+                    variant="outlined"
+                    value={currentTenant.emergencyContact.phone}
+                    onChange={e => setCurrentTenant({ ...currentTenant, emergencyContact: { ...currentTenant.emergencyContact, phone: e.target.value } })}
                     sx={{ mt: 2 }}
                   />
                 </Grid>
@@ -474,7 +490,7 @@ const TenantManagement = () => {
                     Phone: {viewTenant.phone}
                   </Typography>
                   <Typography variant="body2">
-                    Emergency Contact: {viewTenant.emergencyContact}
+                    Emergency Contact: {viewTenant.emergencyContact.name} ({viewTenant.emergencyContact.relationship}) - {viewTenant.emergencyContact.phone}
                   </Typography>
                 </Grid>
                 <Grid item xs={12}>
