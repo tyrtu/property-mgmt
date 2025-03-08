@@ -34,8 +34,8 @@ const ReportsAnalytics = () => {
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
+      <Navigation />
       <Box sx={{ p: 3, backgroundColor: 'background.default', minHeight: '100vh' }}>
-        <Navigation />
         <Typography variant="h4" gutterBottom sx={{ 
           mb: 4, 
           fontWeight: 700,

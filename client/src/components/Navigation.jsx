@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { AppBar, Toolbar, Button, Box, IconButton, Drawer, List, ListItem, ListItemText } from '@mui/material';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 
 const Navigation = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const location = useLocation(); // ✅ Get current path
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -21,19 +22,29 @@ const Navigation = () => {
 
   return (
     <>
-      {/* ✅ App Bar */}
-      <AppBar position="static">
+      {/* ✅ Admin Navbar */}
+      <AppBar position="static" color="primary">
         <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
           
-          {/* ✅ Hamburger Icon (Small Screens) */}
+          {/* ✅ Hamburger Menu for Small Screens */}
           <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleDrawerToggle} sx={{ display: { xs: 'block', md: 'none' } }}>
             <MenuIcon />
           </IconButton>
 
-          {/* ✅ Full Navigation (Large Screens) */}
+          {/* ✅ Full Navigation (Large Screens) with Active Highlighting */}
           <Box sx={{ display: { xs: 'none', md: 'block' } }}>
             {navItems.map((item) => (
-              <Button key={item.text} color="inherit" component={Link} to={item.path}>
+              <Button 
+                key={item.text} 
+                color="inherit" 
+                component={Link} 
+                to={item.path}
+                sx={{
+                  fontWeight: location.pathname === item.path ? 'bold' : 'normal',
+                  bgcolor: location.pathname === item.path ? 'secondary.light' : 'transparent',
+                  '&:hover': { bgcolor: 'secondary.main' }
+                }}
+              >
                 {item.text}
               </Button>
             ))}
@@ -46,7 +57,16 @@ const Navigation = () => {
         <Box sx={{ width: 250 }} role="presentation" onClick={handleDrawerToggle}>
           <List>
             {navItems.map((item) => (
-              <ListItem button key={item.text} component={Link} to={item.path}>
+              <ListItem 
+                button 
+                key={item.text} 
+                component={Link} 
+                to={item.path}
+                sx={{ 
+                  bgcolor: location.pathname === item.path ? 'secondary.light' : 'transparent',
+                  '&:hover': { bgcolor: 'secondary.main' }
+                }}
+              >
                 <ListItemText primary={item.text} />
               </ListItem>
             ))}
