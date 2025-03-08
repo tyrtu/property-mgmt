@@ -109,149 +109,151 @@ const Dashboard = () => {
   }, []);
 
   return (
-    <Box sx={{ p: 3, backgroundColor: 'background.default', minHeight: '100vh' }}>
-      <Navigation />
+    <Box sx={{ backgroundColor: 'background.default', minHeight: '100vh' }}>
+      <Navigation /> {/* Navigation is now flush with the top */}
       
-      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h4" sx={{ fontWeight: 700 }}>
-          Property Dashboard
-        </Typography>
-        <Chip 
-          label="Last updated: Today" 
-          variant="outlined" 
-          sx={{ borderColor: 'divider' }}
-        />
-      </Box>
-      
-      <Grid container spacing={3}>
-        <Grid item container spacing={3} xs={12}>
-          <MetricCard 
-            title="Total Properties" 
-            value={metrics.totalProperties} 
-            trend="+2.1%" 
-            icon={ApartmentIcon}
-            color="primary"
+      <Box sx={{ p: 3 }}> {/* Padding added here instead of the outer Box */}
+        <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h4" sx={{ fontWeight: 700 }}>
+            Property Dashboard
+          </Typography>
+          <Chip 
+            label="Last updated: Today" 
+            variant="outlined" 
+            sx={{ borderColor: 'divider' }}
           />
-          <MetricCard 
-            title="Occupied Units" 
-            value={metrics.occupiedUnits} 
-            color="success"
-            icon={PeopleIcon}
-          />
-          <MetricCard 
-            title="Vacancy Rate" 
-            value={`${metrics.vacancyRate}%`} 
-            color="warning"
-            icon={HomeWorkIcon}
-          />
-          <MetricCard 
-            title="Monthly Income" 
-            value={`$${metrics.monthlyIncome.toLocaleString()}`}
-            color="info"
-            icon={MonetizationOnIcon}
-          />
-        </Grid>
+        </Box>
+        
+        <Grid container spacing={3}>
+          <Grid item container spacing={3} xs={12}>
+            <MetricCard 
+              title="Total Properties" 
+              value={metrics.totalProperties} 
+              trend="+2.1%" 
+              icon={ApartmentIcon}
+              color="primary"
+            />
+            <MetricCard 
+              title="Occupied Units" 
+              value={metrics.occupiedUnits} 
+              color="success"
+              icon={PeopleIcon}
+            />
+            <MetricCard 
+              title="Vacancy Rate" 
+              value={`${metrics.vacancyRate}%`} 
+              color="warning"
+              icon={HomeWorkIcon}
+            />
+            <MetricCard 
+              title="Monthly Income" 
+              value={`$${metrics.monthlyIncome.toLocaleString()}`}
+              color="info"
+              icon={MonetizationOnIcon}
+            />
+          </Grid>
 
-        <Grid item xs={12} md={8}>
-          <Card sx={{ 
-            p: 2, 
-            height: 400,
-            boxShadow: 2,
-            display: 'flex',
-            flexDirection: 'column'
-          }}>
-            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-              Financial Performance
-            </Typography>
-            <Box sx={{ flexGrow: 1 }}>
-              <LineChart
-                xAxis={[{ 
-                  data: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
-                  scaleType: 'band',
-                  label: 'Month'
-                }]}
-                yAxis={[{ label: 'Amount ($)' }]}
-                series={[
-                  { 
-                    data: [4000, 3000, 6000, 4500, 7000], 
-                    label: 'Income', 
-                    color: '#4CAF50',
-                    curve: 'natural'
-                  },
-                  { 
-                    data: [2000, 1500, 3000, 2500, 4000], 
-                    label: 'Expenses', 
-                    color: '#F44336',
-                    curve: 'natural'
-                  }
-                ]}
-                margin={{ left: 70, right: 30 }}
-                grid={{ vertical: true, horizontal: true }}
-              />
-            </Box>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} md={4}>
-          <Card sx={{ 
-            p: 2,
-            height: 400,
-            display: 'flex',
-            flexDirection: 'column',
-            boxShadow: 2
-          }}>
-            <Box sx={{ 
+          <Grid item xs={12} md={8}>
+            <Card sx={{ 
+              p: 2, 
+              height: 400,
+              boxShadow: 2,
               display: 'flex',
-              alignItems: 'center',
-              mb: 2,
-              gap: 1
+              flexDirection: 'column'
             }}>
-              <NotificationsIcon color="primary" />
-              <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                Recent Notifications
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                Financial Performance
               </Typography>
-            </Box>
-            <List dense sx={{ overflow: 'auto', flexGrow: 1 }}>
-              {mockNotifications.map((note, index) => (
-                <ListItem 
-                  key={index} 
-                  sx={{ 
-                    borderRadius: 1,
-                    mb: 0.5,
-                    bgcolor: note.type === 'alert' ? 'error.light' : 'action.hover',
-                    '&:hover': { bgcolor: 'action.selected' }
-                  }}
-                >
-                  <ListItemIcon sx={{ minWidth: 36 }}>
-                    {note.type === 'alert' ? (
-                      <WarningIcon fontSize="small" color="error" />
-                    ) : (
-                      <InfoIcon fontSize="small" color="info" />
-                    )}
-                  </ListItemIcon>
-                  <ListItemText 
-                    primary={
-                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                        {note.title}
-                      </Typography>
+              <Box sx={{ flexGrow: 1 }}>
+                <LineChart
+                  xAxis={[{ 
+                    data: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                    scaleType: 'band',
+                    label: 'Month'
+                  }]}
+                  yAxis={[{ label: 'Amount ($)' }]}
+                  series={[
+                    { 
+                      data: [4000, 3000, 6000, 4500, 7000], 
+                      label: 'Income', 
+                      color: '#4CAF50',
+                      curve: 'natural'
+                    },
+                    { 
+                      data: [2000, 1500, 3000, 2500, 4000], 
+                      label: 'Expenses', 
+                      color: '#F44336',
+                      curve: 'natural'
                     }
-                    secondary={
-                      <Box component="span" sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <Typography variant="caption" color="text.secondary">
-                          {new Date(note.date).toLocaleDateString()}
+                  ]}
+                  margin={{ left: 70, right: 30 }}
+                  grid={{ vertical: true, horizontal: true }}
+                />
+              </Box>
+            </Card>
+          </Grid>
+
+          <Grid item xs={12} md={4}>
+            <Card sx={{ 
+              p: 2,
+              height: 400,
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: 2
+            }}>
+              <Box sx={{ 
+                display: 'flex',
+                alignItems: 'center',
+                mb: 2,
+                gap: 1
+              }}>
+                <NotificationsIcon color="primary" />
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  Recent Notifications
+                </Typography>
+              </Box>
+              <List dense sx={{ overflow: 'auto', flexGrow: 1 }}>
+                {mockNotifications.map((note, index) => (
+                  <ListItem 
+                    key={index} 
+                    sx={{ 
+                      borderRadius: 1,
+                      mb: 0.5,
+                      bgcolor: note.type === 'alert' ? 'error.light' : 'action.hover',
+                      '&:hover': { bgcolor: 'action.selected' }
+                    }}
+                  >
+                    <ListItemIcon sx={{ minWidth: 36 }}>
+                      {note.type === 'alert' ? (
+                        <WarningIcon fontSize="small" color="error" />
+                      ) : (
+                        <InfoIcon fontSize="small" color="info" />
+                      )}
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary={
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                          {note.title}
                         </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {note.category}
-                        </Typography>
-                      </Box>
-                    }
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </Card>
+                      }
+                      secondary={
+                        <Box component="span" sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <Typography variant="caption" color="text.secondary">
+                            {new Date(note.date).toLocaleDateString()}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {note.category}
+                          </Typography>
+                        </Box>
+                      }
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            </Card>
+          </Grid>
         </Grid>
-      </Grid>
+      </Box>
     </Box>
   );
 };
