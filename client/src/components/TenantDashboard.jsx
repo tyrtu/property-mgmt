@@ -15,7 +15,7 @@ import {
   Divider,
   LinearProgress,
 } from "@mui/material";
-import { AccountBalanceWallet, Home, Build, Notifications } from "@mui/icons-material";
+import { AccountBalanceWallet, Home, Build, Notifications, Email } from "@mui/icons-material";
 import TenantNavigation from "./TenantNavigation";
 import { useNavigate } from "react-router-dom";
 
@@ -25,7 +25,7 @@ const TenantDashboard = () => {
   // Dummy tenant data; replace with real data from backend.
   const tenant = {
     name: "John Doe",
-    avatar: "https://i.pravatar.cc/150?img=3", // Random profile image
+    avatar: "https://i.pravatar.cc/150?img=3",
     leaseStart: "2024-01-01",
     leaseEnd: "2024-12-31",
     rentAmount: 1200,
@@ -35,140 +35,137 @@ const TenantDashboard = () => {
       { id: 2, issue: "Broken AC", status: "Resolved" },
     ],
     notifications: ["Your rent is due on April 1st.", "Scheduled maintenance on March 15th."],
-    totalOutstanding: 1200, // Amount left to be paid
+    totalOutstanding: 1200,
   };
 
   return (
-    <Box sx={{ backgroundColor: "#f5f5f5", minHeight: "100vh", p: 3 }}>
-      <TenantNavigation />
-
-      {/* Welcome Header with Avatar */}
-      <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-        <Avatar src={tenant.avatar} sx={{ width: 50, height: 50, mr: 2 }} />
-        <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-          Welcome, {tenant.name}
+    <Box sx={{ backgroundColor: "#f5f5f5", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+      {/* Header + Navigation */}
+      <Box sx={{ width: "100%", p: 2, textAlign: "center", backgroundColor: "#1976d2", color: "#fff" }}>
+        <Typography
+          variant="h5"
+          sx={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            letterSpacing: 1,
+            textAlign: { xs: "left", md: "center" }, // Center on large screens
+          }}
+        >
+          X-PROPERTY MANAGER
         </Typography>
       </Box>
+      <TenantNavigation />
 
-      <Grid container spacing={3}>
-        {/* Lease Period */}
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ p: 2, boxShadow: 3, borderRadius: 2 }}>
-            <CardContent>
-              <Home color="primary" sx={{ fontSize: 40 }} />
-              <Typography variant="subtitle2" color="text.secondary">
-                Lease Period
-              </Typography>
-              <Typography variant="h6">
-                {new Date(tenant.leaseStart).toLocaleDateString()} -{" "}
-                {new Date(tenant.leaseEnd).toLocaleDateString()}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
+      {/* Main Content */}
+      <Box sx={{ flex: 1, p: 3 }}>
+        <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+          <Avatar src={tenant.avatar} sx={{ width: 50, height: 50, mr: 2 }} />
+          <Typography variant="h4" sx={{ fontWeight: "bold" }}>
+            Welcome, {tenant.name}
+          </Typography>
+        </Box>
 
-        {/* Rent Summary */}
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ p: 2, boxShadow: 3, borderRadius: 2 }}>
-            <CardContent>
-              <AccountBalanceWallet color="success" sx={{ fontSize: 40 }} />
-              <Typography variant="subtitle2" color="text.secondary">
-                Rent Amount
-              </Typography>
-              <Typography variant="h6">${tenant.rentAmount}</Typography>
-              <LinearProgress
-                variant="determinate"
-                value={tenant.totalOutstanding > 0 ? 50 : 100} // Simulating progress
-                sx={{ mt: 1 }}
-              />
-            </CardContent>
-          </Card>
-        </Grid>
+        <Grid container spacing={3}>
+          {/* Lease Period */}
+          <Grid item xs={12} sm={6} md={3}>
+            <Card sx={{ p: 2, boxShadow: 3, borderRadius: 2 }}>
+              <CardContent>
+                <Home color="primary" sx={{ fontSize: 40 }} />
+                <Typography variant="subtitle2" color="text.secondary">
+                  Lease Period
+                </Typography>
+                <Typography variant="h6">
+                  {new Date(tenant.leaseStart).toLocaleDateString()} -{" "}
+                  {new Date(tenant.leaseEnd).toLocaleDateString()}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
 
-        {/* Next Payment Due */}
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ p: 2, boxShadow: 3, borderRadius: 2 }}>
-            <CardContent>
-              <AccountBalanceWallet color="warning" sx={{ fontSize: 40 }} />
-              <Typography variant="subtitle2" color="text.secondary">
-                Next Payment Due
-              </Typography>
-              <Typography variant="h6">
-                {new Date(tenant.nextPaymentDue).toLocaleDateString()}
-              </Typography>
-              <Chip label="Pending" color="warning" size="small" sx={{ mt: 1 }} />
-              <Button
-                variant="contained"
-                color="primary"
-                fullWidth
-                sx={{ mt: 2, fontWeight: "bold" }}
-                onClick={() => navigate("/tenant/payments")}
-              >
-                Pay Now
-              </Button>
-            </CardContent>
-          </Card>
-        </Grid>
+          {/* Rent Summary */}
+          <Grid item xs={12} sm={6} md={3}>
+            <Card sx={{ p: 2, boxShadow: 3, borderRadius: 2 }}>
+              <CardContent>
+                <AccountBalanceWallet color="success" sx={{ fontSize: 40 }} />
+                <Typography variant="subtitle2" color="text.secondary">
+                  Rent Amount
+                </Typography>
+                <Typography variant="h6">${tenant.rentAmount}</Typography>
+                <LinearProgress
+                  variant="determinate"
+                  value={tenant.totalOutstanding > 0 ? 50 : 100}
+                  sx={{ mt: 1 }}
+                />
+              </CardContent>
+            </Card>
+          </Grid>
 
-        {/* Maintenance Requests */}
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ p: 2, boxShadow: 3, borderRadius: 2 }}>
-            <CardContent>
-              <Build color="secondary" sx={{ fontSize: 40 }} />
-              <Typography variant="subtitle2" color="text.secondary">
-                Maintenance Requests
-              </Typography>
-              <Typography variant="h6">{tenant.maintenanceRequests.length}</Typography>
-              <Button
-                variant="outlined"
-                fullWidth
-                sx={{ mt: 2, fontWeight: "bold" }}
-                onClick={() => navigate("/tenant/maintenance")}
-              >
-                Request Maintenance
-              </Button>
-            </CardContent>
-          </Card>
-        </Grid>
+          {/* Next Payment Due */}
+          <Grid item xs={12} sm={6} md={3}>
+            <Card sx={{ p: 2, boxShadow: 3, borderRadius: 2 }}>
+              <CardContent>
+                <AccountBalanceWallet color="warning" sx={{ fontSize: 40 }} />
+                <Typography variant="subtitle2" color="text.secondary">
+                  Next Payment Due
+                </Typography>
+                <Typography variant="h6">
+                  {new Date(tenant.nextPaymentDue).toLocaleDateString()}
+                </Typography>
+                <Chip label="Pending" color="warning" size="small" sx={{ mt: 1 }} />
+                <Button
+                  variant="contained"
+                  color="primary"
+                  fullWidth
+                  sx={{ mt: 2, fontWeight: "bold" }}
+                  onClick={() => navigate("/tenant/payments")}
+                >
+                  Pay Now
+                </Button>
+              </CardContent>
+            </Card>
+          </Grid>
 
-        {/* Recent Maintenance Requests */}
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 3, boxShadow: 3, borderRadius: 2 }}>
-            <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
-              Recent Maintenance Requests
-            </Typography>
-            <List>
-              {tenant.maintenanceRequests.map((req) => (
-                <ListItem key={req.id} sx={{ borderBottom: "1px solid #ddd", py: 1 }}>
-                  <ListItemText primary={req.issue} secondary={`Status: ${req.status}`} />
-                  <Chip
-                    label={req.status}
-                    color={req.status === "Resolved" ? "success" : "warning"}
-                    size="small"
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </Paper>
+          {/* Maintenance Requests */}
+          <Grid item xs={12} sm={6} md={3}>
+            <Card sx={{ p: 2, boxShadow: 3, borderRadius: 2 }}>
+              <CardContent>
+                <Build color="secondary" sx={{ fontSize: 40 }} />
+                <Typography variant="subtitle2" color="text.secondary">
+                  Maintenance Requests
+                </Typography>
+                <Typography variant="h6">{tenant.maintenanceRequests.length}</Typography>
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  sx={{ mt: 2, fontWeight: "bold" }}
+                  onClick={() => navigate("/tenant/maintenance")}
+                >
+                  Request Maintenance
+                </Button>
+              </CardContent>
+            </Card>
+          </Grid>
         </Grid>
+      </Box>
 
-        {/* Notifications */}
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 3, boxShadow: 3, borderRadius: 2 }}>
-            <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
-              Notifications
-            </Typography>
-            <List>
-              {tenant.notifications.map((note, index) => (
-                <ListItem key={index} sx={{ borderBottom: "1px solid #ddd", py: 1 }}>
-                  <Notifications color="info" sx={{ mr: 1 }} />
-                  <ListItemText primary={note} />
-                </ListItem>
-              ))}
-            </List>
-          </Paper>
-        </Grid>
-      </Grid>
+      {/* Footer */}
+      <Box
+        sx={{
+          mt: 4,
+          p: 2,
+          textAlign: "center",
+          backgroundColor: "#222",
+          color: "#fff",
+          fontSize: "14px",
+        }}
+      >
+        <Typography variant="body2">
+          Developed by <strong>Raphael</strong> | Contact:{" "}
+          <a href="tel:+254748211821" style={{ color: "#fff", textDecoration: "none" }}>
+            +254748211821
+          </a>
+        </Typography>
+      </Box>
     </Box>
   );
 };
