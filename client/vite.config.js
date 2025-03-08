@@ -5,13 +5,17 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
-    host: true
+    host: true,
   },
   build: {
     rollupOptions: {
-      external: [
-        // No need to externalize DataGrid CSS since it's not imported
-      ]
-    }
-  }
+      external: [],
+    },
+  },
+  resolve: {
+    alias: {
+      "@": "/src",
+    },
+  },
+  base: "/", // Ensures proper routing in production
 });
