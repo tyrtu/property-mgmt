@@ -37,6 +37,7 @@ function App() {
             <Route path="/payments" element={<RentPayment />} />
             <Route path="/maintenance" element={<MaintenanceRequests />} />
             <Route path="/reports" element={<ReportsAnalytics />} />
+            <Route path="/tenant/reset-password" element={<TenantResetPassword />} />
           </Routes>
         </ErrorBoundary>
       </Router>
