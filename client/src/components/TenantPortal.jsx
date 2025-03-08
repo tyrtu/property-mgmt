@@ -1,3 +1,5 @@
+// src/components/TenantPortal.jsx
+import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import TenantNavigation from './TenantNavigation';
 import TenantDashboard from './TenantDashboard';
@@ -5,9 +7,13 @@ import TenantPaymentHistory from './TenantPaymentHistory';
 import TenantMaintenance from './TenantMaintenance';
 import TenantNotifications from './TenantNotifications';
 import TenantProfile from './TenantProfile';
-import PrivateRoute from './PrivateRoute'; // ✅ Protect routes
+import PrivateRoute from './PrivateRoute';
+import useAutoLogout from '../hooks/useAutoLogout'; // ✅ Import the auto-logout hook
 
 const TenantPortal = () => {
+  // ✅ Enable auto-logout after 15 minutes of inactivity
+  useAutoLogout();
+
   return (
     <>
       <TenantNavigation /> {/* Always visible */}
