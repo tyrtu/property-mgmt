@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { 
+import {
   Card, Typography, Button, TextField, Grid, Box,
   Chip, Avatar, Dialog, DialogTitle, DialogContent,
   DialogActions, MenuItem, Select, InputAdornment,
   Container, LinearProgress, Badge
 } from '@mui/material';
-import { 
-  PersonAdd, Edit, Payment, 
+import {
+  PersonAdd, Edit, Payment,
   Delete, Search, Send
 } from '@mui/icons-material';
 import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid';
-import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { LocalizationProvider } from '@mui/x-date-pickers';
 import { mockTenants, mockProperties } from '../mockData';
 import { styled } from '@mui/material/styles';
 import Navigation from './Navigation';
@@ -35,72 +35,78 @@ const TenantManagement = () => {
     setTenants(mockTenants);
   }, []);
 
-  const handleSearch = (e) => setSearchTerm(e.target.value);
-
   const columns = [
-    { 
-      field: 'name', 
-      headerName: 'Tenant', 
+    {
+      field: 'name',
+      headerName: 'Tenant',
       width: 250,
       renderCell: (params) => (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <StyledBadge badgeContent={params.row?.activeLease ? "✓" : "!"} color="secondary">
-            <Avatar src={`https://i.pravatar.cc/80?u=${params.row?.id}`}>
-              {params.row?.name?.[0] || 'T'}
-            </Avatar>
-          </StyledBadge>
-          <Box>
-            <Typography variant="subtitle1">{params.row?.name || 'N/A'}</Typography>
-            <Typography variant="caption" color="text.secondary">
-              {params.row?.email || 'N/A'}
-            </Typography>
+        params.row ? (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <StyledBadge badgeContent={params.row.activeLease ? "✓" : "!"} color="secondary">
+              <Avatar src={`https://i.pravatar.cc/80?u=${params.row.id}`}>
+                {params.row.name[0]}
+              </Avatar>
+            </StyledBadge>
+            <Box>
+              <Typography variant="subtitle1">{params.row.name}</Typography>
+              <Typography variant="caption" color="text.secondary">
+                {params.row.email}
+              </Typography>
+            </Box>
           </Box>
-        </Box>
+        ) : null
       )
     },
-    { 
-      field: 'property', 
-      headerName: 'Property', 
+    {
+      field: 'property',
+      headerName: 'Property',
       width: 200,
       valueGetter: (params) => {
-        const property = mockProperties.find(p => p.id === params.row?.propertyId);
-        return property ? property.name : 'N/A';
+        if (!params.row) return '';
+        const property = mockProperties.find(p => p.id === params.row.propertyId);
+        return property ? property.name : 'Unknown';
       }
     },
-    { 
-      field: 'paymentStatus', 
-      headerName: 'Payment Status', 
+    {
+      field: 'paymentStatus',
+      headerName: 'Payment Status',
       width: 150,
       renderCell: (params) => (
-        <Chip 
-          label={params.value || 'N/A'} 
-          color={params.value === 'Paid' ? 'success' : 'warning'}
-          variant="outlined"
-          size="small"
-        />
+        params.row ? (
+          <Chip
+            label={params.value}
+            color={params.value === 'Paid' ? 'success' : 'warning'}
+            variant="outlined"
+            size="small"
+          />
+        ) : null
       )
     },
-    { 
-      field: 'leaseDuration', 
-      headerName: 'Lease Duration', 
+    {
+      field: 'leaseDuration',
+      headerName: 'Lease Duration',
       width: 200,
       valueGetter: (params) => {
-        return params.row?.leaseStart && params.row?.leaseEnd
+        if (!params.row) return '';
+        return params.row.leaseStart && params.row.leaseEnd
           ? `${new Date(params.row.leaseStart).toLocaleDateString()} - ${new Date(params.row.leaseEnd).toLocaleDateString()}`
           : 'N/A';
       }
     },
-    { 
-      field: 'actions', 
-      headerName: 'Actions', 
+    {
+      field: 'actions',
+      headerName: 'Actions',
       type: 'actions',
       width: 150,
-      getActions: (params) => [
-        <GridActionsCellItem icon={<Edit />} label="Edit" onClick={() => console.log("Edit", params.row)} />,
-        <GridActionsCellItem icon={<Payment />} label="Payment" onClick={() => console.log("Payment", params.row)} />,
-        <GridActionsCellItem icon={<Delete />} label="Delete" onClick={() => console.log("Delete", params.row)} />
-      ],
-    },
+      getActions: (params) => (
+        params.row ? [
+          <GridActionsCellItem icon={<Edit />} label="Edit" />, // Placeholder actions
+          <GridActionsCellItem icon={<Payment />} label="Payment" />, // Placeholder actions
+          <GridActionsCellItem icon={<Delete />} label="Delete" /> // Placeholder actions
+        ] : []
+      )
+    }
   ];
 
   return (
@@ -122,7 +128,7 @@ const TenantManagement = () => {
               placeholder="Search tenants..."
               InputProps={{ startAdornment: <Search sx={{ color: 'action.active', mr: 1 }} /> }}
               value={searchTerm}
-              onChange={handleSearch}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
             <Select value="all" variant="outlined" sx={{ minWidth: 180 }}>
               <MenuItem value="all">All Properties</MenuItem>
@@ -147,6 +153,7 @@ const TenantManagement = () => {
         </Card>
       </Container>
 
+      {/* Send Notification Dialog */}
       <SendNotification tenants={tenants} open={notificationOpen} onClose={() => setNotificationOpen(false)} />
     </LocalizationProvider>
   );
