@@ -2,6 +2,7 @@ import React from 'react';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 import Navigation from './Navigation';
 import { Box, Typography, Chip } from '@mui/material';
+import useAutoLogout from '../hooks/useAutoLogout'; // Import the auto-logout hook
 
 const RentPayment = () => {
   const columns = [
@@ -29,6 +30,9 @@ const RentPayment = () => {
     { id: 1, tenant: 'John Doe', amount: 1200, dueDate: '2024-03-01', status: 'Paid' },
     { id: 2, tenant: 'Jane Smith', amount: 1500, dueDate: '2024-03-05', status: 'Pending' }
   ];
+
+  // Enable auto-logout after 15 minutes of inactivity
+  useAutoLogout();
 
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: 'background.default' }}>

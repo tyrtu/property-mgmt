@@ -7,6 +7,7 @@ import {
 import { Add, Edit, Delete, Search, Apartment } from '@mui/icons-material';
 import Navigation from './Navigation';
 import { mockProperties } from '../mockData';
+import useAutoLogout from '../hooks/useAutoLogout'; // Import the auto-logout hook
 
 const PropertyManagement = () => {
   const [properties, setProperties] = useState([]);
@@ -22,6 +23,9 @@ const PropertyManagement = () => {
     amenities: [],
     photos: []
   });
+
+  // Enable auto-logout after 15 minutes of inactivity
+  useAutoLogout();
 
   useEffect(() => {
     setProperties(mockProperties);

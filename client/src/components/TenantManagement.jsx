@@ -18,6 +18,7 @@ import { mockTenants, mockProperties } from '../mockData';
 import { styled } from '@mui/material/styles';
 import SendNotification from './SendNotification'; // Import the SendNotification component
 import Navigation from './Navigation'; // Import the Navigation component
+import useAutoLogout from '../hooks/useAutoLogout'; // Import the auto-logout hook
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
   '& .MuiBadge-badge': {
@@ -57,6 +58,9 @@ const TenantManagement = () => {
   });
 
   const [notificationOpen, setNotificationOpen] = useState(false); // State for SendNotification dialog
+
+  // Enable auto-logout after 15 minutes of inactivity
+  useAutoLogout();
 
   useEffect(() => {
     setTenants(mockTenants);

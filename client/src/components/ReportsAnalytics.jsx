@@ -11,10 +11,14 @@ import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import Navigation from './Navigation';
 import { mockFinancialData, mockPropertyMetrics } from '../mockData';
+import useAutoLogout from '../hooks/useAutoLogout'; // Import the auto-logout hook
 
 const ReportsAnalytics = () => {
   const [tabValue, setTabValue] = useState(0);
   const [timeRange, setTimeRange] = useState('last_month');
+
+  // Enable auto-logout after 15 minutes of inactivity
+  useAutoLogout();
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);

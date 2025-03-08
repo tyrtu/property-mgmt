@@ -1,14 +1,29 @@
+// src/components/Navigation.jsx
 import React, { useState } from 'react';
 import { AppBar, Toolbar, Button, Box, IconButton, Drawer, List, ListItem, ListItemText } from '@mui/material';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
+import { auth } from '../firebase';
+import { signOut } from 'firebase/auth';
 
 const Navigation = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const location = useLocation(); // ✅ Get current path
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
+  };
+
+  // ✅ Handle Logout
+  const handleLogout = async () => {
+    try {
+      await signOut(auth); // Sign out the user
+      localStorage.removeItem('adminToken'); // Clear admin token
+      navigate('/admin/login'); // Redirect to admin login page
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
   };
 
   const navItems = [
@@ -22,7 +37,7 @@ const Navigation = () => {
 
   return (
     <>
-      {/* ✅ Admin Navbar */}
+      {/* ✅ Admin Navbar with Logout Button */}
       <AppBar position="static" color="primary">
         <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
           
@@ -49,6 +64,11 @@ const Navigation = () => {
               </Button>
             ))}
           </Box>
+
+          {/* ✅ Logout Button */}
+          <Button color="inherit" onClick={handleLogout}>
+            Logout
+          </Button>
         </Toolbar>
       </AppBar>
 
@@ -70,6 +90,10 @@ const Navigation = () => {
                 <ListItemText primary={item.text} />
               </ListItem>
             ))}
+            {/* ✅ Logout Button in Drawer */}
+            <ListItem button onClick={handleLogout}>
+              <ListItemText primary="Logout" />
+            </ListItem>
           </List>
         </Box>
       </Drawer>
