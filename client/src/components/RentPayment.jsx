@@ -2,7 +2,7 @@
 import React from 'react';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 import Navigation from './Navigation';
-import { Box, Typography, Chip, Button } from '@mui/material';
+import { Box, Typography, Chip } from '@mui/material';
 
 const RentPayment = () => {
   const columns = [
@@ -32,16 +32,18 @@ const RentPayment = () => {
   ];
 
   return (
-    <Navigation />
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>Rent Payments</Typography>
-      <Box sx={{ height: 600, width: '100%' }}>
-        <DataGrid
-          rows={rows}
-          columns={columns}
-          slots={{ toolbar: GridToolbar }}
-          pageSizeOptions={[10, 25, 50]}
-        />
+    <Box sx={{ minHeight: '100vh', backgroundColor: 'background.default' }}>
+      <Navigation />
+      <Box sx={{ p: 3 }}>
+        <Typography variant="h4" gutterBottom>Rent Payments</Typography>
+        <Box sx={{ height: 600, width: '100%' }}>
+          <DataGrid
+            rows={rows}
+            columns={columns}
+            slots={{ toolbar: GridToolbar }}
+            pageSizeOptions={[10, 25, 50]}
+          />
+        </Box>
       </Box>
     </Box>
   );

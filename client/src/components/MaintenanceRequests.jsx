@@ -34,6 +34,7 @@ const MaintenanceRequests = () => {
   ];
 
   return (
+    <>
     <Navigation />
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" gutterBottom>Maintenance Requests</Typography>
@@ -46,6 +47,7 @@ const MaintenanceRequests = () => {
         />
       </Box>
     </Box>
+    </>
   );
 };
 
