@@ -1,21 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import {
+import { 
   Card, Typography, Button, TextField, Grid, Box,
   Chip, Avatar, Dialog, DialogTitle, DialogContent,
   DialogActions, MenuItem, Select, InputAdornment,
-  Container, LinearProgress, Badge
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
+  IconButton, Tooltip, Container, LinearProgress, Badge
 } from '@mui/material';
-import {
-  PersonAdd, Edit, Payment,
-  Delete, Search, Send
+import { 
+  PersonAdd, Edit, Payment, 
+  Delete, Search, CloudUpload,
+  Description, ContactPhone, CalendarToday, Send
 } from '@mui/icons-material';
 import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid';
+import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { LocalizationProvider } from '@mui/x-date-pickers';
 import { mockTenants, mockProperties } from '../mockData';
 import { styled } from '@mui/material/styles';
-import Navigation from './Navigation';
 import SendNotification from './SendNotification';
+import Navigation from './Navigation'; // ✅ Added Navigation Import
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
   '& .MuiBadge-badge': {
@@ -28,90 +30,34 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
 
 const TenantManagement = () => {
   const [tenants, setTenants] = useState([]);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [openPaymentDialog, setOpenPaymentDialog] = useState(false);
+  const [editMode, setEditMode] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedTenant, setSelectedTenant] = useState(null);
   const [notificationOpen, setNotificationOpen] = useState(false);
+  
+  const [currentTenant, setCurrentTenant] = useState({
+    id: null,
+    name: '',
+    email: '',
+    phone: '',
+    emergencyContact: '',
+    propertyId: '',
+    rentAmount: '',
+    leaseStart: null,
+    leaseEnd: null,
+    paymentStatus: 'Pending',
+    leaseDocument: null,
+  });
 
   useEffect(() => {
     setTenants(mockTenants);
   }, []);
 
-  const columns = [
-    {
-      field: 'name',
-      headerName: 'Tenant',
-      width: 250,
-      renderCell: (params) => (
-        params.row ? (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <StyledBadge badgeContent={params.row.activeLease ? "✓" : "!"} color="secondary">
-              <Avatar src={`https://i.pravatar.cc/80?u=${params.row.id}`}>
-                {params.row.name[0]}
-              </Avatar>
-            </StyledBadge>
-            <Box>
-              <Typography variant="subtitle1">{params.row.name}</Typography>
-              <Typography variant="caption" color="text.secondary">
-                {params.row.email}
-              </Typography>
-            </Box>
-          </Box>
-        ) : null
-      )
-    },
-    {
-      field: 'property',
-      headerName: 'Property',
-      width: 200,
-      valueGetter: (params) => {
-        if (!params.row) return '';
-        const property = mockProperties.find(p => p.id === params.row.propertyId);
-        return property ? property.name : 'Unknown';
-      }
-    },
-    {
-      field: 'paymentStatus',
-      headerName: 'Payment Status',
-      width: 150,
-      renderCell: (params) => (
-        params.row ? (
-          <Chip
-            label={params.value}
-            color={params.value === 'Paid' ? 'success' : 'warning'}
-            variant="outlined"
-            size="small"
-          />
-        ) : null
-      )
-    },
-    {
-      field: 'leaseDuration',
-      headerName: 'Lease Duration',
-      width: 200,
-      valueGetter: (params) => {
-        if (!params.row) return '';
-        return params.row.leaseStart && params.row.leaseEnd
-          ? `${new Date(params.row.leaseStart).toLocaleDateString()} - ${new Date(params.row.leaseEnd).toLocaleDateString()}`
-          : 'N/A';
-      }
-    },
-    {
-      field: 'actions',
-      headerName: 'Actions',
-      type: 'actions',
-      width: 150,
-      getActions: (params) => (
-        params.row ? [
-          <GridActionsCellItem icon={<Edit />} label="Edit" />, // Placeholder actions
-          <GridActionsCellItem icon={<Payment />} label="Payment" />, // Placeholder actions
-          <GridActionsCellItem icon={<Delete />} label="Delete" /> // Placeholder actions
-        ] : []
-      )
-    }
-  ];
-
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
-      <Navigation />
+      <Navigation />  {/* ✅ Navigation added here */}
       <Container maxWidth="xl" sx={{ py: 4 }}>
         <Card sx={{ p: 3, mb: 3, boxShadow: 3 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -141,7 +87,7 @@ const TenantManagement = () => {
           <Box sx={{ height: 600, width: '100%' }}>
             <DataGrid
               rows={tenants}
-              columns={columns}
+              columns={[] /* Columns here */}
               pageSize={10}
               rowsPerPageOptions={[10]}
               checkboxSelection
@@ -152,7 +98,7 @@ const TenantManagement = () => {
           </Box>
         </Card>
       </Container>
-
+      
       {/* Send Notification Dialog */}
       <SendNotification tenants={tenants} open={notificationOpen} onClose={() => setNotificationOpen(false)} />
     </LocalizationProvider>
