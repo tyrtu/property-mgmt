@@ -3,13 +3,12 @@ import {
   Card, Typography, Button, TextField, Grid, Box,
   Chip, Avatar, Dialog, DialogTitle, DialogContent,
   DialogActions, MenuItem, Select, InputAdornment,
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
   IconButton, Tooltip, Container, LinearProgress, Badge
 } from '@mui/material';
 import { 
   PersonAdd, Edit, Payment, 
   Delete, Search, CloudUpload,
-  Description, ContactPhone, CalendarToday, Send
+  Description, ContactPhone, CalendarToday, Send, Info
 } from '@mui/icons-material';
 import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
@@ -58,6 +57,7 @@ const TenantManagement = () => {
   });
 
   const [notificationOpen, setNotificationOpen] = useState(false); // State for SendNotification dialog
+  const [viewTenant, setViewTenant] = useState(null); // State for viewing tenant details
 
   // Enable auto-logout after 15 minutes of inactivity
   useAutoLogout();
@@ -114,13 +114,21 @@ const TenantManagement = () => {
     }
   };
 
+  const handleViewTenant = (tenant) => {
+    setViewTenant(tenant);
+  };
+
+  const handleCloseViewDialog = () => {
+    setViewTenant(null);
+  };
+
   const columns = [
     { 
       field: 'name', 
       headerName: 'Tenant', 
       width: 250,
       renderCell: (params) => (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, height: '100%', padding: '8px 0' }}>
           <StyledBadge badgeContent={params.row.activeLease ? "✓" : "!"} color="secondary">
             <Avatar src={`https://i.pravatar.cc/80?u=${params.row.id}`}>
               {params.row.name[0]}
@@ -130,7 +138,7 @@ const TenantManagement = () => {
             <Typography variant="subtitle1" noWrap>
               {params.row.name}
             </Typography>
-            <Typography variant="caption" color="text.secondary" noWrap>
+            <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block', lineHeight: '1.2' }}>
               {params.row.email}
             </Typography>
           </Box>
@@ -179,17 +187,14 @@ const TenantManagement = () => {
       width: 150,
       getActions: (params) => [
         <GridActionsCellItem
+          icon={<Tooltip title="View Details"><Info color="primary" /></Tooltip>}
+          onClick={() => handleViewTenant(params.row)}
+          label="View"
+        />,
+        <GridActionsCellItem
           icon={<Tooltip title="Edit"><Edit color="primary" /></Tooltip>}
           onClick={() => handleEdit(params.id)}
           label="Edit"
-        />,
-        <GridActionsCellItem
-          icon={<Tooltip title="Record Payment"><Payment color="success" /></Tooltip>}
-          onClick={() => {
-            setSelectedTenant(params.row);
-            setOpenPaymentDialog(true);
-          }}
-          label="Payment"
         />,
         <GridActionsCellItem
           icon={<Tooltip title="Delete"><Delete color="error" /></Tooltip>}
@@ -258,6 +263,9 @@ const TenantManagement = () => {
                   backgroundColor: 'primary.main',
                   color: 'primary.contrastText',
                   borderRadius: 2,
+                },
+                '& .MuiDataGrid-cell': {
+                  padding: '8px 16px', // Adjust cell padding
                 },
               }}
             />
@@ -445,6 +453,50 @@ const TenantManagement = () => {
             <Button variant="contained" color="success" onClick={handlePaymentSubmit}>
               Confirm Payment
             </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Tenant Details Dialog */}
+        <Dialog open={Boolean(viewTenant)} onClose={handleCloseViewDialog} fullWidth maxWidth="sm">
+          <DialogTitle>Tenant Details</DialogTitle>
+          <DialogContent>
+            {viewTenant && (
+              <Grid container spacing={2} sx={{ mt: 1 }}>
+                <Grid item xs={12}>
+                  <Typography variant="h6">{viewTenant.name}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {viewTenant.email}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography variant="subtitle1">Contact Information</Typography>
+                  <Typography variant="body2">
+                    Phone: {viewTenant.phone}
+                  </Typography>
+                  <Typography variant="body2">
+                    Emergency Contact: {viewTenant.emergencyContact}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography variant="subtitle1">Lease Information</Typography>
+                  <Typography variant="body2">
+                    Property: {mockProperties.find(p => p.id === viewTenant.propertyId)?.name || 'N/A'}
+                  </Typography>
+                  <Typography variant="body2">
+                    Lease: {new Date(viewTenant.leaseStart).toLocaleDateString()} - {new Date(viewTenant.leaseEnd).toLocaleDateString()}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography variant="subtitle1">Payment Status</Typography>
+                  <Typography variant="body2">
+                    Rent: ${viewTenant.rentAmount} ({viewTenant.paymentStatus})
+                  </Typography>
+                </Grid>
+              </Grid>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseViewDialog}>Close</Button>
           </DialogActions>
         </Dialog>
 
