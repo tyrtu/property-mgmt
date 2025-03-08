@@ -11,7 +11,7 @@ import PrivateRoute from './PrivateRoute';
 import useAutoLogout from '../hooks/useAutoLogout'; // ✅ Import the auto-logout hook
 
 const TenantPortal = () => {
-  // ✅ Enable auto-logout after 15 minutes of inactivity
+  // ✅ Enable auto-logout after 1 minute of inactivity
   useAutoLogout();
 
   return (

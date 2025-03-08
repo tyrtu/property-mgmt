@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
 
-const useAutoLogout = (inactivityTime = 1 * 60 * 1000) => { // Default: 15 minutes
+const useAutoLogout = (inactivityTime = 1 * 60 * 1000) => { // 1 minute for testing
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -12,12 +12,14 @@ const useAutoLogout = (inactivityTime = 1 * 60 * 1000) => { // Default: 15 minut
 
     // Function to reset the inactivity timer
     const resetTimer = () => {
+      console.log('User activity detected. Resetting timer...');
       if (inactivityTimer) clearTimeout(inactivityTimer);
       inactivityTimer = setTimeout(logoutUser, inactivityTime);
     };
 
     // Function to log out the user
     const logoutUser = async () => {
+      console.log('Auto-logout triggered.');
       try {
         await signOut(auth); // Sign out the user
         localStorage.removeItem('tenantToken'); // Clear tenant token
@@ -36,6 +38,7 @@ const useAutoLogout = (inactivityTime = 1 * 60 * 1000) => { // Default: 15 minut
 
     // Cleanup event listeners and timer
     return () => {
+      console.log('Cleaning up auto-logout listeners...');
       events.forEach((event) => window.removeEventListener(event, resetTimer));
       if (inactivityTimer) clearTimeout(inactivityTimer);
     };
