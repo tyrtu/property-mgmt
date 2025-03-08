@@ -12,6 +12,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import TenantPortal from './components/TenantPortal';
 import TenantLogin from './components/TenantLogin';
 import TenantRegister from './components/TenantRegister';
+import TenantResetPassword from './components/TenantResetPassword'; // ✅ Import Forgot Password Page
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
             {/* 🔹 Tenant Authentication Pages */}
             <Route path="/tenant/login" element={<TenantLogin />} />
             <Route path="/tenant/register" element={<TenantRegister />} />
+            <Route path="/tenant/reset-password" element={<TenantResetPassword />} /> {/* ✅ Added Route */}
 
             {/* 🔹 Tenant Portal (Protected Routes) */}
             <Route path="/tenant/*" element={<TenantPortal />} />
@@ -45,3 +47,4 @@ function App() {
 }
 
 export default App;
+
