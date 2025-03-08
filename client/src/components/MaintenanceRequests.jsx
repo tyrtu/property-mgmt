@@ -1,6 +1,6 @@
 // src/components/MaintenanceRequests.jsx
 import React from 'react';
-import Navigation from './Navigation';
+import Navigation from './components/Navigation';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 import { Box, Typography, Chip, Select, MenuItem } from '@mui/material';
 
