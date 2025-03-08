@@ -77,7 +77,7 @@ const PropertyManagement = () => {
   };
 
   return (
-    <>
+    <Box sx={{ minHeight: '100vh', backgroundColor: 'background.default' }}>
       <Navigation />
       <Box sx={{ p: 3, height: '100vh' }}>
         <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -244,7 +244,7 @@ const PropertyManagement = () => {
           </DialogActions>
         </Dialog>
       </Box>
-    </>
+    </Box>
   );
 };
 

@@ -1,8 +1,7 @@
-// src/components/MaintenanceRequests.jsx
 import React from 'react';
 import Navigation from './Navigation';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
-import { Box, Typography, Chip, Select, MenuItem } from '@mui/material';
+import { Box, Typography, Select, MenuItem } from '@mui/material';
 
 const MaintenanceRequests = () => {
   const columns = [
@@ -34,20 +33,20 @@ const MaintenanceRequests = () => {
   ];
 
   return (
-    <>
-    <Navigation />
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>Maintenance Requests</Typography>
-      <Box sx={{ height: 600, width: '100%' }}>
-        <DataGrid
-          rows={rows}
-          columns={columns}
-          slots={{ toolbar: GridToolbar }}
-          pageSizeOptions={[10, 25, 50]}
-        />
+    <Box sx={{ minHeight: '100vh', backgroundColor: 'background.default' }}>
+      <Navigation />
+      <Box sx={{ p: 3 }}>
+        <Typography variant="h4" gutterBottom>Maintenance Requests</Typography>
+        <Box sx={{ height: 600, width: '100%' }}>
+          <DataGrid
+            rows={rows}
+            columns={columns}
+            slots={{ toolbar: GridToolbar }}
+            pageSizeOptions={[10, 25, 50]}
+          />
+        </Box>
       </Box>
     </Box>
-    </>
   );
 };
 

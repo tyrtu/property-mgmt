@@ -17,7 +17,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { mockTenants, mockProperties } from '../mockData';
 import { styled } from '@mui/material/styles';
 import Navigation from './Navigation';
-import SendNotification from './SendNotification'; // Import the SendNotification component
+import SendNotification from './SendNotification'; // Import SendNotification component
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
   '& .MuiBadge-badge': {
@@ -35,6 +35,8 @@ const TenantManagement = () => {
   const [editMode, setEditMode] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTenant, setSelectedTenant] = useState(null);
+  const [notificationOpen, setNotificationOpen] = useState(false); // State for SendNotification dialog
+
   const [currentTenant, setCurrentTenant] = useState({
     id: null,
     name: '',
@@ -55,8 +57,6 @@ const TenantManagement = () => {
     paymentMethod: 'Bank Transfer',
     referenceNumber: ''
   });
-
-  const [notificationOpen, setNotificationOpen] = useState(false); // State for SendNotification dialog
 
   useEffect(() => {
     setTenants(mockTenants);
@@ -136,7 +136,6 @@ const TenantManagement = () => {
       headerName: 'Property', 
       width: 200,
       valueGetter: (params) => {
-        if (!params || !params.row || !params.row.propertyId) return '';
         const property = mockProperties.find(p => p.id === params.row.propertyId);
         return property ? property.name : '';
       }
@@ -148,10 +147,7 @@ const TenantManagement = () => {
       renderCell: (params) => (
         <Chip 
           label={params.value} 
-          color={
-            params.value === 'Paid' ? 'success' : 
-            params.value === 'Pending' ? 'warning' : 'error'
-          }
+          color={params.value === 'Paid' ? 'success' : 'warning'}
           variant="outlined"
           size="small"
         />
@@ -162,7 +158,6 @@ const TenantManagement = () => {
       headerName: 'Lease Duration', 
       width: 200,
       valueGetter: (params) => {
-        if (!params || !params.row || !params.row.leaseStart || !params.row.leaseEnd) return '';
         return `${new Date(params.row.leaseStart).toLocaleDateString()} - ${new Date(params.row.leaseEnd).toLocaleDateString()}`;
       }
     },
@@ -172,24 +167,12 @@ const TenantManagement = () => {
       type: 'actions',
       width: 150,
       getActions: (params) => [
-        <GridActionsCellItem
-          icon={<Tooltip title="Edit"><Edit color="primary" /></Tooltip>}
-          onClick={() => handleEdit(params.id)}
-          label="Edit"
-        />,
-        <GridActionsCellItem
-          icon={<Tooltip title="Record Payment"><Payment color="success" /></Tooltip>}
-          onClick={() => {
-            setSelectedTenant(params.row);
-            setOpenPaymentDialog(true);
-          }}
-          label="Payment"
-        />,
-        <GridActionsCellItem
-          icon={<Tooltip title="Delete"><Delete color="error" /></Tooltip>}
-          onClick={() => handleDelete(params.id)}
-          label="Delete"
-        />
+        <GridActionsCellItem icon={<Edit />} label="Edit" onClick={() => handleEdit(params.id)} />,
+        <GridActionsCellItem icon={<Payment />} label="Payment" onClick={() => {
+          setSelectedTenant(params.row);
+          setOpenPaymentDialog(true);
+        }} />,
+        <GridActionsCellItem icon={<Delete />} label="Delete" onClick={() => handleDelete(params.id)} />
       ],
     },
   ];
@@ -200,14 +183,8 @@ const TenantManagement = () => {
       <Container maxWidth="xl" sx={{ py: 4 }}>
         <Card sx={{ p: 3, mb: 3, boxShadow: 3 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-            <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
-              Tenant Management Portal
-            </Typography>
-            <Button 
-              variant="contained" 
-              startIcon={<Send />}
-              onClick={() => setNotificationOpen(true)}
-            >
+            <Typography variant="h4">Tenant Management Portal</Typography>
+            <Button variant="contained" startIcon={<Send />} onClick={() => setNotificationOpen(true)}>
               Send Notification
             </Button>
           </Box>
@@ -217,17 +194,11 @@ const TenantManagement = () => {
               fullWidth
               variant="outlined"
               placeholder="Search tenants..."
-              InputProps={{
-                startAdornment: <Search sx={{ color: 'action.active', mr: 1 }} />,
-              }}
+              InputProps={{ startAdornment: <Search sx={{ color: 'action.active', mr: 1 }} /> }}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <Select
-              value="all"
-              variant="outlined"
-              sx={{ minWidth: 180 }}
-            >
+            <Select value="all" variant="outlined" sx={{ minWidth: 180 }}>
               <MenuItem value="all">All Properties</MenuItem>
               {mockProperties.map(property => (
                 <MenuItem key={property.id} value={property.id}>{property.name}</MenuItem>
@@ -243,212 +214,15 @@ const TenantManagement = () => {
               rowsPerPageOptions={[10]}
               checkboxSelection
               disableSelectionOnClick
-              components={{
-                LoadingOverlay: LinearProgress,
-              }}
-              sx={{
-                borderRadius: 2,
-                '& .MuiDataGrid-columnHeaders': {
-                  backgroundColor: 'primary.main',
-                  color: 'primary.contrastText',
-                  borderRadius: 2,
-                },
-              }}
+              components={{ LoadingOverlay: LinearProgress }}
+              sx={{ borderRadius: 2, '& .MuiDataGrid-columnHeaders': { backgroundColor: 'primary.main', color: 'white' }}}
             />
           </Box>
         </Card>
-
-        {/* Add/Edit Tenant Dialog */}
-        <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth maxWidth="md">
-          <DialogTitle sx={{ bgcolor: 'primary.main', color: 'white' }}>
-            {editMode ? 'Edit Tenant Details' : 'New Tenant Registration'}
-          </DialogTitle>
-          <DialogContent>
-            <form onSubmit={handleSubmit}>
-              <Grid container spacing={3} sx={{ mt: 1 }}>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Full Name"
-                    required
-                    variant="outlined"
-                    value={currentTenant.name}
-                    onChange={e => setCurrentTenant({ ...currentTenant, name: e.target.value })}
-                    InputProps={{
-                      startAdornment: <ContactPhone sx={{ color: 'action.active', mr: 1 }} />,
-                    }}
-                  />
-                  <TextField
-                    fullWidth
-                    label="Email"
-                    type="email"
-                    required
-                    variant="outlined"
-                    value={currentTenant.email}
-                    onChange={e => setCurrentTenant({ ...currentTenant, email: e.target.value })}
-                    sx={{ mt: 2 }}
-                  />
-                  <TextField
-                    fullWidth
-                    label="Phone Number"
-                    required
-                    variant="outlined"
-                    value={currentTenant.phone}
-                    onChange={e => setCurrentTenant({ ...currentTenant, phone: e.target.value })}
-                    sx={{ mt: 2 }}
-                  />
-                  <TextField
-                    fullWidth
-                    label="Emergency Contact"
-                    variant="outlined"
-                    value={currentTenant.emergencyContact}
-                    onChange={e => setCurrentTenant({ ...currentTenant, emergencyContact: e.target.value })}
-                    sx={{ mt: 2 }}
-                  />
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <Select
-                    fullWidth
-                    label="Property Assignment"
-                    required
-                    variant="outlined"
-                    value={currentTenant.propertyId}
-                    onChange={e => setCurrentTenant({ ...currentTenant, propertyId: e.target.value })}
-                  >
-                    {mockProperties.map(property => (
-                      <MenuItem key={property.id} value={property.id}>
-                        {property.name} - {property.type}
-                      </MenuItem>
-                    ))}
-                  </Select>
-
-                  <TextField
-                    fullWidth
-                    label="Monthly Rent"
-                    type="number"
-                    required
-                    variant="outlined"
-                    InputProps={{
-                      startAdornment: <InputAdornment position="start">$</InputAdornment>,
-                    }}
-                    value={currentTenant.rentAmount}
-                    onChange={e => setCurrentTenant({ ...currentTenant, rentAmount: e.target.value })}
-                    sx={{ mt: 2 }}
-                  />
-
-                  <DatePicker
-                    label="Lease Start Date"
-                    value={currentTenant.leaseStart}
-                    onChange={(newValue) => setCurrentTenant({ ...currentTenant, leaseStart: newValue })}
-                    renderInput={(params) => <TextField {...params} fullWidth sx={{ mt: 2 }} />}
-                  />
-
-                  <DatePicker
-                    label="Lease End Date"
-                    value={currentTenant.leaseEnd}
-                    onChange={(newValue) => setCurrentTenant({ ...currentTenant, leaseEnd: newValue })}
-                    renderInput={(params) => <TextField {...params} fullWidth sx={{ mt: 2 }} />}
-                  />
-
-                  <Button
-                    fullWidth
-                    component="label"
-                    variant="outlined"
-                    startIcon={<CloudUpload />}
-                    sx={{ mt: 2 }}
-                  >
-                    Upload Lease Document
-                    <input type="file" hidden onChange={handleFileUpload} />
-                  </Button>
-                  {currentTenant.leaseDocument && (
-                    <Chip
-                      label={currentTenant.leaseDocument}
-                      onDelete={() => setCurrentTenant({ ...currentTenant, leaseDocument: null })}
-                      sx={{ mt: 1 }}
-                      deleteIcon={<Delete fontSize="small" />}
-                    />
-                  )}
-                </Grid>
-              </Grid>
-            </form>
-          </DialogContent>
-          <DialogActions sx={{ p: 3 }}>
-            <Button variant="outlined" onClick={handleCloseDialog}>Cancel</Button>
-            <Button variant="contained" onClick={handleSubmit} color="primary">
-              {editMode ? 'Update Tenant' : 'Create Tenant Record'}
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Payment Dialog */}
-        <Dialog open={openPaymentDialog} onClose={() => setOpenPaymentDialog(false)} fullWidth maxWidth="sm">
-          <DialogTitle sx={{ bgcolor: 'success.main', color: 'white' }}>
-            Record Payment for {selectedTenant?.name}
-          </DialogTitle>
-          <DialogContent>
-            <Grid container spacing={2} sx={{ mt: 2 }}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Payment Amount"
-                  variant="outlined"
-                  value={paymentDetails.amount}
-                  onChange={(e) => setPaymentDetails({ ...paymentDetails, amount: e.target.value })}
-                  InputProps={{
-                    startAdornment: <InputAdornment position="start">$</InputAdornment>,
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <DatePicker
-                  label="Payment Date"
-                  value={paymentDetails.paymentDate}
-                  onChange={(newValue) => setPaymentDetails({ ...paymentDetails, paymentDate: newValue })}
-                  renderInput={(params) => <TextField {...params} fullWidth />}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Select
-                  fullWidth
-                  label="Payment Method"
-                  value={paymentDetails.paymentMethod}
-                  onChange={(e) => setPaymentDetails({ ...paymentDetails, paymentMethod: e.target.value })}
-                >
-                  <MenuItem value="Bank Transfer">Bank Transfer</MenuItem>
-                  <MenuItem value="Credit Card">Credit Card</MenuItem>
-                  <MenuItem value="Cash">Cash</MenuItem>
-                  <MenuItem value="Check">Check</MenuItem>
-                </Select>
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Reference Number"
-                  variant="outlined"
-                  value={paymentDetails.referenceNumber}
-                  onChange={(e) => setPaymentDetails({ ...paymentDetails, referenceNumber: e.target.value })}
-                />
-              </Grid>
-            </Grid>
-          </DialogContent>
-          <DialogActions sx={{ p: 3 }}>
-            <Button variant="outlined" onClick={() => setOpenPaymentDialog(false)}>
-              Cancel
-            </Button>
-            <Button variant="contained" color="success" onClick={handlePaymentSubmit}>
-              Confirm Payment
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Send Notification Dialog */}
-        <SendNotification
-          tenants={tenants} // Pass the list of tenants
-          open={notificationOpen}
-          onClose={() => setNotificationOpen(false)}
-        />
       </Container>
+
+      {/* Send Notification Dialog */}
+      <SendNotification tenants={tenants} open={notificationOpen} onClose={() => setNotificationOpen(false)} />
     </LocalizationProvider>
   );
 };
