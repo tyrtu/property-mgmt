@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth"; 
+import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 import { setDoc, doc } from "firebase/firestore"; // ✅ Firestore functions
 import { auth, db } from "../firebase"; // ✅ Import Firebase Auth & Firestore
 
@@ -126,5 +126,11 @@ const TenantRegister = () => {
 
       {/* Success Snackbar */}
       <Snackbar open={!!success} autoHideDuration={6000} onClose={() => setSuccess("")}>
-         <Alert severity="success">{success}</Alert> {/* ✅ Fix: Close Alert properly */}
+        <Alert severity="success">{success}</Alert>
       </Snackbar>
+    </Box> 
+  );  // ✅ This closing Box is now correctly placed
+};
+
+export default TenantRegister;
+
