@@ -13,8 +13,9 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth"; // ✅ Import Firebase functions
-import { auth } from "../firebase"; // ✅ Import Firebase Auth
+import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth"; 
+import { setDoc, doc } from "firebase/firestore"; // ✅ Firestore functions
+import { auth, db } from "../firebase"; // ✅ Import Firebase Auth & Firestore
 
 const TenantRegister = () => {
   const [name, setName] = useState("");
@@ -33,7 +34,7 @@ const TenantRegister = () => {
     setShowPassword((prev) => !prev);
   };
 
-  // Handle registration form submission
+  // Handle registration
   const handleRegister = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -53,15 +54,25 @@ const TenantRegister = () => {
     }
 
     try {
-      // ✅ Register user with Firebase Authentication
+      // ✅ Register user with Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
+
+      // ✅ Store user data in Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        name,
+        email,
+        phone,
+        role: "tenant", // 🔥 Default role is "tenant"
+        createdAt: new Date().toISOString(),
+      });
 
       // ✅ Send Email Verification
       await sendEmailVerification(user);
 
       setSuccess("Registration successful! Please verify your email before logging in.");
-      setTimeout(() => navigate("/tenant/login"), 4000); // Redirect after 4 seconds
+      setTimeout(() => navigate("/tenant/login"), 4000); // Redirect after 4s
     } catch (err) {
       setError(err.message);
     } finally {
@@ -72,9 +83,7 @@ const TenantRegister = () => {
   return (
     <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
       <Paper elevation={3} sx={{ p: 4, width: 400, textAlign: "center" }}>
-        <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
-          Tenant Registration
-        </Typography>
+        <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>Tenant Registration</Typography>
         <form onSubmit={handleRegister}>
           <TextField label="Full Name" fullWidth required value={name} onChange={(e) => setName(e.target.value)} sx={{ mb: 2 }} />
           <TextField label="Email" type="email" fullWidth required value={email} onChange={(e) => setEmail(e.target.value)} sx={{ mb: 2 }} />
@@ -117,10 +126,4 @@ const TenantRegister = () => {
 
       {/* Success Snackbar */}
       <Snackbar open={!!success} autoHideDuration={6000} onClose={() => setSuccess("")}>
-        <Alert severity="success">{success}</Alert>
-      </Snackbar>
-    </Box>
-  );
-};
-
-export default TenantRegister;
+        <Alert severity="success">{success
