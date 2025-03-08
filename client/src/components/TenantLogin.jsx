@@ -5,63 +5,80 @@ import {
   TextField,
   Button,
   Paper,
+  IconButton,
+  InputAdornment,
   CircularProgress,
   Snackbar,
   Alert,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { auth } from "../firebase";
-import { signInWithEmailAndPassword, sendEmailVerification, signOut } from "firebase/auth";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth, db } from "../firebase"; // ✅ Import Firestore
+import { doc, getDoc } from "firebase/firestore"; // ✅ Firestore functions
 
 const TenantLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [resendSuccess, setResendSuccess] = useState(""); // ✅ To show resend success message
   const navigate = useNavigate();
 
-  // Handle Login
+  // Toggle password visibility
+  const handleTogglePasswordVisibility = () => {
+    setShowPassword((prev) => !prev);
+  };
+
+  // Handle login with Firebase
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
-    setResendSuccess("");
+
+    if (!email || !password) {
+      setError("Please fill in all fields.");
+      setLoading(false);
+      return;
+    }
 
     try {
+      // ✅ Login user with Firebase
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // ✅ Block login if email is NOT verified
+      // ✅ Check if email is verified
       if (!user.emailVerified) {
-        await signOut(auth); // ✅ Force logout if not verified
-        setError("Your email is not verified. Please check your inbox.");
+        setError("Please verify your email before logging in.");
+        setLoading(false);
         return;
       }
 
-      navigate("/tenant/dashboard"); // ✅ Redirect to dashboard after successful login
-    } catch (err) {
-      setError("Invalid email or password.");
-    } finally {
-      setLoading(false);
-    }
-  };
+      // ✅ Fetch user role from Firestore
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
 
-  // Resend Verification Email
-  const handleResendVerification = async () => {
-    setError("");
-    setResendSuccess("");
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        const role = userData.role;
 
-    try {
-      const user = auth.currentUser;
-      if (user && !user.emailVerified) {
-        await sendEmailVerification(user);
-        setResendSuccess("Verification email sent! Check your inbox.");
+        // ✅ Store role in localStorage
+        localStorage.setItem("userRole", role);
+        localStorage.setItem("tenantToken", user.uid);
+
+        // ✅ Redirect user based on role
+        if (role === "admin") {
+          navigate("/dashboard"); // Redirect Admins
+        } else {
+          navigate("/tenant/dashboard"); // Redirect Tenants
+        }
       } else {
-        setError("Invalid request. Try logging in again.");
+        setError("User role not found. Please contact support.");
       }
     } catch (err) {
-      setError("Error sending verification email. Try again later.");
+      setError(err.message || "Login failed. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -71,15 +88,27 @@ const TenantLogin = () => {
         <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>Tenant Login</Typography>
         <form onSubmit={handleLogin}>
           <TextField label="Email" type="email" fullWidth required value={email} onChange={(e) => setEmail(e.target.value)} sx={{ mb: 2 }} />
-          <TextField label="Password" type="password" fullWidth required value={password} onChange={(e) => setPassword(e.target.value)} sx={{ mb: 2 }} />
+          <TextField
+            label="Password"
+            type={showPassword ? "text" : "password"}
+            fullWidth
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            sx={{ mb: 2 }}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={handleTogglePasswordVisibility} edge="end">
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
           <Button type="submit" variant="contained" fullWidth disabled={loading} sx={{ mb: 2 }}>
             {loading ? <CircularProgress size={24} /> : "Login"}
           </Button>
-          <Typography variant="body2" sx={{ color: "text.secondary", mb: 1 }}>
-            <Button variant="text" size="small" onClick={() => navigate("/tenant/reset-password")}>
-              Forgot Password?
-            </Button>
-          </Typography>
           <Typography variant="body2" sx={{ color: "text.secondary" }}>
             Don't have an account?{" "}
             <Button variant="text" size="small" onClick={() => navigate("/tenant/register")}>
@@ -93,19 +122,7 @@ const TenantLogin = () => {
       <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError("")}>
         <Alert severity="error">{error}</Alert>
       </Snackbar>
-
-      {/* Success Snackbar for Resend Email */}
-      <Snackbar open={!!resendSuccess} autoHideDuration={6000} onClose={() => setResendSuccess("")}>
-        <Alert severity="success">{resendSuccess}</Alert>
-      </Snackbar>
-
-      {/* Resend Verification Email Button */}
-      {error === "Your email is not verified. Please check your inbox." && (
-        <Button variant="outlined" color="primary" sx={{ mt: 2 }} onClick={handleResendVerification}>
-          Resend Verification Email
-        </Button>
-      )}
-    </Box>
+    </Box> 
   );
 };
 
