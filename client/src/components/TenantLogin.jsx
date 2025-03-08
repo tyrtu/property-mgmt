@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "../firebase"; // ✅ Import Firestore
 import { doc, getDoc } from "firebase/firestore"; // ✅ Firestore functions
 
@@ -23,7 +23,6 @@ const TenantLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [message, setMessage] = useState(""); // ✅ New state for reset success message
   const navigate = useNavigate();
 
   // Toggle password visibility
@@ -83,35 +82,12 @@ const TenantLogin = () => {
     }
   };
 
-  // ✅ Handle Forgot Password Reset
-  const handleResetPassword = async () => {
-    if (!email) {
-      setError("Enter your email to reset password.");
-      return;
-    }
-
-    try {
-      await sendPasswordResetEmail(auth, email);
-      setMessage("Password reset email sent. Check your inbox.");
-    } catch (err) {
-      setError(err.message || "Failed to send reset email.");
-    }
-  };
-
   return (
     <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
       <Paper elevation={3} sx={{ p: 4, width: 400, textAlign: "center" }}>
         <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>Tenant Login</Typography>
         <form onSubmit={handleLogin}>
-          <TextField 
-            label="Email" 
-            type="email" 
-            fullWidth 
-            required 
-            value={email} 
-            onChange={(e) => setEmail(e.target.value)} 
-            sx={{ mb: 2 }} 
-          />
+          <TextField label="Email" type="email" fullWidth required value={email} onChange={(e) => setEmail(e.target.value)} sx={{ mb: 2 }} />
           <TextField
             label="Password"
             type={showPassword ? "text" : "password"}
@@ -131,15 +107,14 @@ const TenantLogin = () => {
             }}
           />
 
-          {/* ✅ Forgot Password Button */}
-          <Button 
-            variant="text" 
-            size="small" 
-            sx={{ mb: 2, textTransform: "none" }} 
-            onClick={handleResetPassword}
+          {/* Forgot Password Link - Redirects to TenantResetPassword Page */}
+          <Typography
+            variant="body2"
+            sx={{ color: "primary.main", textAlign: "right", cursor: "pointer", mb: 2 }}
+            onClick={() => navigate("/tenant/reset-password")}
           >
             Forgot Password?
-          </Button>
+          </Typography>
 
           <Button type="submit" variant="contained" fullWidth disabled={loading} sx={{ mb: 2 }}>
             {loading ? <CircularProgress size={24} /> : "Login"}
@@ -154,14 +129,9 @@ const TenantLogin = () => {
         </form>
       </Paper>
 
-      {/* ✅ Error Snackbar */}
+      {/* Error Snackbar */}
       <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError("")}>
         <Alert severity="error">{error}</Alert>
-      </Snackbar>
-
-      {/* ✅ Success Message Snackbar */}
-      <Snackbar open={!!message} autoHideDuration={6000} onClose={() => setMessage("")}>
-        <Alert severity="success">{message}</Alert>
       </Snackbar>
     </Box> 
   );
