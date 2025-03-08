@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import {
+import { 
   Card, Typography, Button, TextField, Grid, Box,
   Chip, Avatar, Dialog, DialogTitle, DialogContent,
   DialogActions, MenuItem, Select, InputAdornment,
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
-  IconButton, Tooltip, Container, LinearProgress, Badge
+  Container, LinearProgress, Badge
 } from '@mui/material';
-import {
-  PersonAdd, Edit, Payment,
-  Delete, Search, CloudUpload,
-  Description, ContactPhone, CalendarToday, Send
+import { 
+  PersonAdd, Edit, Payment, 
+  Delete, Search, Send
 } from '@mui/icons-material';
 import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
@@ -17,7 +15,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { mockTenants, mockProperties } from '../mockData';
 import { styled } from '@mui/material/styles';
 import Navigation from './Navigation';
-import SendNotification from './SendNotification'; // Import SendNotification component
+import SendNotification from './SendNotification';
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
   '& .MuiBadge-badge': {
@@ -30,56 +28,14 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
 
 const TenantManagement = () => {
   const [tenants, setTenants] = useState([]);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [openPaymentDialog, setOpenPaymentDialog] = useState(false);
-  const [editMode, setEditMode] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedTenant, setSelectedTenant] = useState(null);
   const [notificationOpen, setNotificationOpen] = useState(false);
-
-  const [currentTenant, setCurrentTenant] = useState({
-    id: null,
-    name: '',
-    email: '',
-    phone: '',
-    emergencyContact: '',
-    propertyId: '',
-    rentAmount: '',
-    leaseStart: null,
-    leaseEnd: null,
-    paymentStatus: 'Pending',
-    leaseDocument: null,
-  });
 
   useEffect(() => {
     setTenants(mockTenants);
   }, []);
 
-  const handleEdit = (id) => {
-    const tenant = tenants.find(t => t.id === id);
-    if (tenant) {
-      setCurrentTenant(tenant);
-      setEditMode(true);
-      setOpenDialog(true);
-    }
-  };
-
-  const handleDelete = (id) => {
-    setTenants(tenants.filter(t => t.id !== id));
-  };
-
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
-    setEditMode(false);
-    setCurrentTenant({
-      id: null, name: '', email: '', phone: '', emergencyContact: '', propertyId: '', rentAmount: '', leaseStart: null, leaseEnd: null, paymentStatus: 'Pending', leaseDocument: null
-    });
-  };
-
-  const handlePaymentSubmit = () => {
-    setTenants(tenants.map(t => t.id === selectedTenant?.id ? { ...t, paymentStatus: 'Paid' } : t));
-    setOpenPaymentDialog(false);
-  };
+  const handleSearch = (e) => setSearchTerm(e.target.value);
 
   const columns = [
     { 
@@ -88,13 +44,15 @@ const TenantManagement = () => {
       width: 250,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <StyledBadge badgeContent={params.row?.activeLease ? '✓' : '!'} color="secondary">
-            <Avatar src={`https://i.pravatar.cc/80?u=${params.row?.id || 'default'}`}>{params.row?.name?.[0] || '?'}</Avatar>
+          <StyledBadge badgeContent={params.row?.activeLease ? "✓" : "!"} color="secondary">
+            <Avatar src={`https://i.pravatar.cc/80?u=${params.row?.id}`}>
+              {params.row?.name?.[0] || 'T'}
+            </Avatar>
           </StyledBadge>
           <Box>
-            <Typography variant="subtitle1">{params.row?.name || 'Unknown'}</Typography>
+            <Typography variant="subtitle1">{params.row?.name || 'N/A'}</Typography>
             <Typography variant="caption" color="text.secondary">
-              {params.row?.email || 'No Email'}
+              {params.row?.email || 'N/A'}
             </Typography>
           </Box>
         </Box>
@@ -106,7 +64,7 @@ const TenantManagement = () => {
       width: 200,
       valueGetter: (params) => {
         const property = mockProperties.find(p => p.id === params.row?.propertyId);
-        return property ? property.name : 'Unknown Property';
+        return property ? property.name : 'N/A';
       }
     },
     { 
@@ -115,8 +73,8 @@ const TenantManagement = () => {
       width: 150,
       renderCell: (params) => (
         <Chip 
-          label={params.row?.paymentStatus || 'Unknown'}
-          color={params.row?.paymentStatus === 'Paid' ? 'success' : 'warning'}
+          label={params.value || 'N/A'} 
+          color={params.value === 'Paid' ? 'success' : 'warning'}
           variant="outlined"
           size="small"
         />
@@ -127,8 +85,9 @@ const TenantManagement = () => {
       headerName: 'Lease Duration', 
       width: 200,
       valueGetter: (params) => {
-        return params.row?.leaseStart && params.row?.leaseEnd ?
-          `${new Date(params.row.leaseStart).toLocaleDateString()} - ${new Date(params.row.leaseEnd).toLocaleDateString()}` : 'Unknown';
+        return params.row?.leaseStart && params.row?.leaseEnd
+          ? `${new Date(params.row.leaseStart).toLocaleDateString()} - ${new Date(params.row.leaseEnd).toLocaleDateString()}`
+          : 'N/A';
       }
     },
     { 
@@ -137,12 +96,9 @@ const TenantManagement = () => {
       type: 'actions',
       width: 150,
       getActions: (params) => [
-        <GridActionsCellItem icon={<Edit />} label="Edit" onClick={() => handleEdit(params.row?.id)} />,
-        <GridActionsCellItem icon={<Payment />} label="Payment" onClick={() => {
-          setSelectedTenant(params.row);
-          setOpenPaymentDialog(true);
-        }} />,
-        <GridActionsCellItem icon={<Delete />} label="Delete" onClick={() => handleDelete(params.row?.id)} />
+        <GridActionsCellItem icon={<Edit />} label="Edit" onClick={() => console.log("Edit", params.row)} />,
+        <GridActionsCellItem icon={<Payment />} label="Payment" onClick={() => console.log("Payment", params.row)} />,
+        <GridActionsCellItem icon={<Delete />} label="Delete" onClick={() => console.log("Delete", params.row)} />
       ],
     },
   ];
@@ -152,8 +108,31 @@ const TenantManagement = () => {
       <Navigation />
       <Container maxWidth="xl" sx={{ py: 4 }}>
         <Card sx={{ p: 3, mb: 3, boxShadow: 3 }}>
-          <Typography variant="h4">Tenant Management Portal</Typography>
-          <Box sx={{ height: 600, width: '100%', mt: 3 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Typography variant="h4">Tenant Management Portal</Typography>
+            <Button variant="contained" startIcon={<Send />} onClick={() => setNotificationOpen(true)}>
+              Send Notification
+            </Button>
+          </Box>
+
+          <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+            <TextField
+              fullWidth
+              variant="outlined"
+              placeholder="Search tenants..."
+              InputProps={{ startAdornment: <Search sx={{ color: 'action.active', mr: 1 }} /> }}
+              value={searchTerm}
+              onChange={handleSearch}
+            />
+            <Select value="all" variant="outlined" sx={{ minWidth: 180 }}>
+              <MenuItem value="all">All Properties</MenuItem>
+              {mockProperties.map(property => (
+                <MenuItem key={property.id} value={property.id}>{property.name}</MenuItem>
+              ))}
+            </Select>
+          </Box>
+
+          <Box sx={{ height: 600, width: '100%' }}>
             <DataGrid
               rows={tenants}
               columns={columns}
@@ -167,6 +146,8 @@ const TenantManagement = () => {
           </Box>
         </Card>
       </Container>
+
+      <SendNotification tenants={tenants} open={notificationOpen} onClose={() => setNotificationOpen(false)} />
     </LocalizationProvider>
   );
 };
