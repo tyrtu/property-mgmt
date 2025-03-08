@@ -1,14 +1,28 @@
 import React, { useState } from 'react';
 import { AppBar, Toolbar, Button, Box, IconButton, Drawer, List, ListItem, ListItemText } from '@mui/material';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom'; // ✅ Added useNavigate
 import MenuIcon from '@mui/icons-material/Menu';
+import { auth } from '../firebase'; // ✅ Import Firebase Auth
+import { signOut } from 'firebase/auth'; // ✅ Import signOut function
 
 const TenantNavigation = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation(); // ✅ Get current path
+  const navigate = useNavigate(); // ✅ Added useNavigate for redirecting after logout
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
+  };
+
+  // ✅ Handle Logout
+  const handleLogout = async () => {
+    try {
+      await signOut(auth); // Sign out the user
+      localStorage.removeItem('tenantToken'); // Clear tenant token from localStorage
+      navigate('/tenant/login'); // Redirect to login page
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
   };
 
   const navItems = [
@@ -21,7 +35,7 @@ const TenantNavigation = () => {
 
   return (
     <>
-      {/* ✅ Tenant Navbar with Styling */}
+      {/* ✅ Tenant Navbar with Logout Button */}
       <AppBar position="static" color="secondary">
         <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
           
@@ -48,6 +62,11 @@ const TenantNavigation = () => {
               </Button>
             ))}
           </Box>
+
+          {/* ✅ Logout Button */}
+          <Button color="inherit" onClick={handleLogout}>
+            Logout
+          </Button>
         </Toolbar>
       </AppBar>
 
@@ -69,6 +88,10 @@ const TenantNavigation = () => {
                 <ListItemText primary={item.text} />
               </ListItem>
             ))}
+            {/* ✅ Logout Button in Drawer */}
+            <ListItem button onClick={handleLogout}>
+              <ListItemText primary="Logout" />
+            </ListItem>
           </List>
         </Box>
       </Drawer>
