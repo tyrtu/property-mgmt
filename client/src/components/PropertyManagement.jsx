@@ -78,6 +78,7 @@ const PropertyManagement = () => {
 
   return (
     <Box sx={{ p: 3, height: '100vh' }}>
+      <Navigation />
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="h4">Property Management</Typography>
         <Button 

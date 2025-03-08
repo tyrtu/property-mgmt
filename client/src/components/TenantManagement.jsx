@@ -199,6 +199,7 @@ const TenantManagement = () => {
       <Container maxWidth="xl" sx={{ py: 4 }}>
         <Card sx={{ p: 3, mb: 3, boxShadow: 3 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Navigation />
             <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
               Tenant Management Portal
             </Typography>

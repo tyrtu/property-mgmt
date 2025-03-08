@@ -33,6 +33,7 @@ const RentPayment = () => {
 
   return (
     <Box sx={{ p: 3 }}>
+      <Navigation />
       <Typography variant="h4" gutterBottom>Rent Payments</Typography>
       <Box sx={{ height: 600, width: '100%' }}>
         <DataGrid
