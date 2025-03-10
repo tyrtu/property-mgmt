@@ -19,6 +19,8 @@ import AttachFileIcon from "@mui/icons-material/AttachFile";
 // Firebase Firestore imports
 import { collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../firebase";
+// Import Supabase client
+import { supabase } from "../utils/supabaseClient";
 
 const TenantMaintenance = () => {
   const [requests, setRequests] = useState([]);
@@ -28,30 +30,37 @@ const TenantMaintenance = () => {
 
   // Fetch maintenance requests for the current tenant
   useEffect(() => {
-    const fetchRequests = () => {
-      const user = auth.currentUser;
-      if (!user) return;
-      const maintenanceRef = collection(db, "maintenanceRequests");
-      // Query to get only requests from the current user, ordered by creation time descending
-      const q = query(
-        maintenanceRef,
-        where("userId", "==", user.uid),
-        orderBy("createdAt", "desc")
-      );
-      const unsubscribe = onSnapshot(q, (snapshot) => {
-        const reqs = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+    const user = auth.currentUser;
+    if (!user) return;
+    const maintenanceRef = collection(db, "maintenanceRequests");
+    // Query to get only requests from the current user, ordered by creation time descending
+    const q = query(
+      maintenanceRef,
+      where("userId", "==", user.uid),
+      orderBy("createdAt", "desc")
+    );
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const reqs = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          // Use a fallback date if createdAt is not yet set
+          const createdAt = data.createdAt
+            ? new Date(data.createdAt.seconds * 1000)
+            : new Date(0);
+          return {
+            id: doc.id,
+            ...data,
+            submittedAt: createdAt.toLocaleDateString(),
+          };
+        });
         setRequests(reqs);
-      }, (error) => {
+      },
+      (error) => {
         console.error("Error fetching maintenance requests: ", error);
-      });
-      return unsubscribe;
-    };
-
-    const unsubscribe = fetchRequests();
-    return () => unsubscribe && unsubscribe();
+      }
+    );
+    return () => unsubscribe();
   }, []);
 
   // Open modal for new request
@@ -66,9 +75,33 @@ const TenantMaintenance = () => {
     setFile(null);
   };
 
-  // Handle file upload (for testing only)
+  // Handle file upload (local selection only)
   const handleFileUpload = (event) => {
     setFile(event.target.files[0]);
+  };
+
+  // Upload file to Supabase Storage and return public URL
+  const uploadFileToSupabase = async (file) => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}.${fileExt}`;
+    const filePath = fileName;
+    const { error, data } = await supabase
+      .storage
+      .from('maintenance-images')
+      .upload(filePath, file);
+    if (error) {
+      console.error("Upload error:", error);
+      return null;
+    }
+    const { publicURL, error: urlError } = supabase
+      .storage
+      .from('maintenance-images')
+      .getPublicUrl(filePath);
+    if (urlError) {
+      console.error("Error getting public URL:", urlError);
+      return null;
+    }
+    return publicURL;
   };
 
   // Submit new maintenance request to Firestore
@@ -77,14 +110,18 @@ const TenantMaintenance = () => {
     const user = auth.currentUser;
     if (!user) return;
     try {
+      let imageUrl = null;
+      if (file) {
+        imageUrl = await uploadFileToSupabase(file);
+      }
       await addDoc(collection(db, "maintenanceRequests"), {
         userId: user.uid,
         issue: newIssue,
         status: "Pending", // Initial status
         createdAt: serverTimestamp(),
-        image: file ? URL.createObjectURL(file) : null,
+        image: imageUrl,
       });
-      // The onSnapshot listener will update the requests automatically
+      // The onSnapshot listener will update the requests automatically once createdAt is set.
       handleCloseDialog();
     } catch (error) {
       console.error("Error submitting maintenance request:", error);
@@ -111,11 +148,7 @@ const TenantMaintenance = () => {
               <ListItem key={req.id} sx={{ mb: 2, borderBottom: "1px solid #ddd" }}>
                 <ListItemText
                   primary={req.issue}
-                  secondary={`Submitted: ${
-                    req.createdAt
-                      ? new Date(req.createdAt.seconds * 1000).toLocaleDateString()
-                      : "Pending"
-                  } | Status: ${req.status}`}
+                  secondary={`Submitted: ${req.submittedAt} | Status: ${req.status}`}
                 />
                 <Chip
                   label={req.status}
