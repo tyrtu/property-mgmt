@@ -21,6 +21,7 @@
     "@mui/x-data-grid": "^7.27.2",
     "@mui/x-date-pickers": "^7.27.1",
     "@mui/x-date-pickers-pro": "^7.27.1",
+    "@supabase/supabase-js": "^2.49.1",
     "clsx": "^2.1.1",
     "date-fns": "^2.6.3",
     "firebase": "^11.4.0",
