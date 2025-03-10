@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -15,16 +15,49 @@ import {
   Divider,
   LinearProgress,
 } from "@mui/material";
-import { AccountBalanceWallet, Home, Build, Notifications, Email } from "@mui/icons-material";
+import {
+  AccountBalanceWallet,
+  Home,
+  Build,
+  Notifications,
+  Email,
+} from "@mui/icons-material";
 import TenantNavigation from "./TenantNavigation";
 import { useNavigate } from "react-router-dom";
+// Firebase imports for fetching tenant name
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "../firebase";
 
 const TenantDashboard = () => {
   const navigate = useNavigate();
+  
+  // State for fetched tenant name from Firestore
+  const [fetchedName, setFetchedName] = useState("John Doe");
+
+  // Fetch the tenant's name from Firestore on mount
+  useEffect(() => {
+    const fetchTenantName = async () => {
+      const user = auth.currentUser;
+      if (user) {
+        try {
+          const docRef = doc(db, "users", user.uid);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setFetchedName(data.name || "John Doe");
+          }
+        } catch (error) {
+          console.error("Error fetching tenant name:", error);
+        }
+      }
+    };
+    fetchTenantName();
+  }, []);
 
   // Dummy tenant data; replace with real data from backend.
+  // For now, all fields remain as mock data except for the name.
   const tenant = {
-    name: "John Doe",
+    name: fetchedName, // Use fetched name from Firestore
     avatar: "https://i.pravatar.cc/150?img=3",
     leaseStart: "2024-01-01",
     leaseEnd: "2024-12-31",
@@ -34,21 +67,39 @@ const TenantDashboard = () => {
       { id: 1, issue: "Leaking sink", status: "In Progress" },
       { id: 2, issue: "Broken AC", status: "Resolved" },
     ],
-    notifications: ["Your rent is due on April 1st.", "Scheduled maintenance on March 15th."],
+    notifications: [
+      "Your rent is due on April 1st.",
+      "Scheduled maintenance on March 15th."
+    ],
     totalOutstanding: 1200,
   };
 
   return (
-    <Box sx={{ backgroundColor: "#f5f5f5", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+    <Box
+      sx={{
+        backgroundColor: "#f5f5f5",
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
       {/* Header + Navigation */}
-      <Box sx={{ width: "100%", p: 2, textAlign: "center", backgroundColor: "#1976d2", color: "#fff" }}>
+      <Box
+        sx={{
+          width: "100%",
+          p: 2,
+          textAlign: "center",
+          backgroundColor: "#1976d2",
+          color: "#fff",
+        }}
+      >
         <Typography
           variant="h5"
           sx={{
             fontWeight: "bold",
             textTransform: "uppercase",
             letterSpacing: 1,
-            textAlign: { xs: "left", md: "center" }, // Center on large screens
+            textAlign: { xs: "left", md: "center" },
           }}
         >
           X-PROPERTY MANAGER
@@ -133,7 +184,9 @@ const TenantDashboard = () => {
                 <Typography variant="subtitle2" color="text.secondary">
                   Maintenance Requests
                 </Typography>
-                <Typography variant="h6">{tenant.maintenanceRequests.length}</Typography>
+                <Typography variant="h6">
+                  {tenant.maintenanceRequests.length}
+                </Typography>
                 <Button
                   variant="outlined"
                   fullWidth
