@@ -19,7 +19,7 @@ import SendNotification from './SendNotification'; // Import the SendNotificatio
 import Navigation from './Navigation'; // Import the Navigation component
 import useAutoLogout from '../hooks/useAutoLogout'; // Import the auto-logout hook
 
-// Firebase imports for Firestore
+// Firebase Firestore imports
 import { collection, getDocs, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 
@@ -66,20 +66,19 @@ const TenantManagement = () => {
   // Enable auto-logout after 15 minutes of inactivity
   useAutoLogout();
 
-  // ----------------------
-  // FIRESTORE LISTENER
-  // ----------------------
-  // Remove the old mock data loader and use Firestore's onSnapshot for real-time updates.
+  // -------------------------------------------------------------------------
+  // FIRESTORE REAL-TIME LISTENER: Fetch all tenants from the "users" collection
+  // -------------------------------------------------------------------------
   useEffect(() => {
     const tenantsCollection = collection(db, 'users');
 
-    // Optional: fetch initial data via getDocs
-    const fetchTenants = async () => {
+    // Optionally, fetch initial data using getDocs (can be omitted if onSnapshot returns immediately)
+    const fetchInitialData = async () => {
       const snapshot = await getDocs(tenantsCollection);
       setTenants(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     };
 
-    fetchTenants();
+    fetchInitialData();
 
     // Listen for real-time updates
     const unsubscribe = onSnapshot(tenantsCollection, (snapshot) => {
@@ -89,11 +88,9 @@ const TenantManagement = () => {
     return () => unsubscribe();
   }, []);
 
-  // (If you wish to keep your mock data in development, comment out the above useEffect and uncomment below)
-  // useEffect(() => {
-  //   setTenants(mockTenants);
-  // }, []);
-
+  // -------------------------------------------------------------------------
+  // Handlers for dialogs and form submission
+  // -------------------------------------------------------------------------
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setEditMode(false);
@@ -159,7 +156,7 @@ const TenantManagement = () => {
   };
 
   const handleDelete = (id) => {
-    // In production, also remove from Firestore.
+    // In production, remove tenant from Firestore as well
     setTenants(tenants.filter(t => t.id !== id));
   };
 
