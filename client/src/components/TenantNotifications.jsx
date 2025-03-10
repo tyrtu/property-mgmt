@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import { Warning as WarningIcon, Info as InfoIcon } from '@mui/icons-material';
 import { collection, query, where, onSnapshot, orderBy, doc, getDoc } from 'firebase/firestore';
-import { auth, db } from '../firebase'; 
+import { auth, db } from '../firebase';
 
 const TenantNotifications = () => {
   const [notifications, setNotifications] = useState([]);
@@ -21,6 +21,8 @@ const TenantNotifications = () => {
   const [tenantName, setTenantName] = useState('');
 
   useEffect(() => {
+    let isMounted = true;
+    
     const fetchTenantData = async () => {
       try {
         const user = auth.currentUser;
@@ -32,15 +34,25 @@ const TenantNotifications = () => {
         if (!userSnap.exists()) throw new Error('Tenant data not found.');
         
         const userData = userSnap.data();
-        setTenantId(userData.tenantId);
-        setTenantName(userData.name || 'Unknown Tenant');
+        if (!userData.tenantId) throw new Error('User not associated with a tenant.');
 
+        if (isMounted) {
+          setTenantId(userData.tenantId);
+          setTenantName(userData.name || 'Tenant');
+        }
       } catch (err) {
-        setError(err.message);
+        if (isMounted) {
+          setError(err.message);
+          setLoading(false);
+        }
       }
     };
 
     fetchTenantData();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -66,7 +78,7 @@ const TenantNotifications = () => {
       },
       (error) => {
         console.error('Firestore error:', error);
-        setError('Failed to load notifications. Please try again.');
+        setError(error.message || 'Failed to load notifications.');
         setLoading(false);
       }
     );
@@ -77,7 +89,7 @@ const TenantNotifications = () => {
   if (error) {
     return (
       <Box sx={{ p: 3, textAlign: 'center' }}>
-        <Alert severity="error">{error}</Alert>
+        <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
       </Box>
     );
   }
@@ -111,7 +123,7 @@ const TenantNotifications = () => {
             </ListItemIcon>
             <ListItemText
               primary={note.message}
-              secondary={note.createdAt?.toLocaleString()}
+              secondary={note.createdAt?.toLocaleString() || 'Date not available'}
               primaryTypographyProps={{ fontWeight: 500 }}
               secondaryTypographyProps={{ color: 'text.secondary' }}
             />
