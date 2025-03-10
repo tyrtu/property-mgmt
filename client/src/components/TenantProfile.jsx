@@ -11,6 +11,7 @@ const TenantProfile = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
 
   // Fetch tenant profile from Firestore on mount
   useEffect(() => {
@@ -61,6 +62,7 @@ const TenantProfile = () => {
         // Update original profile to the latest saved state
         setOriginalProfile(profile);
         setSuccessMessage('Profile updated successfully!');
+        setIsEditing(false);
         console.log('Profile saved', profile);
         setTimeout(() => {
           setSuccessMessage('');
@@ -71,6 +73,11 @@ const TenantProfile = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleCancel = () => {
+    setProfile(originalProfile);
+    setIsEditing(false);
   };
 
   // Check if the profile has changed compared to the original profile
@@ -102,33 +109,46 @@ const TenantProfile = () => {
           fullWidth
           value={profile.name || ''}
           onChange={(e) => handleChange('name', e.target.value)}
+          disabled={!isEditing}
         />
         <TextField
           label="Email"
           fullWidth
           value={profile.email || ''}
           onChange={(e) => handleChange('email', e.target.value)}
+          disabled={!isEditing}
         />
         <TextField
           label="Phone"
           fullWidth
           value={profile.phone || ''}
           onChange={(e) => handleChange('phone', e.target.value)}
+          disabled={!isEditing}
         />
         <TextField
           label="Emergency Contact"
           fullWidth
           value={profile.emergencyContact || ''}
           onChange={(e) => handleChange('emergencyContact', e.target.value)}
+          disabled={!isEditing}
         />
         {profile.leaseDocument && (
           <Typography variant="body2">
             Lease Document: {profile.leaseDocument}
           </Typography>
         )}
-        {hasProfileChanged() && (
-          <Button variant="contained" onClick={handleSave} disabled={saving}>
-            {saving ? 'Saving...' : 'Save Changes'}
+        {isEditing ? (
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button variant="contained" onClick={handleSave} disabled={saving || !hasProfileChanged()}>
+              {saving ? 'Saving...' : 'Save Changes'}
+            </Button>
+            <Button variant="outlined" onClick={handleCancel} disabled={saving}>
+              Cancel
+            </Button>
+          </Box>
+        ) : (
+          <Button variant="contained" onClick={() => setIsEditing(true)}>
+            Edit Profile
           </Button>
         )}
         {successMessage && (
