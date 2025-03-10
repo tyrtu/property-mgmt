@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
 
-const useAutoLogout = (inactivityTime = 5 * 60 * 1000) => { // 1 minute for testing
+const useAutoLogout = (inactivityTime = 15 * 60 * 1000) => { // 1 minute for testing
   const navigate = useNavigate();
 
   useEffect(() => {
