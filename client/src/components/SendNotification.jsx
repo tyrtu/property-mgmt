@@ -1,3 +1,4 @@
+// src/components/SendNotification.jsx
 import React, { useState } from 'react';
 import {
   Box,
@@ -17,8 +18,8 @@ import {
   Snackbar,
 } from '@mui/material';
 import { Send, Close } from '@mui/icons-material';
-import { collection, addDoc } from 'firebase/firestore';
-import { db } from '../firebase'; // Adjust the import path as needed
+import { collection, writeBatch, doc } from 'firebase/firestore';
+import { db } from '../firebase';
 
 const SendNotification = ({ tenants, open, onClose }) => {
   const [message, setMessage] = useState('');
@@ -32,17 +33,19 @@ const SendNotification = ({ tenants, open, onClose }) => {
 
     setLoading(true);
     try {
-      // Save the notification to Firestore for each selected tenant
-      await Promise.all(
-        selectedTenants.map((tenantId) =>
-          addDoc(collection(db, 'notifications'), {
-            tenantId,
-            message,
-            createdAt: new Date(),
-            isRead: false,
-          })
-        )
-      );
+      // Create a batch write operation for sending notifications atomically
+      const batch = writeBatch(db);
+      selectedTenants.forEach((tenantId) => {
+        // Create a new document reference (with an auto-generated ID) in 'notifications' collection
+        const notificationRef = doc(collection(db, 'notifications'));
+        batch.set(notificationRef, {
+          tenantId,
+          message,
+          createdAt: new Date(),
+          isRead: false,
+        });
+      });
+      await batch.commit();
       setSnackbarMessage('Notifications sent successfully!');
       setSnackbarOpen(true);
       onClose();
@@ -116,7 +119,6 @@ const SendNotification = ({ tenants, open, onClose }) => {
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar for success/error messages */}
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={6000}
