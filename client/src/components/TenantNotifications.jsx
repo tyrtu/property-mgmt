@@ -2,7 +2,6 @@
 import React from 'react';
 import { Box, Typography, List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
 import { Warning as WarningIcon, Info as InfoIcon } from '@mui/icons-material';
-import TenantNavigation from './TenantNavigation';
 
 const TenantNotifications = () => {
   // Dummy notifications; replace with real notifications data.
@@ -13,7 +12,6 @@ const TenantNotifications = () => {
 
   return (
     <Box sx={{ backgroundColor: 'background.default', minHeight: '100vh', p: 3 }}>
-      <TenantNavigation />
       <Typography variant="h4" sx={{ mb: 3 }}>
         Notifications
       </Typography>
@@ -46,3 +44,4 @@ const TenantNotifications = () => {
 };
 
 export default TenantNotifications;
+s
