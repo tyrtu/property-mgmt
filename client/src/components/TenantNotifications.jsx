@@ -44,4 +44,3 @@ const TenantNotifications = () => {
 };
 
 export default TenantNotifications;
-s
