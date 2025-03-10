@@ -8,7 +8,8 @@ import {
   ListItemText,
   CircularProgress,
   Alert,
-  IconButton
+  IconButton,
+  Button
 } from '@mui/material';
 import {
   Warning as WarningIcon,
@@ -16,7 +17,16 @@ import {
   CheckCircle as ReadIcon,
   CircleNotifications as UnreadIcon
 } from '@mui/icons-material';
-import { collection, query, where, orderBy, onSnapshot, doc, updateDoc } from 'firebase/firestore';
+import { 
+  collection, 
+  query, 
+  where, 
+  orderBy, 
+  onSnapshot, 
+  doc, 
+  getDoc,
+  updateDoc 
+} from 'firebase/firestore';
 import { auth, db } from '../firebase';
 
 const TenantNotifications = () => {
@@ -25,7 +35,6 @@ const TenantNotifications = () => {
   const [error, setError] = useState(null);
   const [tenantId, setTenantId] = useState(null);
 
-  // Fetch tenant ID and setup real-time listener
   useEffect(() => {
     let isMounted = true;
     let unsubscribeNotifications = () => {};
@@ -91,7 +100,6 @@ const TenantNotifications = () => {
     };
   }, []);
 
-  // Mark notification as read
   const handleMarkRead = async (notificationId) => {
     try {
       const notificationRef = doc(db, 'notifications', notificationId);
