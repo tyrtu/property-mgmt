@@ -7,46 +7,41 @@ import {
   ListItemIcon,
   ListItemText,
   CircularProgress,
-  Alert,
 } from '@mui/material';
 import { Warning as WarningIcon, Info as InfoIcon } from '@mui/icons-material';
-import { collection, query, where, onSnapshot, orderBy, limit } from 'firebase/firestore';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase'; // Adjust the import path as needed
 
 const TenantNotifications = ({ tenantId }) => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   // Fetch notifications for the logged-in tenant
   useEffect(() => {
-    if (!tenantId) return;
+    if (!tenantId) {
+      console.warn('No tenantId provided. Skipping notifications fetch.');
+      setLoading(false);
+      return;
+    }
+
+    console.log('Fetching notifications for tenantId:', tenantId);
 
     const notificationsCollection = collection(db, 'notifications');
     const notificationsQuery = query(
       notificationsCollection,
-      where('tenantId', '==', tenantId),
-      orderBy('createdAt', 'desc'), // Sort by most recent
-      limit(50) // Limit to 50 notifications
+      where('tenantId', '==', tenantId)
     );
 
     // Real-time listener for notifications
-    const unsubscribe = onSnapshot(
-      notificationsQuery,
-      (snapshot) => {
-        const notes = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setNotifications(notes);
-        setLoading(false);
-      },
-      (err) => {
-        console.error('Error fetching notifications:', err);
-        setError('Failed to load notifications. Please try again later.');
-        setLoading(false);
-      }
-    );
+    const unsubscribe = onSnapshot(notificationsQuery, (snapshot) => {
+      const notes = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      console.log('Fetched notifications:', notes); // Debugging: Log fetched notifications
+      setNotifications(notes);
+      setLoading(false);
+    });
 
     // Cleanup listener on unmount
     return () => unsubscribe();
@@ -63,14 +58,6 @@ const TenantNotifications = ({ tenantId }) => {
         }}
       >
         <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Alert severity="error">{error}</Alert>
       </Box>
     );
   }
@@ -114,4 +101,4 @@ const TenantNotifications = ({ tenantId }) => {
   );
 };
 
-export default React.memo(TenantNotifications); // Memoize to prevent unnecessary re-renders
+export default TenantNotifications;// Memoize to prevent unnecessary re-renders
