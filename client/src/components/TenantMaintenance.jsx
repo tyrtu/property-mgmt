@@ -19,7 +19,7 @@ import AttachFileIcon from "@mui/icons-material/AttachFile";
 // Firebase Firestore imports
 import { collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../firebase";
-// Import Supabase client
+// Supabase client import (ensure your supabaseClient.js is correctly configured)
 import { supabase } from "../utils/supabaseClient";
 
 const TenantMaintenance = () => {
@@ -27,13 +27,13 @@ const TenantMaintenance = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [newIssue, setNewIssue] = useState("");
   const [file, setFile] = useState(null);
+  const [successMessage, setSuccessMessage] = useState("");
 
-  // Fetch maintenance requests for the current tenant
+  // Fetch maintenance requests for the current tenant using Firebase Auth UID
   useEffect(() => {
     const user = auth.currentUser;
     if (!user) return;
     const maintenanceRef = collection(db, "maintenanceRequests");
-    // Query to get only requests from the current user, ordered by creation time descending
     const q = query(
       maintenanceRef,
       where("userId", "==", user.uid),
@@ -44,7 +44,6 @@ const TenantMaintenance = () => {
       (snapshot) => {
         const reqs = snapshot.docs.map((doc) => {
           const data = doc.data();
-          // Use a fallback date if createdAt is not yet set
           const createdAt = data.createdAt
             ? new Date(data.createdAt.seconds * 1000)
             : new Date(0);
@@ -57,7 +56,7 @@ const TenantMaintenance = () => {
         setRequests(reqs);
       },
       (error) => {
-        console.error("Error fetching maintenance requests: ", error);
+        console.error("Error fetching maintenance requests:", error);
       }
     );
     return () => unsubscribe();
@@ -82,26 +81,31 @@ const TenantMaintenance = () => {
 
   // Upload file to Supabase Storage and return public URL
   const uploadFileToSupabase = async (file) => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}.${fileExt}`;
-    const filePath = fileName;
-    const { error, data } = await supabase
-      .storage
-      .from('maintenance-images')
-      .upload(filePath, file);
-    if (error) {
-      console.error("Upload error:", error);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = fileName;
+      const { error, data } = await supabase
+        .storage
+        .from('maintenance-images')
+        .upload(filePath, file);
+      if (error) {
+        console.error("Upload error:", error);
+        return null;
+      }
+      const { publicURL, error: urlError } = supabase
+        .storage
+        .from('maintenance-images')
+        .getPublicUrl(filePath);
+      if (urlError) {
+        console.error("Error getting public URL:", urlError);
+        return null;
+      }
+      return publicURL;
+    } catch (error) {
+      console.error("Unexpected upload error:", error);
       return null;
     }
-    const { publicURL, error: urlError } = supabase
-      .storage
-      .from('maintenance-images')
-      .getPublicUrl(filePath);
-    if (urlError) {
-      console.error("Error getting public URL:", urlError);
-      return null;
-    }
-    return publicURL;
   };
 
   // Submit new maintenance request to Firestore
@@ -121,7 +125,11 @@ const TenantMaintenance = () => {
         createdAt: serverTimestamp(),
         image: imageUrl,
       });
-      // The onSnapshot listener will update the requests automatically once createdAt is set.
+      // Display success message and close dialog
+      setSuccessMessage("Maintenance request submitted successfully!");
+      setTimeout(() => {
+        setSuccessMessage("");
+      }, 3000);
       handleCloseDialog();
     } catch (error) {
       console.error("Error submitting maintenance request:", error);
@@ -137,6 +145,12 @@ const TenantMaintenance = () => {
       <Button variant="contained" onClick={handleOpenDialog} sx={{ mb: 2 }}>
         Request Maintenance
       </Button>
+
+      {successMessage && (
+        <Typography variant="subtitle1" color="success.main" sx={{ mb: 2 }}>
+          {successMessage}
+        </Typography>
+      )}
 
       <Paper sx={{ p: 3 }}>
         <Typography variant="h6">Your Requests</Typography>
