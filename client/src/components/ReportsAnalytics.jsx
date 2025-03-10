@@ -101,7 +101,7 @@ const ReportsAnalytics = () => {
                     </Typography>
                     <PieChart
                       series={[
-                        { data: mockFinancialData.expenseCategories, innerRadius: 40, outerRadius: 100 }
+                        { data: mockFinancialData.expenseCategories, outerRadius: 100 } // Removed innerRadius
                       ]}
                       height={300}
                       slotProps={{ legend: { hidden: true } }}
