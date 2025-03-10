@@ -1,7 +1,5 @@
-// src/components/TenantProfile.jsx
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, TextField, Button, Avatar } from '@mui/material';
-import TenantNavigation from './TenantNavigation';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase'; // Adjust the path as needed
 
@@ -13,7 +11,6 @@ const TenantProfile = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [isEditing, setIsEditing] = useState(false);
 
-  // Fetch tenant profile from Firestore on mount
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -26,7 +23,6 @@ const TenantProfile = () => {
             setProfile(data);
             setOriginalProfile(data);
           } else {
-            // If no document exists, initialize with empty fields
             const emptyProfile = {
               name: '',
               email: '',
@@ -59,11 +55,9 @@ const TenantProfile = () => {
       if (user && profile) {
         const docRef = doc(db, 'users', user.uid);
         await updateDoc(docRef, profile);
-        // Update original profile to the latest saved state
         setOriginalProfile(profile);
         setSuccessMessage('Profile updated successfully!');
         setIsEditing(false);
-        console.log('Profile saved', profile);
         setTimeout(() => {
           setSuccessMessage('');
         }, 3000);
@@ -80,7 +74,6 @@ const TenantProfile = () => {
     setIsEditing(false);
   };
 
-  // Check if the profile has changed compared to the original profile
   const hasProfileChanged = () => {
     if (!profile || !originalProfile) return false;
     return JSON.stringify(profile) !== JSON.stringify(originalProfile);
@@ -96,7 +89,6 @@ const TenantProfile = () => {
 
   return (
     <Box sx={{ backgroundColor: 'background.default', minHeight: '100vh', p: 3 }}>
-      <TenantNavigation />
       <Typography variant="h4" sx={{ mb: 3 }}>
         My Profile
       </Typography>
