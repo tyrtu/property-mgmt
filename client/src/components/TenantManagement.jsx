@@ -1,14 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Card, Typography, Button, TextField, Grid, Box,
-  Chip, Avatar, Dialog, DialogTitle, DialogContent,
-  DialogActions, MenuItem, Select, InputAdornment,
-  IconButton, Tooltip, Container, LinearProgress, Badge
+import {
+  Card,
+  Typography,
+  Button,
+  TextField,
+  Grid,
+  Box,
+  Chip,
+  Avatar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  MenuItem,
+  Select,
+  InputAdornment,
+  IconButton,
+  Tooltip,
+  Container,
+  LinearProgress,
+  Badge,
 } from '@mui/material';
-import { 
-  PersonAdd, Edit, Payment, 
-  Delete, Search, CloudUpload,
-  Description, ContactPhone, CalendarToday, Send, Info
+import {
+  PersonAdd,
+  Edit,
+  Payment,
+  Delete,
+  Search,
+  CloudUpload,
+  Description,
+  ContactPhone,
+  CalendarToday,
+  Send,
+  Info,
 } from '@mui/icons-material';
 import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
@@ -20,7 +44,7 @@ import Navigation from './Navigation'; // Import the Navigation component
 import useAutoLogout from '../hooks/useAutoLogout'; // Import the auto-logout hook
 
 // Firebase Firestore imports
-import { collection, getDocs, onSnapshot, query, where } from 'firebase/firestore';
+import { collection, getDocs, onSnapshot, query, where, addDoc, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
@@ -44,7 +68,7 @@ const TenantManagement = () => {
     name: '',
     email: '',
     phone: '',
-    emergencyContact: { name: '', relationship: '', phone: '' }, // Updated to match mock data
+    emergencyContact: { name: '', relationship: '', phone: '' },
     propertyId: '',
     rentAmount: '',
     leaseStart: null,
@@ -57,7 +81,7 @@ const TenantManagement = () => {
     amount: '',
     paymentDate: new Date(),
     paymentMethod: 'Bank Transfer',
-    referenceNumber: ''
+    referenceNumber: '',
   });
 
   const [notificationOpen, setNotificationOpen] = useState(false); // State for SendNotification dialog
@@ -77,14 +101,14 @@ const TenantManagement = () => {
     // Initial fetch with getDocs so data loads on refresh
     const fetchInitialData = async () => {
       const snapshot = await getDocs(tenantsQuery);
-      setTenants(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      setTenants(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
     };
 
     fetchInitialData();
 
     // Real-time listener using onSnapshot
     const unsubscribe = onSnapshot(tenantsQuery, (snapshot) => {
-      setTenants(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      setTenants(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
     });
 
     return () => unsubscribe();
@@ -101,7 +125,7 @@ const TenantManagement = () => {
       name: '',
       email: '',
       phone: '',
-      emergencyContact: { name: '', relationship: '', phone: '' }, // Reset to match structure
+      emergencyContact: { name: '', relationship: '', phone: '' },
       propertyId: '',
       rentAmount: '',
       leaseStart: null,
@@ -114,23 +138,25 @@ const TenantManagement = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (editMode) {
-      setTenants(tenants.map(t => 
-        t.id === currentTenant.id ? currentTenant : t
-      ));
+      setTenants(tenants.map((t) => (t.id === currentTenant.id ? currentTenant : t)));
     } else {
-      setTenants([...tenants, {
-        ...currentTenant,
-        id: Math.max(...tenants.map(t => t.id), 0) + 1
-      }]);
+      setTenants([
+        ...tenants,
+        {
+          ...currentTenant,
+          id: Math.max(...tenants.map((t) => t.id), 0) + 1,
+        },
+      ]);
     }
     handleCloseDialog();
   };
 
   const handlePaymentSubmit = () => {
-    setTenants(tenants.map(t => 
-      t.id === selectedTenant.id ? 
-      { ...t, paymentStatus: 'Paid', lastPayment: paymentDetails } : t
-    ));
+    setTenants(
+      tenants.map((t) =>
+        t.id === selectedTenant.id ? { ...t, paymentStatus: 'Paid', lastPayment: paymentDetails } : t
+      )
+    );
     setOpenPaymentDialog(false);
   };
 
@@ -151,7 +177,7 @@ const TenantManagement = () => {
 
   // Dummy implementations for handleEdit and handleDelete (update these to integrate with Firestore writes)
   const handleEdit = (id) => {
-    const tenant = tenants.find(t => t.id === id);
+    const tenant = tenants.find((t) => t.id === id);
     setCurrentTenant(tenant);
     setEditMode(true);
     setOpenDialog(true);
@@ -159,20 +185,18 @@ const TenantManagement = () => {
 
   const handleDelete = (id) => {
     // In production, remove tenant from Firestore as well
-    setTenants(tenants.filter(t => t.id !== id));
+    setTenants(tenants.filter((t) => t.id !== id));
   };
 
   const columns = [
-    { 
-      field: 'name', 
-      headerName: 'Tenant', 
+    {
+      field: 'name',
+      headerName: 'Tenant',
       width: 250,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, height: '100%', padding: '8px 0' }}>
-          <StyledBadge badgeContent={params.row.activeLease ? "✓" : "!"} color="secondary">
-            <Avatar src={`https://i.pravatar.cc/80?u=${params.row.id}`}>
-              {params.row.name[0]}
-            </Avatar>
+          <StyledBadge badgeContent={params.row.activeLease ? '✓' : '!'} color="secondary">
+            <Avatar src={`https://i.pravatar.cc/80?u=${params.row.id}`}>{params.row.name[0]}</Avatar>
           </StyledBadge>
           <Box sx={{ overflow: 'hidden' }}>
             <Typography variant="subtitle1" noWrap>
@@ -183,64 +207,75 @@ const TenantManagement = () => {
             </Typography>
           </Box>
         </Box>
-      )
+      ),
     },
-    { 
-      field: 'property', 
-      headerName: 'Property', 
+    {
+      field: 'property',
+      headerName: 'Property',
       width: 200,
       valueGetter: (params) => {
         if (!params || !params.row || !params.row.propertyId) return '';
-        const property = mockProperties.find(p => p.id === params.row.propertyId);
+        const property = mockProperties.find((p) => p.id === params.row.propertyId);
         return property ? property.name : '';
-      }
+      },
     },
-    { 
-      field: 'paymentStatus', 
-      headerName: 'Payment Status', 
+    {
+      field: 'paymentStatus',
+      headerName: 'Payment Status',
       width: 150,
       renderCell: (params) => (
-        <Chip 
-          label={params.value} 
-          color={
-            params.value === 'Paid' ? 'success' : 
-            params.value === 'Pending' ? 'warning' : 'error'
-          }
+        <Chip
+          label={params.value}
+          color={params.value === 'Paid' ? 'success' : params.value === 'Pending' ? 'warning' : 'error'}
           variant="outlined"
           size="small"
         />
-      )
+      ),
     },
-    { 
-      field: 'leaseDuration', 
-      headerName: 'Lease Duration', 
+    {
+      field: 'leaseDuration',
+      headerName: 'Lease Duration',
       width: 200,
       valueGetter: (params) => {
         if (!params || !params.row || !params.row.leaseStart || !params.row.leaseEnd) return '';
-        return `${new Date(params.row.leaseStart).toLocaleDateString()} - ${new Date(params.row.leaseEnd).toLocaleDateString()}`;
-      }
+        return `${new Date(params.row.leaseStart).toLocaleDateString()} - ${new Date(
+          params.row.leaseEnd
+        ).toLocaleDateString()}`;
+      },
     },
-    { 
-      field: 'actions', 
-      headerName: 'Actions', 
+    {
+      field: 'actions',
+      headerName: 'Actions',
       type: 'actions',
       width: 150,
       getActions: (params) => [
         <GridActionsCellItem
-          icon={<Tooltip title="View Details"><Info color="primary" /></Tooltip>}
+          icon={
+            <Tooltip title="View Details">
+              <Info color="primary" />
+            </Tooltip>
+          }
           onClick={() => handleViewTenant(params.row)}
           label="View"
         />,
         <GridActionsCellItem
-          icon={<Tooltip title="Edit"><Edit color="primary" /></Tooltip>}
+          icon={
+            <Tooltip title="Edit">
+              <Edit color="primary" />
+            </Tooltip>
+          }
           onClick={() => handleEdit(params.id)}
           label="Edit"
         />,
         <GridActionsCellItem
-          icon={<Tooltip title="Delete"><Delete color="error" /></Tooltip>}
+          icon={
+            <Tooltip title="Delete">
+              <Delete color="error" />
+            </Tooltip>
+          }
           onClick={() => handleDelete(params.id)}
           label="Delete"
-        />
+        />,
       ],
     },
   ];
@@ -254,11 +289,7 @@ const TenantManagement = () => {
             <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
               Tenant Management Portal
             </Typography>
-            <Button 
-              variant="contained" 
-              startIcon={<Send />}
-              onClick={() => setNotificationOpen(true)}
-            >
+            <Button variant="contained" startIcon={<Send />} onClick={() => setNotificationOpen(true)}>
               Send Notification
             </Button>
           </Box>
@@ -274,14 +305,12 @@ const TenantManagement = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <Select
-              value="all"
-              variant="outlined"
-              sx={{ minWidth: 180 }}
-            >
+            <Select value="all" variant="outlined" sx={{ minWidth: 180 }}>
               <MenuItem value="all">All Properties</MenuItem>
-              {mockProperties.map(property => (
-                <MenuItem key={property.id} value={property.id}>{property.name}</MenuItem>
+              {mockProperties.map((property) => (
+                <MenuItem key={property.id} value={property.id}>
+                  {property.name}
+                </MenuItem>
               ))}
             </Select>
           </Box>
@@ -327,7 +356,7 @@ const TenantManagement = () => {
                     required
                     variant="outlined"
                     value={currentTenant.name}
-                    onChange={e => setCurrentTenant({ ...currentTenant, name: e.target.value })}
+                    onChange={(e) => setCurrentTenant({ ...currentTenant, name: e.target.value })}
                     InputProps={{
                       startAdornment: <ContactPhone sx={{ color: 'action.active', mr: 1 }} />,
                     }}
@@ -339,7 +368,7 @@ const TenantManagement = () => {
                     required
                     variant="outlined"
                     value={currentTenant.email}
-                    onChange={e => setCurrentTenant({ ...currentTenant, email: e.target.value })}
+                    onChange={(e) => setCurrentTenant({ ...currentTenant, email: e.target.value })}
                     sx={{ mt: 2 }}
                   />
                   <TextField
@@ -348,7 +377,7 @@ const TenantManagement = () => {
                     required
                     variant="outlined"
                     value={currentTenant.phone}
-                    onChange={e => setCurrentTenant({ ...currentTenant, phone: e.target.value })}
+                    onChange={(e) => setCurrentTenant({ ...currentTenant, phone: e.target.value })}
                     sx={{ mt: 2 }}
                   />
                   <TextField
@@ -356,7 +385,12 @@ const TenantManagement = () => {
                     label="Emergency Contact Name"
                     variant="outlined"
                     value={currentTenant.emergencyContact.name}
-                    onChange={e => setCurrentTenant({ ...currentTenant, emergencyContact: { ...currentTenant.emergencyContact, name: e.target.value } })}
+                    onChange={(e) =>
+                      setCurrentTenant({
+                        ...currentTenant,
+                        emergencyContact: { ...currentTenant.emergencyContact, name: e.target.value },
+                      })
+                    }
                     sx={{ mt: 2 }}
                   />
                   <TextField
@@ -364,7 +398,12 @@ const TenantManagement = () => {
                     label="Emergency Contact Relationship"
                     variant="outlined"
                     value={currentTenant.emergencyContact.relationship}
-                    onChange={e => setCurrentTenant({ ...currentTenant, emergencyContact: { ...currentTenant.emergencyContact, relationship: e.target.value } })}
+                    onChange={(e) =>
+                      setCurrentTenant({
+                        ...currentTenant,
+                        emergencyContact: { ...currentTenant.emergencyContact, relationship: e.target.value },
+                      })
+                    }
                     sx={{ mt: 2 }}
                   />
                   <TextField
@@ -372,7 +411,12 @@ const TenantManagement = () => {
                     label="Emergency Contact Phone"
                     variant="outlined"
                     value={currentTenant.emergencyContact.phone}
-                    onChange={e => setCurrentTenant({ ...currentTenant, emergencyContact: { ...currentTenant.emergencyContact, phone: e.target.value } })}
+                    onChange={(e) =>
+                      setCurrentTenant({
+                        ...currentTenant,
+                        emergencyContact: { ...currentTenant.emergencyContact, phone: e.target.value },
+                      })
+                    }
                     sx={{ mt: 2 }}
                   />
                 </Grid>
@@ -384,9 +428,9 @@ const TenantManagement = () => {
                     required
                     variant="outlined"
                     value={currentTenant.propertyId}
-                    onChange={e => setCurrentTenant({ ...currentTenant, propertyId: e.target.value })}
+                    onChange={(e) => setCurrentTenant({ ...currentTenant, propertyId: e.target.value })}
                   >
-                    {mockProperties.map(property => (
+                    {mockProperties.map((property) => (
                       <MenuItem key={property.id} value={property.id}>
                         {property.name} - {property.type}
                       </MenuItem>
@@ -403,21 +447,21 @@ const TenantManagement = () => {
                       startAdornment: <InputAdornment position="start">$</InputAdornment>,
                     }}
                     value={currentTenant.rentAmount}
-                    onChange={e => setCurrentTenant({ ...currentTenant, rentAmount: e.target.value })}
+                    onChange={(e) => setCurrentTenant({ ...currentTenant, rentAmount: e.target.value })}
                     sx={{ mt: 2 }}
                   />
 
                   <DatePicker
                     label="Lease Start Date"
                     value={currentTenant.leaseStart}
-                    onChange={(newValue) => setCurrentTenant({ ...currentTenant, leaseStart: newValue })} 
+                    onChange={(newValue) => setCurrentTenant({ ...currentTenant, leaseStart: newValue })}
                     renderInput={(params) => <TextField {...params} fullWidth sx={{ mt: 2 }} />}
                   />
 
                   <DatePicker
                     label="Lease End Date"
                     value={currentTenant.leaseEnd}
-                    onChange={(newValue) => setCurrentTenant({ ...currentTenant, leaseEnd: newValue })} 
+                    onChange={(newValue) => setCurrentTenant({ ...currentTenant, leaseEnd: newValue })}
                     renderInput={(params) => <TextField {...params} fullWidth sx={{ mt: 2 }} />}
                   />
 
@@ -444,7 +488,9 @@ const TenantManagement = () => {
             </form>
           </DialogContent>
           <DialogActions sx={{ p: 3 }}>
-            <Button variant="outlined" onClick={handleCloseDialog}>Cancel</Button>
+            <Button variant="outlined" onClick={handleCloseDialog}>
+              Cancel
+            </Button>
             <Button variant="contained" onClick={handleSubmit} color="primary">
               {editMode ? 'Update Tenant' : 'Create Tenant Record'}
             </Button>
@@ -530,16 +576,18 @@ const TenantManagement = () => {
                     Phone: {viewTenant.phone}
                   </Typography>
                   <Typography variant="body2">
-                    Emergency Contact: {viewTenant.emergencyContact.name} ({viewTenant.emergencyContact.relationship}) - {viewTenant.emergencyContact.phone}
+                    Emergency Contact: {viewTenant.emergencyContact.name} ({viewTenant.emergencyContact.relationship}) -{' '}
+                    {viewTenant.emergencyContact.phone}
                   </Typography>
                 </Grid>
                 <Grid item xs={12}>
                   <Typography variant="subtitle1">Lease Information</Typography>
                   <Typography variant="body2">
-                    Property: {mockProperties.find(p => p.id === viewTenant.propertyId)?.name || 'N/A'}
+                    Property: {mockProperties.find((p) => p.id === viewTenant.propertyId)?.name || 'N/A'}
                   </Typography>
                   <Typography variant="body2">
-                    Lease: {new Date(viewTenant.leaseStart).toLocaleDateString()} - {new Date(viewTenant.leaseEnd).toLocaleDateString()}
+                    Lease: {new Date(viewTenant.leaseStart).toLocaleDateString()} -{' '}
+                    {new Date(viewTenant.leaseEnd).toLocaleDateString()}
                   </Typography>
                 </Grid>
                 <Grid item xs={12}>
