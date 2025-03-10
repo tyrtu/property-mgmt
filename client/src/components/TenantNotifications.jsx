@@ -12,24 +12,24 @@ import { Warning as WarningIcon, Info as InfoIcon } from '@mui/icons-material';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase'; // Adjust the import path as needed
 
-const TenantNotifications = ({ tenantId }) => {
+const TenantNotifications = ({ tenantName }) => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch notifications for the logged-in tenant
+  // Fetch notifications for the logged-in tenant by tenantName
   useEffect(() => {
-    if (!tenantId) {
-      console.warn('No tenantId provided. Skipping notifications fetch.');
+    if (!tenantName) {
+      console.warn('No tenantName provided. Skipping notifications fetch.');
       setLoading(false);
       return;
     }
 
-    console.log('Fetching notifications for tenantId:', tenantId);
+    console.log('Fetching notifications for tenantName:', tenantName);
 
     const notificationsCollection = collection(db, 'notifications');
     const notificationsQuery = query(
       notificationsCollection,
-      where('tenantId', '==', tenantId)
+      where('tenantName', '==', tenantName) // Filter by tenantName
     );
 
     // Real-time listener for notifications
@@ -45,7 +45,7 @@ const TenantNotifications = ({ tenantId }) => {
 
     // Cleanup listener on unmount
     return () => unsubscribe();
-  }, [tenantId]);
+  }, [tenantName]);
 
   if (loading) {
     return (
@@ -101,4 +101,4 @@ const TenantNotifications = ({ tenantId }) => {
   );
 };
 
-export default TenantNotifications;// Memoize to prevent unnecessary re-renders
+export default TenantNotifications;
