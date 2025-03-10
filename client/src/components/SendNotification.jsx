@@ -1,206 +1,162 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
+  Button,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+  Chip,
   CircularProgress,
-  Alert,
-  IconButton
+  Snackbar,
+  Alert
 } from '@mui/material';
-import {
-  Warning as WarningIcon,
-  Info as InfoIcon,
-  CheckCircle as ReadIcon,
-  CircleNotifications as UnreadIcon
-} from '@mui/icons-material';
-import { collection, query, where, orderBy, onSnapshot, doc, updateDoc } from 'firebase/firestore';
-import { auth, db } from '../firebase';
+import { Send, Close } from '@mui/icons-material';
+import { collection, writeBatch, doc } from 'firebase/firestore';
+import { db } from '../firebase';
 
-const TenantNotifications = () => {
-  const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [tenantId, setTenantId] = useState(null);
+const SendNotification = ({ tenants, open, onClose }) => {
+  const [message, setMessage] = useState('');
+  const [selectedTenants, setSelectedTenants] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
 
-  // Fetch tenant ID and setup real-time listener
-  useEffect(() => {
-    let isMounted = true;
-    let unsubscribeNotifications = () => {};
+  const handleSend = async () => {
+    if (!message || selectedTenants.length === 0) return;
 
-    const initializeNotifications = async () => {
-      try {
-        const user = auth.currentUser;
-        if (!user) throw new Error('Authentication required');
-
-        // Get tenant reference from user document
-        const userRef = doc(db, 'users', user.uid);
-        const userSnap = await getDoc(userRef);
-        
-        if (!userSnap.exists()) throw new Error('User profile not found');
-        if (!userSnap.data().tenantId) throw new Error('Tenant association missing');
-
-        const tenantId = userSnap.data().tenantId;
-        if (!isMounted) return;
-
-        setTenantId(tenantId);
-
-        // Create real-time notifications query
-        const notificationsRef = collection(db, 'notifications');
-        const q = query(
-          notificationsRef,
-          where('tenantId', '==', tenantId),
-          orderBy('createdAt', 'desc')
-        );
-
-        unsubscribeNotifications = onSnapshot(q, 
-          (snapshot) => {
-            const notes = snapshot.docs.map(doc => ({
-              id: doc.id,
-              ...doc.data(),
-              createdAt: doc.data().createdAt?.toDate(),
-              isRead: doc.data().isRead || false
-            }));
-            
-            if (isMounted) {
-              setNotifications(notes);
-              setLoading(false);
-            }
-          },
-          (error) => {
-            console.error('Notification stream error:', error);
-            if (isMounted) setError('Failed to load notifications');
-          }
-        );
-
-      } catch (err) {
-        if (isMounted) {
-          setError(err.message);
-          setLoading(false);
-        }
-      }
-    };
-
-    initializeNotifications();
-
-    return () => {
-      isMounted = false;
-      unsubscribeNotifications();
-    };
-  }, []);
-
-  // Mark notification as read
-  const handleMarkRead = async (notificationId) => {
+    setLoading(true);
     try {
-      const notificationRef = doc(db, 'notifications', notificationId);
-      await updateDoc(notificationRef, { isRead: true });
+      const batch = writeBatch(db);
+      const timestamp = new Date();
+
+      selectedTenants.forEach(tenantId => {
+        const tenant = tenants.find(t => t.id === tenantId);
+        if (!tenant) {
+          console.warn(`Tenant ${tenantId} not found, skipping notification`);
+          return;
+        }
+
+        const notificationRef = doc(collection(db, 'notifications'));
+        batch.set(notificationRef, {
+          tenantId,
+          tenantName: tenant.name, // Add tenant name for query flexibility
+          message,
+          type: 'info', // Default type, can be customized
+          createdAt: timestamp,
+          isRead: false
+        });
+      });
+
+      await batch.commit();
+      setSnackbarMessage('Notifications sent successfully!');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+      resetForm();
     } catch (error) {
-      console.error('Error marking notification read:', error);
+      console.error('Error sending notifications:', error);
+      setSnackbarMessage(`Failed to send notifications: ${error.message}`);
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (error) {
-    return (
-      <Box sx={{ p: 3, textAlign: 'center' }}>
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-          {error.includes('association') && (
-            <Button sx={{ ml: 2 }} onClick={() => window.location.reload()}>
-              Refresh
-            </Button>
-          )}
-        </Alert>
-      </Box>
-    );
-  }
-
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', pt: 4 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (notifications.length === 0) {
-    return (
-      <Box sx={{ p: 3, textAlign: 'center' }}>
-        <Alert severity="info">No notifications available</Alert>
-      </Box>
-    );
-  }
+  const resetForm = () => {
+    setMessage('');
+    setSelectedTenants([]);
+    onClose();
+  };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" sx={{ mb: 4, textAlign: 'center' }}>
-        Your Notifications
-      </Typography>
-      
-      <List sx={{ maxWidth: 800, margin: '0 auto' }}>
-        {notifications.map((note) => (
-          <ListItem
-            key={note.id}
-            sx={{
-              mb: 2,
-              borderRadius: 2,
-              boxShadow: 1,
-              backgroundColor: note.isRead ? 'action.hover' : 'background.paper'
-            }}
-          >
-            <ListItemIcon>
-              {note.type === 'alert' ? (
-                <WarningIcon color="error" />
-              ) : (
-                <InfoIcon color="info" />
+    <>
+      <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          <Box display="flex" alignItems="center" justifyContent="space-between">
+            <Typography variant="h6">Send Notification</Typography>
+            <Button onClick={resetForm} color="error">
+              <Close />
+            </Button>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <FormControl fullWidth sx={{ mt: 2 }}>
+            <InputLabel>Select Tenants</InputLabel>
+            <Select
+              multiple
+              value={selectedTenants}
+              onChange={(e) => setSelectedTenants(e.target.value)}
+              renderValue={(selected) => (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  {selected.map((tenantId) => {
+                    const tenant = tenants.find(t => t.id === tenantId);
+                    return (
+                      <Chip
+                        key={tenantId}
+                        label={tenant?.name || 'Unknown Tenant'}
+                        onDelete={() => setSelectedTenants(prev => prev.filter(id => id !== tenantId))}
+                      />
+                    );
+                  })}
+                </Box>
               )}
-            </ListItemIcon>
+            >
+              {tenants.map((tenant) => (
+                <MenuItem key={tenant.id} value={tenant.id}>
+                  {tenant.name} ({tenant.email})
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          
+          <TextField
+            fullWidth
+            label="Notification Message"
+            multiline
+            rows={4}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            sx={{ mt: 3 }}
+            inputProps={{ maxLength: 500 }}
+            helperText={`${message.length}/500 characters`}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={resetForm} color="inherit">
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSend}
+            variant="contained"
+            color="primary"
+            disabled={!message || selectedTenants.length === 0 || loading}
+            startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <Send />}
+          >
+            {loading ? 'Sending...' : 'Send Notifications'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-            <ListItemText
-              primary={note.message}
-              secondary={
-                <>
-                  <Typography
-                    component="span"
-                    variant="body2"
-                    color="text.secondary"
-                  >
-                    {note.createdAt?.toLocaleDateString('en-US', {
-                      weekday: 'short',
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </Typography>
-                  {note.tenantName && ` • From: ${note.tenantName}`}
-                </>
-              }
-              primaryTypographyProps={{ fontWeight: 500 }}
-            />
-
-            {!note.isRead && (
-              <IconButton 
-                onClick={() => handleMarkRead(note.id)}
-                color="primary"
-                sx={{ ml: 2 }}
-              >
-                <UnreadIcon />
-              </IconButton>
-            )}
-
-            {note.isRead && (
-              <IconButton disabled sx={{ ml: 2 }}>
-                <ReadIcon color="disabled" />
-              </IconButton>
-            )}
-          </ListItem>
-        ))}
-      </List>
-    </Box>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert severity={snackbarSeverity} sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
+    </>
   );
 };
 
-export default React.memo(TenantNotifications);
+export default React.memo(SendNotification);
