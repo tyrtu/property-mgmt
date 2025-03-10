@@ -3,44 +3,47 @@ import Navigation from './Navigation';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 import { Box, Typography, Select, MenuItem } from '@mui/material';
 import useAutoLogout from '../hooks/useAutoLogout';
-import { 
-  collection, 
-  query, 
-  orderBy, 
-  onSnapshot, 
-  updateDoc, 
-  doc 
+import {
+  collection,
+  query,
+  orderBy,
+  onSnapshot,
+  updateDoc,
+  doc,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 
 const MaintenanceRequests = () => {
   const [rows, setRows] = useState([]);
 
-  // Set up Firestore listener to fetch maintenance requests ordered by creation time (most recent first)
   useEffect(() => {
     const maintenanceRef = collection(db, 'maintenanceRequests');
     const q = query(maintenanceRef, orderBy('createdAt', 'desc'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const requests = snapshot.docs.map((docSnap) => {
-        const data = docSnap.data();
-        return {
-          id: docSnap.id, // Use document id as the row id
-          title: data.issue, // Assuming the 'issue' field holds the request title/description
-          property: data.property || '', // If a property field exists
-          date: data.createdAt
-            ? new Date(data.createdAt.seconds * 1000).toLocaleDateString()
-            : '',
-          status: data.status || 'Pending',
-        };
-      });
-      setRows(requests);
-    }, (error) => {
-      console.error("Error fetching maintenance requests: ", error);
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const requests = snapshot.docs.map((docSnap) => {
+          const data = docSnap.data();
+          return {
+            id: docSnap.id,
+            title: data.issue,
+            property: data.property || '',
+            date: data.createdAt
+              ? new Date(data.createdAt.seconds * 1000).toLocaleDateString()
+              : '',
+            status: data.status || 'Pending',
+            image: data.image || null, // Fetch image URL if available
+          };
+        });
+        setRows(requests);
+      },
+      (error) => {
+        console.error('Error fetching maintenance requests: ', error);
+      }
+    );
     return () => unsubscribe();
   }, []);
 
-  // Enable auto-logout after 15 minutes of inactivity
   useAutoLogout();
 
   const columns = [
@@ -56,12 +59,11 @@ const MaintenanceRequests = () => {
         const handleStatusChange = async (e) => {
           const newStatus = e.target.value;
           try {
-            // Update the status in Firestore for this request
             await updateDoc(doc(db, 'maintenanceRequests', params.row.id), {
               status: newStatus,
             });
           } catch (error) {
-            console.error("Error updating status:", error);
+            console.error('Error updating status:', error);
           }
         };
 
@@ -78,6 +80,21 @@ const MaintenanceRequests = () => {
           </Select>
         );
       },
+    },
+    {
+      field: 'image',
+      headerName: 'Image',
+      width: 150,
+      renderCell: (params) =>
+        params.value ? (
+          <img
+            src={params.value}
+            alt="Maintenance issue"
+            style={{ width: 50, height: 50, borderRadius: 5 }}
+          />
+        ) : (
+          'No Image'
+        ),
     },
   ];
 
