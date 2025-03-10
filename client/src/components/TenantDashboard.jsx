@@ -7,20 +7,13 @@ import {
   CardContent,
   Chip,
   Button,
-  List,
-  ListItem,
-  ListItemText,
-  Paper,
   Avatar,
-  Divider,
   LinearProgress,
 } from "@mui/material";
 import {
   AccountBalanceWallet,
   Home,
   Build,
-  Notifications,
-  Email,
 } from "@mui/icons-material";
 import TenantNavigation from "./TenantNavigation";
 import { useNavigate } from "react-router-dom";
@@ -83,28 +76,7 @@ const TenantDashboard = () => {
         flexDirection: "column",
       }}
     >
-      {/* Header + Navigation */}
-      <Box
-        sx={{
-          width: "100%",
-          p: 2,
-          textAlign: "center",
-          backgroundColor: "#1976d2",
-          color: "#fff",
-        }}
-      >
-        <Typography
-          variant="h5"
-          sx={{
-            fontWeight: "bold",
-            textTransform: "uppercase",
-            letterSpacing: 1,
-            textAlign: { xs: "left", md: "center" },
-          }}
-        >
-          X-PROPERTY MANAGER
-        </Typography>
-      </Box>
+      {/* Only one navigation bar */}
       <TenantNavigation />
 
       {/* Main Content */}
