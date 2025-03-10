@@ -7,10 +7,12 @@ import { auth, db } from '../firebase'; // Adjust the path as needed
 
 const TenantProfile = () => {
   const [profile, setProfile] = useState(null);
+  const [originalProfile, setOriginalProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
-  // Fetch the tenant's profile from Firestore on mount.
+  // Fetch tenant profile from Firestore on mount
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -19,16 +21,20 @@ const TenantProfile = () => {
           const docRef = doc(db, 'users', user.uid);
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
-            setProfile(docSnap.data());
+            const data = docSnap.data();
+            setProfile(data);
+            setOriginalProfile(data);
           } else {
-            // If no document exists, initialize with empty fields.
-            setProfile({
+            // If no document exists, initialize with empty fields
+            const emptyProfile = {
               name: '',
               email: '',
               phone: '',
               emergencyContact: '',
               leaseDocument: ''
-            });
+            };
+            setProfile(emptyProfile);
+            setOriginalProfile(emptyProfile);
           }
         }
       } catch (error) {
@@ -52,13 +58,25 @@ const TenantProfile = () => {
       if (user && profile) {
         const docRef = doc(db, 'users', user.uid);
         await updateDoc(docRef, profile);
+        // Update original profile to the latest saved state
+        setOriginalProfile(profile);
+        setSuccessMessage('Profile updated successfully!');
         console.log('Profile saved', profile);
+        setTimeout(() => {
+          setSuccessMessage('');
+        }, 3000);
       }
     } catch (error) {
       console.error('Error saving profile:', error);
     } finally {
       setSaving(false);
     }
+  };
+
+  // Check if the profile has changed compared to the original profile
+  const hasProfileChanged = () => {
+    if (!profile || !originalProfile) return false;
+    return JSON.stringify(profile) !== JSON.stringify(originalProfile);
   };
 
   if (loading) {
@@ -108,9 +126,16 @@ const TenantProfile = () => {
             Lease Document: {profile.leaseDocument}
           </Typography>
         )}
-        <Button variant="contained" onClick={handleSave} disabled={saving}>
-          {saving ? 'Saving...' : 'Save Changes'}
-        </Button>
+        {hasProfileChanged() && (
+          <Button variant="contained" onClick={handleSave} disabled={saving}>
+            {saving ? 'Saving...' : 'Save Changes'}
+          </Button>
+        )}
+        {successMessage && (
+          <Typography variant="body2" color="success.main">
+            {successMessage}
+          </Typography>
+        )}
       </Box>
     </Box>
   );
