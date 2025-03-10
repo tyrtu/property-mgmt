@@ -1,3 +1,4 @@
+// src/components/TenantNotifications.jsx
 import React, { useEffect, useState } from 'react';
 import {
   Box,
@@ -29,21 +30,22 @@ const TenantNotifications = ({ tenantName }) => {
     const notificationsCollection = collection(db, 'notifications');
     const notificationsQuery = query(
       notificationsCollection,
-      where('tenantName', '==', tenantName) // Filter by tenantName
+      where('tenantName', '==', tenantName)
     );
 
-    // Real-time listener for notifications
     const unsubscribe = onSnapshot(notificationsQuery, (snapshot) => {
       const notes = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
-      console.log('Fetched notifications:', notes); // Debugging: Log fetched notifications
+      console.log('Fetched notifications:', notes);
       setNotifications(notes);
+      setLoading(false);
+    }, (err) => {
+      console.error('Error fetching notifications:', err);
       setLoading(false);
     });
 
-    // Cleanup listener on unmount
     return () => unsubscribe();
   }, [tenantName]);
 
@@ -91,7 +93,11 @@ const TenantNotifications = ({ tenantName }) => {
               </ListItemIcon>
               <ListItemText
                 primary={note.title}
-                secondary={new Date(note.createdAt?.toDate()).toLocaleDateString()}
+                secondary={
+                  note.createdAt?.toDate
+                    ? new Date(note.createdAt.toDate()).toLocaleDateString()
+                    : 'No date'
+                }
               />
             </ListItem>
           ))
@@ -101,4 +107,4 @@ const TenantNotifications = ({ tenantName }) => {
   );
 };
 
-export default TenantNotifications;
+export default React.memo(TenantNotifications);
