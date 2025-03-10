@@ -16,10 +16,12 @@ import {
   TextField,
 } from "@mui/material";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
+
 // Firebase Firestore imports
 import { collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../firebase";
-// Supabase client import (ensure your supabaseClient.js is correctly configured)
+
+// Supabase client import
 import { supabase } from "../utils/supabaseClient";
 
 const TenantMaintenance = () => {
@@ -29,7 +31,7 @@ const TenantMaintenance = () => {
   const [file, setFile] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
 
-  // Fetch maintenance requests for the current tenant using Firebase Auth UID
+  // Fetch maintenance requests for the current tenant
   useEffect(() => {
     const user = auth.currentUser;
     if (!user) return;
@@ -39,6 +41,7 @@ const TenantMaintenance = () => {
       where("userId", "==", user.uid),
       orderBy("createdAt", "desc")
     );
+
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
@@ -62,7 +65,7 @@ const TenantMaintenance = () => {
     return () => unsubscribe();
   }, []);
 
-  // Open modal for new request
+  // Open modal
   const handleOpenDialog = () => {
     setOpenDialog(true);
   };
@@ -74,7 +77,7 @@ const TenantMaintenance = () => {
     setFile(null);
   };
 
-  // Handle file upload (local selection only)
+  // Handle file selection
   const handleFileUpload = (event) => {
     setFile(event.target.files[0]);
   };
@@ -85,47 +88,53 @@ const TenantMaintenance = () => {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}.${fileExt}`;
       const filePath = fileName;
-      const { error, data } = await supabase
-        .storage
+
+      const { data, error } = await supabase.storage
         .from('maintenance-images')
-        .upload(filePath, file);
+        .upload(filePath, file, { cacheControl: '3600', upsert: false });
+
       if (error) {
         console.error("Upload error:", error);
         return null;
       }
-      const { publicURL, error: urlError } = supabase
-        .storage
+
+      // Retrieve public URL
+      const { data: publicUrlData, error: urlError } = supabase.storage
         .from('maintenance-images')
         .getPublicUrl(filePath);
-      if (urlError) {
-        console.error("Error getting public URL:", urlError);
+
+      if (urlError || !publicUrlData) {
+        console.error("Error fetching public URL:", urlError);
         return null;
       }
-      return publicURL;
+
+      return publicUrlData.publicUrl;
     } catch (error) {
       console.error("Unexpected upload error:", error);
       return null;
     }
   };
 
-  // Submit new maintenance request to Firestore
+  // Submit new maintenance request
   const handleSubmitRequest = async () => {
     if (newIssue.trim() === "") return;
     const user = auth.currentUser;
     if (!user) return;
+
     try {
       let imageUrl = null;
       if (file) {
         imageUrl = await uploadFileToSupabase(file);
       }
+
       await addDoc(collection(db, "maintenanceRequests"), {
         userId: user.uid,
         issue: newIssue,
-        status: "Pending", // Initial status
+        status: "Pending",
         createdAt: serverTimestamp(),
-        image: imageUrl,
+        image: imageUrl || null, // Ensure null instead of undefined
       });
-      // Display success message and close dialog
+
       setSuccessMessage("Maintenance request submitted successfully!");
       setTimeout(() => {
         setSuccessMessage("");
