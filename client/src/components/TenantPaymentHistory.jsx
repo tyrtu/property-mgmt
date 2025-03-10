@@ -1,139 +1,120 @@
-// src/components/TenantPaymentHistory.jsx
-import React, { useState } from 'react';
-import { Box, Typography, Chip, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from '@mui/material';
-import { DataGrid, GridToolbar } from '@mui/x-data-grid';
-import TenantNavigation from './TenantNavigation';
+// src/components/TenantProfile.jsx
+import React, { useState, useEffect } from 'react';
+import { Box, Typography, TextField, Button, Avatar } from '@mui/material';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { auth, db } from '../firebase'; // Adjust the path as needed
 
-const TenantPaymentHistory = () => {
-  // Payment records in state to allow updates
-  const [payments, setPayments] = useState([
-    { id: 1, amount: 1200, dueDate: '2024-03-01', status: 'Paid' },
-    { id: 2, amount: 1200, dueDate: '2024-04-01', status: 'Pending' },
-    { id: 3, amount: 1200, dueDate: '2024-05-01', status: 'Upcoming' }
-  ]);
+const TenantProfile = () => {
+  const [profile, setProfile] = useState(null);
+  const [originalProfile, setOriginalProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
 
-  const [openPaymentModal, setOpenPaymentModal] = useState(false);
-  const [selectedPayment, setSelectedPayment] = useState(null);
-
-  // Open modal for selected payment record
-  const handleOpenPaymentModal = (payment) => {
-    setSelectedPayment(payment);
-    setOpenPaymentModal(true);
-  };
-
-  // Close the payment modal
-  const handleClosePaymentModal = () => {
-    setOpenPaymentModal(false);
-    setSelectedPayment(null);
-  };
-
-  // Simulate confirming the payment; update the status to "Paid"
-  const handleConfirmPayment = () => {
-    setPayments((prevPayments) =>
-      prevPayments.map((payment) =>
-        payment.id === selectedPayment.id ? { ...payment, status: 'Paid' } : payment
-      )
-    );
-    handleClosePaymentModal();
-  };
-
-  // Calculate total outstanding amount for payments not marked as Paid
-  const totalOutstanding = payments.reduce((acc, payment) => {
-    return payment.status !== 'Paid' ? acc + payment.amount : acc;
-  }, 0);
-
-  const columns = [
-    { field: 'id', headerName: 'ID', width: 70 },
-    {
-      field: 'amount',
-      headerName: 'Amount',
-      width: 120,
-      renderCell: (params) => `$${params.value}`
-    },
-    { field: 'dueDate', headerName: 'Due Date', width: 150 },
-    {
-      field: 'status',
-      headerName: 'Status',
-      width: 150,
-      renderCell: (params) => (
-        <Chip
-          label={params.value}
-          color={
-            params.value === 'Paid'
-              ? 'success'
-              : params.value === 'Pending'
-              ? 'warning'
-              : 'default'
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const user = auth.currentUser;
+        if (user) {
+          const docRef = doc(db, 'users', user.uid);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setProfile(data);
+            setOriginalProfile(data);
+          } else {
+            const emptyProfile = {
+              name: '',
+              email: '',
+              phone: '',
+              emergencyContact: '',
+              leaseDocument: ''
+            };
+            setProfile(emptyProfile);
+            setOriginalProfile(emptyProfile);
           }
-        />
-      )
-    },
-    {
-      field: 'action',
-      headerName: 'Action',
-      width: 150,
-      renderCell: (params) => {
-        if (params.row.status === 'Paid') return null;
-        return (
-          <Button
-            variant="contained"
-            size="small"
-            onClick={() => handleOpenPaymentModal(params.row)}
-          >
-            Pay Now
-          </Button>
-        );
+        }
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      } finally {
+        setLoading(false);
       }
+    };
+
+    fetchProfile();
+  }, []);
+
+  const handleChange = (field, value) => {
+    setProfile({ ...profile, [field]: value });
+  };
+
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      const user = auth.currentUser;
+      if (user && profile) {
+        const docRef = doc(db, 'users', user.uid);
+        await updateDoc(docRef, profile);
+        setOriginalProfile(profile);
+        setSuccessMessage('Profile updated successfully!');
+        setIsEditing(false);
+        setTimeout(() => {
+          setSuccessMessage('');
+        }, 3000);
+      }
+    } catch (error) {
+      console.error('Error saving profile:', error);
+    } finally {
+      setSaving(false);
     }
-  ];
+  };
+
+  const handleCancel = () => {
+    setProfile(originalProfile);
+    setIsEditing(false);
+  };
+
+  const hasProfileChanged = () => {
+    if (!profile || !originalProfile) return false;
+    return JSON.stringify(profile) !== JSON.stringify(originalProfile);
+  };
+
+  if (loading) return <Typography>Loading...</Typography>;
+  if (!profile) return <Typography>No profile data available.</Typography>;
 
   return (
     <Box sx={{ backgroundColor: 'background.default', minHeight: '100vh', p: 3 }}>
-      <TenantNavigation />
-      <Typography variant="h4" sx={{ mb: 2 }}>
-        Payment History
+      <Typography variant="h4" sx={{ mb: 3 }}>
+        My Profile
       </Typography>
-      <Typography variant="h6" sx={{ mb: 2 }}>
-        Total Outstanding Amount: ${totalOutstanding}
-      </Typography>
-      <Box sx={{ height: 600 }}>
-        <DataGrid
-          rows={payments}
-          columns={columns}
-          slots={{ toolbar: GridToolbar }}
-          pageSizeOptions={[5, 10, 25]}
-        />
-      </Box>
-
-      {/* Payment Modal */}
-      <Dialog open={openPaymentModal} onClose={handleClosePaymentModal}>
-        <DialogTitle>Make Payment</DialogTitle>
-        <DialogContent>
-          {selectedPayment && (
-            <>
-              <Typography variant="body1">
-                <strong>Amount:</strong> ${selectedPayment.amount}
-              </Typography>
-              <Typography variant="body1">
-                <strong>Due Date:</strong> {selectedPayment.dueDate}
-              </Typography>
-              <Typography variant="body1">
-                <strong>Status:</strong> {selectedPayment.status}
-              </Typography>
-              {/* Optional: Add additional inputs for payment method, transaction details, etc. */}
-              <TextField label="Payment Method" fullWidth margin="normal" />
-            </>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClosePaymentModal}>Cancel</Button>
-          <Button variant="contained" onClick={handleConfirmPayment}>
-            Confirm Payment
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 400 }}>
+        <Avatar sx={{ width: 80, height: 80 }}>
+          {profile.name ? profile.name[0] : '?'}
+        </Avatar>
+        <TextField label="Name" fullWidth value={profile.name || ''} onChange={(e) => handleChange('name', e.target.value)} disabled={!isEditing} />
+        <TextField label="Email" fullWidth value={profile.email || ''} onChange={(e) => handleChange('email', e.target.value)} disabled={!isEditing} />
+        <TextField label="Phone" fullWidth value={profile.phone || ''} onChange={(e) => handleChange('phone', e.target.value)} disabled={!isEditing} />
+        <TextField label="Emergency Contact" fullWidth value={profile.emergencyContact || ''} onChange={(e) => handleChange('emergencyContact', e.target.value)} disabled={!isEditing} />
+        {profile.leaseDocument && <Typography variant="body2">Lease Document: {profile.leaseDocument}</Typography>}
+        {isEditing ? (
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button variant="contained" onClick={handleSave} disabled={saving || !hasProfileChanged()}>
+              {saving ? 'Saving...' : 'Save Changes'}
+            </Button>
+            <Button variant="outlined" onClick={handleCancel} disabled={saving}>
+              Cancel
+            </Button>
+          </Box>
+        ) : (
+          <Button variant="contained" onClick={() => setIsEditing(true)}>
+            Edit Profile
           </Button>
-        </DialogActions>
-      </Dialog>
+        )}
+        {successMessage && <Typography variant="body2" color="success.main">{successMessage}</Typography>}
+      </Box>
     </Box>
   );
 };
 
-export default TenantPaymentHistory;
+export default TenantProfile;
