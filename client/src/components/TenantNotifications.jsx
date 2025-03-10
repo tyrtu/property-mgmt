@@ -8,14 +8,16 @@ import {
   ListItemIcon,
   ListItemText,
   CircularProgress,
+  Alert,
 } from '@mui/material';
 import { Warning as WarningIcon, Info as InfoIcon } from '@mui/icons-material';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy, limit } from 'firebase/firestore';
 import { db } from '../firebase'; // Adjust the import path as needed
 
 const TenantNotifications = ({ tenantName }) => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Fetch notifications for the logged-in tenant by tenantName
   useEffect(() => {
@@ -30,21 +32,28 @@ const TenantNotifications = ({ tenantName }) => {
     const notificationsCollection = collection(db, 'notifications');
     const notificationsQuery = query(
       notificationsCollection,
-      where('tenantName', '==', tenantName)
+      where('tenantName', '==', tenantName),
+      orderBy('createdAt', 'desc'),
+      limit(50)
     );
 
-    const unsubscribe = onSnapshot(notificationsQuery, (snapshot) => {
-      const notes = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      console.log('Fetched notifications:', notes);
-      setNotifications(notes);
-      setLoading(false);
-    }, (err) => {
-      console.error('Error fetching notifications:', err);
-      setLoading(false);
-    });
+    const unsubscribe = onSnapshot(
+      notificationsQuery,
+      (snapshot) => {
+        const notes = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        console.log('Fetched notifications:', notes);
+        setNotifications(notes);
+        setLoading(false);
+      },
+      (err) => {
+        console.error('Error fetching notifications:', err);
+        setError('Failed to load notifications. Please try again later.');
+        setLoading(false);
+      }
+    );
 
     return () => unsubscribe();
   }, [tenantName]);
@@ -60,6 +69,14 @@ const TenantNotifications = ({ tenantName }) => {
         }}
       >
         <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Alert severity="error">{error}</Alert>
       </Box>
     );
   }
@@ -93,11 +110,7 @@ const TenantNotifications = ({ tenantName }) => {
               </ListItemIcon>
               <ListItemText
                 primary={note.title}
-                secondary={
-                  note.createdAt?.toDate
-                    ? new Date(note.createdAt.toDate()).toLocaleDateString()
-                    : 'No date'
-                }
+                secondary={note.createdAt ? new Date(note.createdAt.seconds * 1000).toLocaleDateString() : 'No date'} 
               />
             </ListItem>
           ))
