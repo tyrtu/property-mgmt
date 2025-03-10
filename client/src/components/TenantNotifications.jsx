@@ -1,4 +1,3 @@
-// src/components/TenantNotifications.jsx
 import React, { useEffect, useState } from 'react';
 import {
   Box,
@@ -8,70 +7,51 @@ import {
   ListItemIcon,
   ListItemText,
   CircularProgress,
-  Alert,
+  Alert
 } from '@mui/material';
 import { Warning as WarningIcon, Info as InfoIcon } from '@mui/icons-material';
-import { collection, query, where, onSnapshot, orderBy, limit } from 'firebase/firestore';
-import { db } from '../firebase'; // Adjust the import path as needed
+import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+import { db } from '../firebase';
 
 const TenantNotifications = ({ tenantName }) => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch notifications for the logged-in tenant by tenantName
   useEffect(() => {
     if (!tenantName) {
-      console.warn('No tenantName provided. Skipping notifications fetch.');
+      setError('No tenant name provided');
       setLoading(false);
       return;
     }
 
-    console.log('Fetching notifications for tenantName:', tenantName);
-
-    const notificationsCollection = collection(db, 'notifications');
+    const notificationsRef = collection(db, 'notifications');
     const notificationsQuery = query(
-      notificationsCollection,
+      notificationsRef,
       where('tenantName', '==', tenantName),
-      orderBy('createdAt', 'desc'),
-      limit(50)
+      orderBy('createdAt', 'desc')
     );
 
     const unsubscribe = onSnapshot(
       notificationsQuery,
       (snapshot) => {
-        const notes = snapshot.docs.map((doc) => ({
+        const notes = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
+          createdAt: doc.data().createdAt?.toDate() // Convert Firestore timestamp
         }));
-        console.log('Fetched notifications:', notes);
         setNotifications(notes);
         setLoading(false);
       },
       (err) => {
-        console.error('Error fetching notifications:', err);
-        setError('Failed to load notifications. Please try again later.');
+        console.error('Notification fetch error:', err);
+        setError('Failed to load notifications');
         setLoading(false);
       }
     );
 
     return () => unsubscribe();
   }, [tenantName]);
-
-  if (loading) {
-    return (
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
 
   if (error) {
     return (
@@ -81,27 +61,37 @@ const TenantNotifications = ({ tenantName }) => {
     );
   }
 
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', pt: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   return (
-    <Box sx={{ backgroundColor: 'background.default', minHeight: '100vh', p: 3 }}>
-      <Typography variant="h4" sx={{ mb: 3 }}>
-        Notifications
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h4" gutterBottom>
+        Notifications for {tenantName}
       </Typography>
-      <List>
+      
+      <List sx={{ maxWidth: 800, margin: '0 auto' }}>
         {notifications.length === 0 ? (
-          <Typography variant="body1" sx={{ textAlign: 'center', color: 'text.secondary' }}>
-            No notifications found.
-          </Typography>
+          <Alert severity="info" sx={{ my: 2 }}>
+            No notifications found
+          </Alert>
         ) : (
           notifications.map((note) => (
             <ListItem
               key={note.id}
               sx={{
-                mb: 1,
-                bgcolor: note.type === 'alert' ? 'error.light' : 'action.hover',
-                borderRadius: 1,
+                mb: 2,
+                boxShadow: 1,
+                borderRadius: 2,
+                bgcolor: note.type === 'alert' ? 'error.light' : 'background.paper'
               }}
             >
-              <ListItemIcon>
+              <ListItemIcon sx={{ minWidth: 40 }}>
                 {note.type === 'alert' ? (
                   <WarningIcon color="error" />
                 ) : (
@@ -109,8 +99,14 @@ const TenantNotifications = ({ tenantName }) => {
                 )}
               </ListItemIcon>
               <ListItemText
-                primary={note.title}
-                secondary={note.createdAt ? new Date(note.createdAt.seconds * 1000).toLocaleDateString() : 'No date'} 
+                primary={note.message}
+                secondary={note.createdAt?.toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
               />
             </ListItem>
           ))
