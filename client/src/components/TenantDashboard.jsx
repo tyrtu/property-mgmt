@@ -15,7 +15,6 @@ import {
   Home,
   Build,
 } from "@mui/icons-material";
-import TenantNavigation from "./TenantNavigation";
 import { useNavigate } from "react-router-dom";
 // Firebase imports for fetching tenant name
 import { doc, getDoc } from "firebase/firestore";
@@ -76,9 +75,8 @@ const TenantDashboard = () => {
         flexDirection: "column",
       }}
     >
-      {/* Only one navigation bar */}
-      <TenantNavigation />
-
+      {/* Note: TenantNavigation is already rendered in TenantPortal */}
+      
       {/* Main Content */}
       <Box sx={{ flex: 1, p: 3 }}>
         <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
