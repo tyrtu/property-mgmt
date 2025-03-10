@@ -46,7 +46,8 @@ const SendNotification = ({ tenants, open, onClose }) => {
 
         const notificationRef = doc(collection(db, 'notifications'));
         batch.set(notificationRef, {
-          tenantId,
+          userId: tenant.id, // Add userId (tenant's UID)
+          tenantId: tenant.id, // Keep tenantId for backward compatibility (optional)
           tenantName: tenant.name, // Add tenant name for query flexibility
           message,
           type: 'info', // Default type, can be customized

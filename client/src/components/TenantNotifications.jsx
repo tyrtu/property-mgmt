@@ -24,7 +24,6 @@ import {
   orderBy, 
   onSnapshot, 
   doc, 
-  getDoc,
   updateDoc 
 } from 'firebase/firestore';
 import { auth, db } from '../firebase';
@@ -33,7 +32,6 @@ const TenantNotifications = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [tenantId, setTenantId] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -44,23 +42,14 @@ const TenantNotifications = () => {
         const user = auth.currentUser;
         if (!user) throw new Error('Authentication required');
 
-        // Get tenant reference from user document
-        const userRef = doc(db, 'users', user.uid);
-        const userSnap = await getDoc(userRef);
-        
-        if (!userSnap.exists()) throw new Error('User profile not found');
-        if (!userSnap.data().tenantId) throw new Error('Tenant association missing');
-
-        const tenantId = userSnap.data().tenantId;
-        if (!isMounted) return;
-
-        setTenantId(tenantId);
+        // Use the user's UID directly for notifications
+        const userId = user.uid;
 
         // Create real-time notifications query
         const notificationsRef = collection(db, 'notifications');
         const q = query(
           notificationsRef,
-          where('tenantId', '==', tenantId),
+          where('userId', '==', userId), // Use userId instead of tenantId
           orderBy('createdAt', 'desc')
         );
 
@@ -114,11 +103,9 @@ const TenantNotifications = () => {
       <Box sx={{ p: 3, textAlign: 'center' }}>
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
-          {error.includes('association') && (
-            <Button sx={{ ml: 2 }} onClick={() => window.location.reload()}>
-              Refresh
-            </Button>
-          )}
+          <Button sx={{ ml: 2 }} onClick={() => window.location.reload()}>
+            Refresh
+          </Button>
         </Alert>
       </Box>
     );
@@ -183,7 +170,6 @@ const TenantNotifications = () => {
                       minute: '2-digit'
                     })}
                   </Typography>
-                  {note.tenantName && ` • From: ${note.tenantName}`}
                 </>
               }
               primaryTypographyProps={{ fontWeight: 500 }}
