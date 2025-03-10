@@ -19,6 +19,10 @@ import SendNotification from './SendNotification'; // Import the SendNotificatio
 import Navigation from './Navigation'; // Import the Navigation component
 import useAutoLogout from '../hooks/useAutoLogout'; // Import the auto-logout hook
 
+// Firebase imports for Firestore
+import { collection, getDocs, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebase';
+
 const StyledBadge = styled(Badge)(({ theme }) => ({
   '& .MuiBadge-badge': {
     right: -3,
@@ -62,9 +66,33 @@ const TenantManagement = () => {
   // Enable auto-logout after 15 minutes of inactivity
   useAutoLogout();
 
+  // ----------------------
+  // FIRESTORE LISTENER
+  // ----------------------
+  // Remove the old mock data loader and use Firestore's onSnapshot for real-time updates.
   useEffect(() => {
-    setTenants(mockTenants);
+    const tenantsCollection = collection(db, 'users');
+
+    // Optional: fetch initial data via getDocs
+    const fetchTenants = async () => {
+      const snapshot = await getDocs(tenantsCollection);
+      setTenants(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    };
+
+    fetchTenants();
+
+    // Listen for real-time updates
+    const unsubscribe = onSnapshot(tenantsCollection, (snapshot) => {
+      setTenants(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+
+    return () => unsubscribe();
   }, []);
+
+  // (If you wish to keep your mock data in development, comment out the above useEffect and uncomment below)
+  // useEffect(() => {
+  //   setTenants(mockTenants);
+  // }, []);
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
@@ -120,6 +148,19 @@ const TenantManagement = () => {
 
   const handleCloseViewDialog = () => {
     setViewTenant(null);
+  };
+
+  // Dummy implementations for handleEdit and handleDelete
+  const handleEdit = (id) => {
+    const tenant = tenants.find(t => t.id === id);
+    setCurrentTenant(tenant);
+    setEditMode(true);
+    setOpenDialog(true);
+  };
+
+  const handleDelete = (id) => {
+    // In production, also remove from Firestore.
+    setTenants(tenants.filter(t => t.id !== id));
   };
 
   const columns = [
@@ -370,14 +411,14 @@ const TenantManagement = () => {
                   <DatePicker
                     label="Lease Start Date"
                     value={currentTenant.leaseStart}
-                    onChange={(newValue) => setCurrentTenant({ ...currentTenant, leaseStart: newValue })}
+                    onChange={(newValue) => setCurrentTenant({ ...currentTenant, leaseStart: newValue })} 
                     renderInput={(params) => <TextField {...params} fullWidth sx={{ mt: 2 }} />}
                   />
 
                   <DatePicker
                     label="Lease End Date"
                     value={currentTenant.leaseEnd}
-                    onChange={(newValue) => setCurrentTenant({ ...currentTenant, leaseEnd: newValue })}
+                    onChange={(newValue) => setCurrentTenant({ ...currentTenant, leaseEnd: newValue })} 
                     renderInput={(params) => <TextField {...params} fullWidth sx={{ mt: 2 }} />}
                   />
 
