@@ -20,7 +20,7 @@ import Navigation from './Navigation'; // Import the Navigation component
 import useAutoLogout from '../hooks/useAutoLogout'; // Import the auto-logout hook
 
 // Firebase Firestore imports
-import { collection, getDocs, onSnapshot } from 'firebase/firestore';
+import { collection, getDocs, onSnapshot, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
@@ -67,21 +67,23 @@ const TenantManagement = () => {
   useAutoLogout();
 
   // -------------------------------------------------------------------------
-  // FIRESTORE REAL-TIME LISTENER: Fetch all tenants from the "users" collection
+  // FIRESTORE REAL-TIME LISTENER: Fetch all tenants (role === 'tenant') from the "users" collection
   // -------------------------------------------------------------------------
   useEffect(() => {
     const tenantsCollection = collection(db, 'users');
+    // Only fetch documents where role equals 'tenant'
+    const tenantsQuery = query(tenantsCollection, where('role', '==', 'tenant'));
 
-    // Optionally, fetch initial data using getDocs (can be omitted if onSnapshot returns immediately)
+    // Initial fetch with getDocs so data loads on refresh
     const fetchInitialData = async () => {
-      const snapshot = await getDocs(tenantsCollection);
+      const snapshot = await getDocs(tenantsQuery);
       setTenants(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     };
 
     fetchInitialData();
 
-    // Listen for real-time updates
-    const unsubscribe = onSnapshot(tenantsCollection, (snapshot) => {
+    // Real-time listener using onSnapshot
+    const unsubscribe = onSnapshot(tenantsQuery, (snapshot) => {
       setTenants(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     });
 
@@ -147,7 +149,7 @@ const TenantManagement = () => {
     setViewTenant(null);
   };
 
-  // Dummy implementations for handleEdit and handleDelete
+  // Dummy implementations for handleEdit and handleDelete (update these to integrate with Firestore writes)
   const handleEdit = (id) => {
     const tenant = tenants.find(t => t.id === id);
     setCurrentTenant(tenant);
