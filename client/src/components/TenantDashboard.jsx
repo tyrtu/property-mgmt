@@ -10,11 +10,7 @@ import {
   Avatar,
   LinearProgress,
 } from "@mui/material";
-import {
-  AccountBalanceWallet,
-  Home,
-  Build,
-} from "@mui/icons-material";
+import { AccountBalanceWallet, Home, Build } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 // Firebase imports for fetching tenant name and notifications
 import { doc, getDoc, collection, query, where, orderBy, onSnapshot } from "firebase/firestore";
@@ -25,7 +21,7 @@ const TenantDashboard = () => {
   
   // State for fetched tenant name from Firestore
   const [fetchedName, setFetchedName] = useState("John Doe");
-  // State for notifications fetched from Firebase
+  // State for notifications fetched from Firebase (only today's)
   const [notifications, setNotifications] = useState([]);
 
   // Fetch the tenant's name from Firestore on mount
@@ -48,7 +44,7 @@ const TenantDashboard = () => {
     fetchTenantName();
   }, []);
 
-  // Fetch notifications from Firebase
+  // Fetch notifications from Firebase, filtering for notifications sent today only
   useEffect(() => {
     let isMounted = true;
     let unsubscribeNotifications = () => {};
@@ -63,13 +59,20 @@ const TenantDashboard = () => {
             orderBy("createdAt", "desc")
           );
           unsubscribeNotifications = onSnapshot(q, (snapshot) => {
-            const notes = snapshot.docs.map((doc) => ({
-              id: doc.id,
-              ...doc.data(),
-              createdAt: doc.data().createdAt ? doc.data().createdAt.toDate() : null,
-            }));
+            const today = new Date();
+            const todayStr = today.toISOString().split("T")[0]; // YYYY-MM-DD
+            const todayNotifications = snapshot.docs
+              .map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+                createdAt: doc.data().createdAt ? doc.data().createdAt.toDate() : null,
+              }))
+              .filter((note) => {
+                if (!note.createdAt) return false;
+                return note.createdAt.toISOString().split("T")[0] === todayStr;
+              });
             if (isMounted) {
-              setNotifications(notes);
+              setNotifications(todayNotifications);
             }
           });
         }
@@ -96,10 +99,6 @@ const TenantDashboard = () => {
     maintenanceRequests: [
       { id: 1, issue: "Leaking sink", status: "In Progress" },
       { id: 2, issue: "Broken AC", status: "Resolved" },
-    ],
-    notifications: [
-      "Your rent is due on April 1st.",
-      "Scheduled maintenance on March 15th."
     ],
     totalOutstanding: 1200,
   };
@@ -208,54 +207,74 @@ const TenantDashboard = () => {
           </Grid>
         </Grid>
 
-        {/* Recent Notifications Section */}
-        <Box sx={{ mt: 4 }}>
-          <Typography variant="h5" gutterBottom>
-            Recent Notifications
-          </Typography>
-          {notifications.length > 0 ? (
-            notifications.slice(0, 3).map((note) => (
-              <Box
-                key={note.id}
-                sx={{
-                  mb: 2,
-                  p: 2,
-                  border: "1px solid",
-                  borderColor: "divider",
-                  borderRadius: 1,
-                }}
-              >
-                <Typography variant="body1">
-                  {note.message.length > 50
-                    ? note.message.substring(0, 50) + "..."
-                    : note.message}
+        {/* Additional Dashboard Cards */}
+        <Grid container spacing={3} sx={{ mt: 4 }}>
+          {/* Today's Notifications Card */}
+          <Grid item xs={12} md={6}>
+            <Card sx={{ p: 2, boxShadow: 3, borderRadius: 2, height: "100%" }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Today's Notifications
                 </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {note.createdAt
-                    ? new Date(note.createdAt).toLocaleDateString("en-US", {
-                        weekday: "short",
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })
-                    : ""}
+                {notifications.length > 0 ? (
+                  notifications.slice(0, 3).map((note) => (
+                    <Box key={note.id} sx={{ mb: 2 }}>
+                      <Typography variant="body2">
+                        {note.message.length > 50
+                          ? note.message.substring(0, 50) + "..."
+                          : note.message}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {note.createdAt
+                          ? new Date(note.createdAt).toLocaleDateString("en-US", {
+                              weekday: "short",
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })
+                          : ""}
+                      </Typography>
+                    </Box>
+                  ))
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    No notifications for today.
+                  </Typography>
+                )}
+                <Button
+                  variant="contained"
+                  color="primary"
+                  fullWidth
+                  sx={{ mt: 2 }}
+                  onClick={() => navigate("/tenant/notifications")}
+                >
+                  View All Notifications
+                </Button>
+              </CardContent>
+            </Card>
+          </Grid>
+          {/* Calendar Widget Card */}
+          <Grid item xs={12} md={6}>
+            <Card sx={{ p: 2, boxShadow: 3, borderRadius: 2, height: "100%" }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Calendar
                 </Typography>
-              </Box>
-            ))
-          ) : (
-            <Typography variant="body2" color="text.secondary">
-              No recent notifications.
-            </Typography>
-          )}
-          <Button
-            variant="outlined"
-            onClick={() => navigate("/tenant/notifications")}
-          >
-            View All Notifications
-          </Button>
-        </Box>
+                {/* Mock Calendar Data */}
+                <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+                  April 2024
+                </Typography>
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="body2">• Rent Due: April 1, 2024</Typography>
+                  <Typography variant="body2">• Maintenance Check: March 15, 2024</Typography>
+                  <Typography variant="body2">• Lease Renewal Meeting: March 25, 2024</Typography>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
       </Box>
 
       {/* Footer */}
