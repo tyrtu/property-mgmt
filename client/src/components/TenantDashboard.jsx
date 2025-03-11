@@ -24,7 +24,7 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "../firebase";
 
-// Import your React Big Calendar component
+// Import your React Big Calendar component/
 import CalendarComponent from "./CalendarComponent";
 
 const TenantDashboard = () => {
