@@ -16,8 +16,8 @@ import {
   Build,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
-// Firebase imports for fetching tenant name
-import { doc, getDoc } from "firebase/firestore";
+// Firebase imports for fetching tenant name and notifications
+import { doc, getDoc, collection, query, where, orderBy, onSnapshot } from "firebase/firestore";
 import { auth, db } from "../firebase";
 
 const TenantDashboard = () => {
@@ -25,6 +25,8 @@ const TenantDashboard = () => {
   
   // State for fetched tenant name from Firestore
   const [fetchedName, setFetchedName] = useState("John Doe");
+  // State for notifications fetched from Firebase
+  const [notifications, setNotifications] = useState([]);
 
   // Fetch the tenant's name from Firestore on mount
   useEffect(() => {
@@ -44,6 +46,42 @@ const TenantDashboard = () => {
       }
     };
     fetchTenantName();
+  }, []);
+
+  // Fetch notifications from Firebase
+  useEffect(() => {
+    let isMounted = true;
+    let unsubscribeNotifications = () => {};
+    const fetchNotifications = async () => {
+      try {
+        const user = auth.currentUser;
+        if (user) {
+          const notificationsRef = collection(db, "notifications");
+          const q = query(
+            notificationsRef,
+            where("userId", "==", user.uid),
+            orderBy("createdAt", "desc")
+          );
+          unsubscribeNotifications = onSnapshot(q, (snapshot) => {
+            const notes = snapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+              createdAt: doc.data().createdAt ? doc.data().createdAt.toDate() : null,
+            }));
+            if (isMounted) {
+              setNotifications(notes);
+            }
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      }
+    };
+    fetchNotifications();
+    return () => {
+      isMounted = false;
+      unsubscribeNotifications();
+    };
   }, []);
 
   // Dummy tenant data; replace with real data from backend.
@@ -169,6 +207,55 @@ const TenantDashboard = () => {
             </Card>
           </Grid>
         </Grid>
+
+        {/* Recent Notifications Section */}
+        <Box sx={{ mt: 4 }}>
+          <Typography variant="h5" gutterBottom>
+            Recent Notifications
+          </Typography>
+          {notifications.length > 0 ? (
+            notifications.slice(0, 3).map((note) => (
+              <Box
+                key={note.id}
+                sx={{
+                  mb: 2,
+                  p: 2,
+                  border: "1px solid",
+                  borderColor: "divider",
+                  borderRadius: 1,
+                }}
+              >
+                <Typography variant="body1">
+                  {note.message.length > 50
+                    ? note.message.substring(0, 50) + "..."
+                    : note.message}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {note.createdAt
+                    ? new Date(note.createdAt).toLocaleDateString("en-US", {
+                        weekday: "short",
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : ""}
+                </Typography>
+              </Box>
+            ))
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              No recent notifications.
+            </Typography>
+          )}
+          <Button
+            variant="outlined"
+            onClick={() => navigate("/tenant/notifications")}
+          >
+            View All Notifications
+          </Button>
+        </Box>
       </Box>
 
       {/* Footer */}
@@ -184,7 +271,10 @@ const TenantDashboard = () => {
       >
         <Typography variant="body2">
           Developed by <strong>Raphael</strong> | Contact:{" "}
-          <a href="tel:+254748211821" style={{ color: "#fff", textDecoration: "none" }}>
+          <a
+            href="tel:+254748211821"
+            style={{ color: "#fff", textDecoration: "none" }}
+          >
             +254748211821
           </a>
         </Typography>
