@@ -53,8 +53,8 @@ import SendNotification from './SendNotification'; // Import the SendNotificatio
 import Navigation from './Navigation'; // Import the Navigation component
 import useAutoLogout from '../hooks/useAutoLogout'; // Import the auto-logout hook
 
-// Firebase Firestore imports
-import { collection, getDocs, onSnapshot, query, where, addDoc, updateDoc, doc } from 'firebase/firestore';
+// Firebase Firestore imports with orderBy fix
+import { collection, getDocs, onSnapshot, query, where, addDoc, updateDoc, doc, orderBy } from 'firebase/firestore';
 import { db } from '../firebase';
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
@@ -324,7 +324,16 @@ const TenantManagement = () => {
             <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
               Tenant Management Portal
             </Typography>
-            <Button variant="contained" startIcon={<Send />} onClick={() => setNotificationOpen(true)}>
+            <Button
+              variant="contained"
+              startIcon={<Send />}
+              onClick={() => setNotificationOpen(true)}
+              sx={{
+                fontSize: { xs: '0.75rem', sm: '1rem' },
+                padding: { xs: '6px 12px', sm: '8px 16px' },
+                width: { xs: '100%', sm: 'auto' },
+              }}
+            >
               Send Notification
             </Button>
           </Box>
