@@ -8,14 +8,13 @@ import {
   ListItemText,
   CircularProgress,
   Alert,
-  IconButton,
-  Button
+  Button,
+  Divider
 } from '@mui/material';
 import {
   Warning as WarningIcon,
   Info as InfoIcon,
-  CheckCircle as ReadIcon,
-  CircleNotifications as UnreadIcon
+  NotificationsActive as BellIcon
 } from '@mui/icons-material';
 import { 
   collection, 
@@ -33,6 +32,7 @@ const TenantNotifications = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Set up real-time listener for notifications
   useEffect(() => {
     let isMounted = true;
     let unsubscribeNotifications = () => {};
@@ -42,14 +42,11 @@ const TenantNotifications = () => {
         const user = auth.currentUser;
         if (!user) throw new Error('Authentication required');
 
-        // Use the user's UID directly for notifications
         const userId = user.uid;
-
-        // Create real-time notifications query
         const notificationsRef = collection(db, 'notifications');
         const q = query(
           notificationsRef,
-          where('userId', '==', userId), // Use userId instead of tenantId
+          where('userId', '==', userId),
           orderBy('createdAt', 'desc')
         );
 
@@ -89,6 +86,7 @@ const TenantNotifications = () => {
     };
   }, []);
 
+  // Handler to mark a notification as read in Firestore
   const handleMarkRead = async (notificationId) => {
     try {
       const notificationRef = doc(db, 'notifications', notificationId);
@@ -96,6 +94,77 @@ const TenantNotifications = () => {
     } catch (error) {
       console.error('Error marking notification read:', error);
     }
+  };
+
+  // Component for each notification item
+  const NotificationItem = ({ note, onMarkRead }) => {
+    const [expanded, setExpanded] = useState(false);
+
+    const handleToggleDetails = async () => {
+      // When opening details, mark as read if not already
+      if (!expanded && !note.isRead) {
+        await onMarkRead(note.id);
+      }
+      setExpanded(prev => !prev);
+    };
+
+    return (
+      <Box sx={{ mb: 2, borderRadius: 2, boxShadow: 1, overflow: 'hidden' }}>
+        <ListItem
+          sx={{
+            backgroundColor: note.isRead ? 'action.hover' : 'background.paper',
+            transition: 'transform 0.2s, box-shadow 0.2s',
+            '&:hover': {
+              transform: 'scale(1.01)',
+              boxShadow: note.isRead ? 2 : 4,
+            },
+            py: 2,
+            px: 2,
+          }}
+        >
+          <ListItemIcon>
+            {note.type === 'alert' ? (
+              <WarningIcon color="error" sx={{ fontSize: 30 }} />
+            ) : (
+              <InfoIcon color="info" sx={{ fontSize: 30 }} />
+            )}
+          </ListItemIcon>
+
+          <ListItemText
+            primary={
+              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                {expanded
+                  ? note.message
+                  : note.message.length > 50
+                    ? note.message.substring(0, 50) + '...'
+                    : note.message}
+              </Typography>
+            }
+            secondary={
+              <Typography
+                component="span"
+                variant="body2"
+                color="text.secondary"
+              >
+                {note.createdAt?.toLocaleDateString('en-US', {
+                  weekday: 'short',
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </Typography>
+            }
+          />
+
+          <Button variant="outlined" onClick={handleToggleDetails} sx={{ ml: 2 }}>
+            {expanded ? 'Hide Details' : 'See Details'}
+          </Button>
+        </ListItem>
+        <Divider />
+      </Box>
+    );
   };
 
   if (error) {
@@ -128,69 +197,17 @@ const TenantNotifications = () => {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" sx={{ mb: 4, textAlign: 'center' }}>
-        Your Notifications
-      </Typography>
+    <Box sx={{ p: { xs: 2, md: 3 } }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 4 }}>
+        <BellIcon color="primary" sx={{ fontSize: 40, mr: 1 }} />
+        <Typography variant="h4" component="h1">
+          Your Notifications
+        </Typography>
+      </Box>
       
       <List sx={{ maxWidth: 800, margin: '0 auto' }}>
         {notifications.map((note) => (
-          <ListItem
-            key={note.id}
-            sx={{
-              mb: 2,
-              borderRadius: 2,
-              boxShadow: 1,
-              backgroundColor: note.isRead ? 'action.hover' : 'background.paper'
-            }}
-          >
-            <ListItemIcon>
-              {note.type === 'alert' ? (
-                <WarningIcon color="error" />
-              ) : (
-                <InfoIcon color="info" />
-              )}
-            </ListItemIcon>
-
-            <ListItemText
-              primary={note.message}
-              secondary={
-                <>
-                  <Typography
-                    component="span"
-                    variant="body2"
-                    color="text.secondary"
-                  >
-                    {note.createdAt?.toLocaleDateString('en-US', {
-                      weekday: 'short',
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </Typography>
-                </>
-              }
-              primaryTypographyProps={{ fontWeight: 500 }}
-            />
-
-            {!note.isRead && (
-              <IconButton 
-                onClick={() => handleMarkRead(note.id)}
-                color="primary"
-                sx={{ ml: 2 }}
-              >
-                <UnreadIcon />
-              </IconButton>
-            )}
-
-            {note.isRead && (
-              <IconButton disabled sx={{ ml: 2 }}>
-                <ReadIcon color="disabled" />
-              </IconButton>
-            )}
-          </ListItem>
+          <NotificationItem key={note.id} note={note} onMarkRead={handleMarkRead} />
         ))}
       </List>
     </Box>
