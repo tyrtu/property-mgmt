@@ -46,4 +46,4 @@ const CalendarComponent = () => {
   );
 };
 
-export default CalendarComponent;
+export default calendarComponent;

@@ -25,7 +25,7 @@ import {
 import { auth, db } from "../firebase";
 
 // Import your React Big Calendar component/
-import CalendarComponent from "./CalendarComponent";
+import CalendarComponent from "./calendarComponent";
 
 const TenantDashboard = () => {
   const navigate = useNavigate();
