@@ -19,7 +19,7 @@ import { auth, db } from "../firebase";
 // FullCalendar Imports
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
-import "@fullcalendar/daygrid/dist/index.css";  // Import FullCalendar styles
+import "@fullcalendar/daygrid/main.css"; // Import FullCalendar styles
 
 const TenantDashboard = () => {
   const navigate = useNavigate();
