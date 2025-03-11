@@ -13,17 +13,23 @@ import {
 import { AccountBalanceWallet, Home, Build } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 // Firebase imports for fetching tenant name and notifications
-import { doc, getDoc, collection, query, where, orderBy, onSnapshot } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  collection,
+  query,
+  where,
+  orderBy,
+  onSnapshot,
+} from "firebase/firestore";
 import { auth, db } from "../firebase";
 
-// FullCalendar Imports
-import FullCalendar from "@fullcalendar/react";
-import dayGridPlugin from "@fullcalendar/daygrid";
-import "@fullcalendar/daygrid/main.css"; // Import FullCalendar styles
+// Import your React Big Calendar component
+import CalendarComponent from "./CalendarComponent";
 
 const TenantDashboard = () => {
   const navigate = useNavigate();
-  
+
   // State for fetched tenant name from Firestore
   const [fetchedName, setFetchedName] = useState("John Doe");
   // State for notifications fetched from Firebase (only today's)
@@ -70,7 +76,9 @@ const TenantDashboard = () => {
               .map((doc) => ({
                 id: doc.id,
                 ...doc.data(),
-                createdAt: doc.data().createdAt ? doc.data().createdAt.toDate() : null,
+                createdAt: doc.data().createdAt
+                  ? doc.data().createdAt.toDate()
+                  : null,
               }))
               .filter((note) => {
                 if (!note.createdAt) return false;
@@ -108,13 +116,6 @@ const TenantDashboard = () => {
     totalOutstanding: 1200,
   };
 
-  // Mock events for FullCalendar
-  const calendarEvents = [
-    { title: "Rent Due", date: "2024-04-01" },
-    { title: "Scheduled Maintenance", date: "2024-03-15" },
-    { title: "Lease Renewal Meeting", date: "2024-03-25" },
-  ];
-
   return (
     <Box
       sx={{
@@ -125,7 +126,7 @@ const TenantDashboard = () => {
       }}
     >
       {/* Note: TenantNavigation is already rendered in TenantPortal */}
-      
+
       {/* Main Content */}
       <Box sx={{ flex: 1, p: 3 }}>
         <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
@@ -267,19 +268,14 @@ const TenantDashboard = () => {
               </CardContent>
             </Card>
           </Grid>
-          {/* Calendar Widget Card with FullCalendar */}
+          {/* Calendar Card */}
           <Grid item xs={12} md={6}>
             <Card sx={{ p: 2, boxShadow: 3, borderRadius: 2, height: "100%" }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   Calendar
                 </Typography>
-                <FullCalendar
-                  plugins={[dayGridPlugin]}
-                  initialView="dayGridMonth"
-                  events={calendarEvents}
-                  height="auto"
-                />
+                <CalendarComponent />
               </CardContent>
             </Card>
           </Grid>
