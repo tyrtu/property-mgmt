@@ -24,7 +24,7 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "../firebase";
 
-// Import your React Big Calendar component
+// Import your React Big Calendar component (ensure file name matches exactly)
 import CalendarComponent from "./calendarComponent";
 
 const TenantDashboard = () => {
@@ -35,7 +35,7 @@ const TenantDashboard = () => {
   // State for notifications fetched from Firebase (only today's)
   const [notifications, setNotifications] = useState([]);
 
-  // Fetch the tenant's name from Firestore on mount
+  // Fetch tenant name on mount
   useEffect(() => {
     const fetchTenantName = async () => {
       const user = auth.currentUser;
@@ -55,7 +55,7 @@ const TenantDashboard = () => {
     fetchTenantName();
   }, []);
 
-  // Fetch notifications from Firebase, filtering for notifications sent today only
+  // Fetch notifications for today only
   useEffect(() => {
     let isMounted = true;
     let unsubscribeNotifications = () => {};
@@ -100,10 +100,9 @@ const TenantDashboard = () => {
     };
   }, []);
 
-  // Dummy tenant data; replace with real data from backend.
-  // For now, all fields remain as mock data except for the name.
+  // Dummy tenant data (replace with real backend data)
   const tenant = {
-    name: fetchedName, // Use fetched name from Firestore
+    name: fetchedName,
     avatar: "https://i.pravatar.cc/150?img=3",
     leaseStart: "2024-01-01",
     leaseEnd: "2024-12-31",
@@ -125,10 +124,11 @@ const TenantDashboard = () => {
         flexDirection: "column",
       }}
     >
-      {/* Note: TenantNavigation is already rendered in TenantPortal */}
+      {/* TenantNavigation is assumed to be rendered elsewhere (e.g., in TenantPortal) */}
 
       {/* Main Content */}
       <Box sx={{ flex: 1, p: 3 }}>
+        {/* Header */}
         <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
           <Avatar src={tenant.avatar} sx={{ width: 50, height: 50, mr: 2 }} />
           <Typography variant="h4" sx={{ fontWeight: "bold" }}>
@@ -136,30 +136,15 @@ const TenantDashboard = () => {
           </Typography>
         </Box>
 
+        {/* Overview Cards */}
         <Grid container spacing={3}>
-          {/* Lease Period */}
-          <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ p: 2, boxShadow: 3, borderRadius: 2 }}>
-              <CardContent>
-                <Home color="primary" sx={{ fontSize: 40 }} />
-                <Typography variant="subtitle2" color="text.secondary">
-                  Lease Period
-                </Typography>
-                <Typography variant="h6">
-                  {new Date(tenant.leaseStart).toLocaleDateString()} -{" "}
-                  {new Date(tenant.leaseEnd).toLocaleDateString()}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-
           {/* Rent Summary */}
           <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ p: 2, boxShadow: 3, borderRadius: 2 }}>
+            <Card sx={{ p: 2, boxShadow: 3, borderRadius: 2, minHeight: "180px" }}>
               <CardContent>
                 <AccountBalanceWallet color="success" sx={{ fontSize: 40 }} />
                 <Typography variant="subtitle2" color="text.secondary">
-                  Rent Amount
+                  Rent Summary
                 </Typography>
                 <Typography variant="h6">${tenant.rentAmount}</Typography>
                 <LinearProgress
@@ -173,7 +158,7 @@ const TenantDashboard = () => {
 
           {/* Next Payment Due */}
           <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ p: 2, boxShadow: 3, borderRadius: 2 }}>
+            <Card sx={{ p: 2, boxShadow: 3, borderRadius: 2, minHeight: "180px" }}>
               <CardContent>
                 <AccountBalanceWallet color="warning" sx={{ fontSize: 40 }} />
                 <Typography variant="subtitle2" color="text.secondary">
@@ -196,9 +181,25 @@ const TenantDashboard = () => {
             </Card>
           </Grid>
 
+          {/* Lease Period */}
+          <Grid item xs={12} sm={6} md={3}>
+            <Card sx={{ p: 2, boxShadow: 3, borderRadius: 2, minHeight: "180px" }}>
+              <CardContent>
+                <Home color="primary" sx={{ fontSize: 40 }} />
+                <Typography variant="subtitle2" color="text.secondary">
+                  Lease Period
+                </Typography>
+                <Typography variant="h6">
+                  {new Date(tenant.leaseStart).toLocaleDateString()} -{" "}
+                  {new Date(tenant.leaseEnd).toLocaleDateString()}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+
           {/* Maintenance Requests */}
           <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ p: 2, boxShadow: 3, borderRadius: 2 }}>
+            <Card sx={{ p: 2, boxShadow: 3, borderRadius: 2, minHeight: "180px" }}>
               <CardContent>
                 <Build color="secondary" sx={{ fontSize: 40 }} />
                 <Typography variant="subtitle2" color="text.secondary">
@@ -222,6 +223,17 @@ const TenantDashboard = () => {
 
         {/* Additional Dashboard Cards */}
         <Grid container spacing={3} sx={{ mt: 4 }}>
+          {/* Calendar Card */}
+          <Grid item xs={12} md={6}>
+            <Card sx={{ p: 2, boxShadow: 3, borderRadius: 2, height: "100%" }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Calendar
+                </Typography>
+                <CalendarComponent />
+              </CardContent>
+            </Card>
+          </Grid>
           {/* Today's Notifications Card */}
           <Grid item xs={12} md={6}>
             <Card sx={{ p: 2, boxShadow: 3, borderRadius: 2, height: "100%" }}>
@@ -265,17 +277,6 @@ const TenantDashboard = () => {
                 >
                   View All Notifications
                 </Button>
-              </CardContent>
-            </Card>
-          </Grid>
-          {/* Calendar Card */}
-          <Grid item xs={12} md={6}>
-            <Card sx={{ p: 2, boxShadow: 3, borderRadius: 2, height: "100%" }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Calendar
-                </Typography>
-                <CalendarComponent />
               </CardContent>
             </Card>
           </Grid>
