@@ -13,6 +13,7 @@ import TenantPortal from './components/TenantPortal';
 import TenantLogin from './components/TenantLogin';
 import TenantRegister from './components/TenantRegister';
 import TenantResetPassword from './components/TenantResetPassword'; // ✅ Import Forgot Password Page
+import AdminRoute from './components/AdminRoute'; // ✅ Import AdminRoute
 
 function App() {
   return (
@@ -32,13 +33,55 @@ function App() {
             {/* 🔹 Tenant Portal (Protected Routes) */}
             <Route path="/tenant/*" element={<TenantPortal />} />
 
-            {/* 🔹 Admin Pages */}
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/properties" element={<PropertyManagement />} />
-            <Route path="/tenants" element={<TenantManagement />} />
-            <Route path="/payments" element={<RentPayment />} />
-            <Route path="/maintenance" element={<MaintenanceRequests />} />
-            <Route path="/reports" element={<ReportsAnalytics />} />
+            {/* 🔹 Admin Pages (Protected by AdminRoute) */}
+            <Route
+              path="/dashboard"
+              element={
+                <AdminRoute>
+                  <Dashboard />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/properties"
+              element={
+                <AdminRoute>
+                  <PropertyManagement />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/tenants"
+              element={
+                <AdminRoute>
+                  <TenantManagement />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/payments"
+              element={
+                <AdminRoute>
+                  <RentPayment />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/maintenance"
+              element={
+                <AdminRoute>
+                  <MaintenanceRequests />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/reports"
+              element={
+                <AdminRoute>
+                  <ReportsAnalytics />
+                </AdminRoute>
+              }
+            />
           </Routes>
         </ErrorBoundary>
       </Router>
@@ -47,4 +90,3 @@ function App() {
 }
 
 export default App;
-
