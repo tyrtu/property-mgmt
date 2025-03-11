@@ -28,6 +28,7 @@ const MaintenanceRequests = () => {
             id: docSnap.id,
             title: data.issue,
             property: data.property || '',
+            // Store the actual timestamp for sorting and also format it for display
             date: data.createdAt
               ? new Date(data.createdAt.seconds * 1000).toLocaleDateString()
               : '',
@@ -47,10 +48,21 @@ const MaintenanceRequests = () => {
   useAutoLogout();
 
   const columns = [
-    { field: 'id', headerName: 'ID', width: 70 },
-    { field: 'title', headerName: 'Request', width: 200 },
-    { field: 'property', headerName: 'Property', width: 150 },
-    { field: 'date', headerName: 'Date', width: 120 },
+    {
+      field: 'title',
+      headerName: 'Request',
+      width: 200,
+    },
+    {
+      field: 'property',
+      headerName: 'Property',
+      width: 150,
+    },
+    {
+      field: 'date',
+      headerName: 'Date',
+      width: 200, // Increased width for timestamp column
+    },
     {
       field: 'status',
       headerName: 'Status',
@@ -111,6 +123,7 @@ const MaintenanceRequests = () => {
             columns={columns}
             slots={{ toolbar: GridToolbar }}
             pageSizeOptions={[10, 25, 50]}
+            sortModel={[{ field: 'date', sort: 'desc' }]}
           />
         </Box>
       </Box>
