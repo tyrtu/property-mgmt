@@ -12,6 +12,7 @@ import {
   doc,
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import { Build } from '@mui/icons-material';
 
 const MaintenanceRequests = () => {
   const [rows, setRows] = useState([]);
@@ -71,8 +72,17 @@ const MaintenanceRequests = () => {
           <Select
             value={params.value}
             size="small"
-            sx={{ minWidth: 120 }}
             onChange={handleStatusChange}
+            sx={{
+              minWidth: 120,
+              backgroundColor:
+                params.value === 'Completed'
+                  ? '#e8f5e9'
+                  : params.value === 'In Progress'
+                  ? '#fffde7'
+                  : '#ffebee',
+              borderRadius: '4px',
+            }}
           >
             <MenuItem value="Pending">Pending</MenuItem>
             <MenuItem value="In Progress">In Progress</MenuItem>
@@ -102,15 +112,36 @@ const MaintenanceRequests = () => {
     <Box sx={{ minHeight: '100vh', backgroundColor: 'background.default' }}>
       <Navigation />
       <Box sx={{ p: 3 }}>
-        <Typography variant="h4" gutterBottom>
-          Maintenance Requests
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+          <Build sx={{ fontSize: 40, color: 'primary.main', mr: 1 }} />
+          <Typography variant="h4" gutterBottom>
+            Maintenance Requests
+          </Typography>
+        </Box>
         <Box sx={{ height: 600, width: '100%' }}>
           <DataGrid
             rows={rows}
             columns={columns}
             slots={{ toolbar: GridToolbar }}
             pageSizeOptions={[10, 25, 50]}
+            sx={{
+              border: 'none',
+              '& .MuiDataGrid-columnHeaders': {
+                backgroundColor: 'primary.main',
+                color: 'primary.contrastText',
+                fontWeight: 'bold',
+                fontSize: '1rem',
+              },
+              '& .MuiDataGrid-cell': {
+                borderBottom: 'none',
+              },
+              '& .MuiDataGrid-toolbarContainer .MuiButton-text': {
+                color: 'primary.contrastText',
+              },
+              '& .MuiDataGrid-footerContainer': {
+                backgroundColor: 'background.paper',
+              },
+            }}
           />
         </Box>
       </Box>
