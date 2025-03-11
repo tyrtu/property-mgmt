@@ -132,11 +132,16 @@ const TenantManagement = () => {
     const notificationsQuery = query(notificationsCollection, orderBy('createdAt', 'desc'));
 
     const unsubscribe = onSnapshot(notificationsQuery, (snapshot) => {
-      const notifications = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate(),
-      }));
+      const notifications = snapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          // Ensure new notifications default to false for isRead if not explicitly set
+          isRead: data.isRead !== undefined ? data.isRead : false,
+          createdAt: data.createdAt?.toDate(),
+        };
+      });
       setRecentNotifications(notifications);
     });
 

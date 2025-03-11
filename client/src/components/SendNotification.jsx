@@ -46,13 +46,13 @@ const SendNotification = ({ tenants, open, onClose }) => {
 
         const notificationRef = doc(collection(db, 'notifications'));
         batch.set(notificationRef, {
-          userId: tenant.id, // Add userId (tenant's UID)
-          tenantId: tenant.id, // Keep tenantId for backward compatibility (optional)
-          tenantName: tenant.name, // Add tenant name for query flexibility
+          userId: tenant.id,          // Tenant's unique ID
+          tenantId: tenant.id,        // For backward compatibility (optional)
+          tenantName: tenant.name,    // For query flexibility
           message,
-          type: 'info', // Default type, can be customized
+          type: 'info',               // Default type, can be customized
           createdAt: timestamp,
-          isRead: false
+          isRead: false               // Newly sent notifications default to unread
         });
       });
 
