@@ -49,25 +49,14 @@ import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { mockTenants, mockProperties } from '../mockData';
 import { styled } from '@mui/material/styles';
-import SendNotification from './SendNotification'; // Component for sending notifications
-import Navigation from './Navigation'; // Navigation component
-import useAutoLogout from '../hooks/useAutoLogout'; // Auto-logout hook
+import SendNotification from './SendNotification'; // Import the SendNotification component
+import Navigation from './Navigation'; // Import the Navigation component
+import useAutoLogout from '../hooks/useAutoLogout'; // Import the auto-logout hook
 
 // Firebase Firestore imports with orderBy fix
-import {
-  collection,
-  getDocs,
-  onSnapshot,
-  query,
-  where,
-  addDoc,
-  updateDoc,
-  doc,
-  orderBy,
-} from 'firebase/firestore';
+import { collection, getDocs, onSnapshot, query, where, addDoc, updateDoc, doc, orderBy } from 'firebase/firestore';
 import { db } from '../firebase';
 
-// StyledBadge for tenant avatars
 const StyledBadge = styled(Badge)(({ theme }) => ({
   '& .MuiBadge-badge': {
     right: -3,
@@ -105,17 +94,17 @@ const TenantManagement = () => {
     referenceNumber: '',
   });
 
-  const [notificationOpen, setNotificationOpen] = useState(false); // Opens SendNotification dialog
-  const [viewTenant, setViewTenant] = useState(null); // For viewing tenant details
-  const [recentNotifications, setRecentNotifications] = useState([]); // Recently sent notifications
-  const [snackbarOpen, setSnackbarOpen] = useState(false); // Success snackbar
-  const [snackbarMessage, setSnackbarMessage] = useState(''); // Snackbar message text
+  const [notificationOpen, setNotificationOpen] = useState(false); // State for SendNotification dialog
+  const [viewTenant, setViewTenant] = useState(null); // State for viewing tenant details
+  const [recentNotifications, setRecentNotifications] = useState([]); // State for recently sent notifications
+  const [snackbarOpen, setSnackbarOpen] = useState(false); // State for success message
+  const [snackbarMessage, setSnackbarMessage] = useState(''); // Success message text
 
-  // Auto-logout after inactivity
+  // Enable auto-logout after 15 minutes of inactivity
   useAutoLogout();
 
   // -------------------------------------------------------------------------
-  // Fetch tenants (role === 'tenant') from the "users" collection in real time
+  // FIRESTORE REAL-TIME LISTENER: Fetch all tenants (role === 'tenant') from the "users" collection
   // -------------------------------------------------------------------------
   useEffect(() => {
     const tenantsCollection = collection(db, 'users');
@@ -136,34 +125,31 @@ const TenantManagement = () => {
   }, []);
 
   // -------------------------------------------------------------------------
-  // Fetch recently sent notifications in real time
+  // Fetch recently sent notifications
   // -------------------------------------------------------------------------
   useEffect(() => {
     const notificationsCollection = collection(db, 'notifications');
-    const notificationsQuery = query(
-      notificationsCollection,
-      orderBy('createdAt', 'desc')
-    );
+    const notificationsQuery = query(notificationsCollection, orderBy('createdAt', 'desc'));
 
     const unsubscribe = onSnapshot(notificationsQuery, (snapshot) => {
-      const notes = snapshot.docs.map((doc) => {
+      const notifications = snapshot.docs.map((doc) => {
         const data = doc.data();
         return {
           id: doc.id,
           ...data,
-          // Default isRead to false if not defined
+          // Ensure new notifications default to false for isRead if not explicitly set
           isRead: data.isRead !== undefined ? data.isRead : false,
           createdAt: data.createdAt?.toDate(),
         };
       });
-      setRecentNotifications(notes);
+      setRecentNotifications(notifications);
     });
 
     return () => unsubscribe();
   }, []);
 
   // -------------------------------------------------------------------------
-  // Handlers for tenant dialogs and actions
+  // Handlers for dialogs and form submission
   // -------------------------------------------------------------------------
   const handleCloseDialog = () => {
     setOpenDialog(false);
@@ -186,9 +172,7 @@ const TenantManagement = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (editMode) {
-      setTenants(
-        tenants.map((t) => (t.id === currentTenant.id ? currentTenant : t))
-      );
+      setTenants(tenants.map((t) => (t.id === currentTenant.id ? currentTenant : t)));
     } else {
       setTenants([
         ...tenants,
@@ -204,9 +188,7 @@ const TenantManagement = () => {
   const handlePaymentSubmit = () => {
     setTenants(
       tenants.map((t) =>
-        t.id === selectedTenant.id
-          ? { ...t, paymentStatus: 'Paid', lastPayment: paymentDetails }
-          : t
+        t.id === selectedTenant.id ? { ...t, paymentStatus: 'Paid', lastPayment: paymentDetails } : t
       )
     );
     setOpenPaymentDialog(false);
@@ -239,49 +221,28 @@ const TenantManagement = () => {
   };
 
   // -------------------------------------------------------------------------
-  // Handler for successful notification send
+  // Success message after sending notifications
   // -------------------------------------------------------------------------
   const handleNotificationSuccess = (message) => {
     setSnackbarMessage(message);
     setSnackbarOpen(true);
   };
 
-  // -------------------------------------------------------------------------
-  // DataGrid column definitions for tenant management
-  // -------------------------------------------------------------------------
   const columns = [
     {
       field: 'name',
       headerName: 'Tenant',
       width: 250,
       renderCell: (params) => (
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 2,
-            height: '100%',
-            padding: '8px 0',
-          }}
-        >
-          <StyledBadge
-            badgeContent={params.row.activeLease ? '✓' : '!'}
-            color="secondary"
-          >
-            <Avatar src={`https://i.pravatar.cc/80?u=${params.row.id}`}>
-              {params.row.name[0]}
-            </Avatar>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, height: '100%', padding: '8px 0' }}>
+          <StyledBadge badgeContent={params.row.activeLease ? '✓' : '!'} color="secondary">
+            <Avatar src={`https://i.pravatar.cc/80?u=${params.row.id}`}>{params.row.name[0]}</Avatar>
           </StyledBadge>
           <Box sx={{ overflow: 'hidden' }}>
             <Typography variant="subtitle1" noWrap>
               {params.row.name}
             </Typography>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              noWrap
-              sx={{ display: 'block', lineHeight: '1.2' }}
-            >
+            <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block', lineHeight: '1.2' }}>
               {params.row.email}
             </Typography>
           </Box>
@@ -305,13 +266,7 @@ const TenantManagement = () => {
       renderCell: (params) => (
         <Chip
           label={params.value}
-          color={
-            params.value === 'Paid'
-              ? 'success'
-              : params.value === 'Pending'
-              ? 'warning'
-              : 'error'
-          }
+          color={params.value === 'Paid' ? 'success' : params.value === 'Pending' ? 'warning' : 'error'}
           variant="outlined"
           size="small"
         />
@@ -322,8 +277,7 @@ const TenantManagement = () => {
       headerName: 'Lease Duration',
       width: 200,
       valueGetter: (params) => {
-        if (!params || !params.row || !params.row.leaseStart || !params.row.leaseEnd)
-          return '';
+        if (!params || !params.row || !params.row.leaseStart || !params.row.leaseEnd) return '';
         return `${new Date(params.row.leaseStart).toLocaleDateString()} - ${new Date(
           params.row.leaseEnd
         ).toLocaleDateString()}`;
@@ -366,88 +320,12 @@ const TenantManagement = () => {
     },
   ];
 
-  // -------------------------------------------------------------------------
-  // NotificationItem Component: handles toggle of full details and marking read
-  // -------------------------------------------------------------------------
-  const NotificationItem = ({ note }) => {
-    const [expanded, setExpanded] = useState(false);
-
-    const handleToggleDetails = async () => {
-      // When expanding, mark as read if not already
-      if (!expanded && !note.isRead) {
-        try {
-          const notificationRef = doc(db, 'notifications', note.id);
-          await updateDoc(notificationRef, { isRead: true });
-        } catch (error) {
-          console.error('Error marking notification as read:', error);
-        }
-      }
-      setExpanded((prev) => !prev);
-    };
-
-    return (
-      <React.Fragment>
-        <ListItem button onClick={handleToggleDetails}>
-          <ListItemIcon>
-            {note.isRead ? (
-              <MarkEmailRead color="success" sx={{ fontSize: 28 }} />
-            ) : (
-              <CheckCircle color="action" sx={{ fontSize: 28 }} />
-            )}
-          </ListItemIcon>
-          <ListItemText
-            primary={
-              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                {expanded
-                  ? note.message
-                  : note.message.length > 50
-                  ? note.message.substring(0, 50) + '...'
-                  : note.message}
-              </Typography>
-            }
-            secondary={
-              <Typography
-                component="span"
-                variant="body2"
-                color="text.secondary"
-              >
-                {note.createdAt?.toLocaleDateString('en-US', {
-                  weekday: 'short',
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </Typography>
-            }
-          />
-        </ListItem>
-        {expanded && (
-          <Box sx={{ pl: 7, pr: 2, pb: 1 }}>
-            <Typography variant="body1">{note.message}</Typography>
-          </Box>
-        )}
-        <Divider />
-      </React.Fragment>
-    );
-  };
-
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
       <Navigation />
       <Container maxWidth="xl" sx={{ py: 4 }}>
         <Card sx={{ p: 3, mb: 3, boxShadow: 3 }}>
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: { xs: 'column', sm: 'row' },
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              mb: 3,
-              gap: { xs: 2, sm: 0 },
-            }}
-          >
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
             <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
               Tenant Management Portal
             </Typography>
@@ -459,6 +337,13 @@ const TenantManagement = () => {
                 fontSize: { xs: '0.75rem', sm: '1rem' },
                 padding: { xs: '6px 12px', sm: '8px 16px' },
                 width: { xs: '100%', sm: 'auto' },
+                backgroundColor: '#1976D2',
+                color: '#fff',
+                '&:hover': {
+                  backgroundColor: '#1565C0',
+                },
+                borderRadius: '8px',
+                textTransform: 'none',
               }}
             >
               Send Notification
@@ -512,22 +397,25 @@ const TenantManagement = () => {
           </Box>
         </Card>
 
-        {/* Recently Sent Notifications Section with Interactive Details */}
+        {/* Recently Sent Notifications Section */}
         <Card sx={{ p: 3, mb: 3, boxShadow: 3 }}>
-          <Typography
-            variant="h5"
-            sx={{
-              mb: 3,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1,
-            }}
-          >
+          <Typography variant="h5" sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
             <Notifications color="primary" /> Recently Sent Notifications
           </Typography>
           <List>
             {recentNotifications.map((note) => (
-              <NotificationItem key={note.id} note={note} />
+              <React.Fragment key={note.id}>
+                <ListItem>
+                  <ListItemIcon>
+                    {note.isRead ? <MarkEmailRead color="success" /> : <CheckCircle color="action" />}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={note.message}
+                    secondary={`Sent to ${note.tenantName} on ${note.createdAt.toLocaleString()}`}
+                  />
+                </ListItem>
+                <Divider />
+              </React.Fragment>
             ))}
           </List>
         </Card>
