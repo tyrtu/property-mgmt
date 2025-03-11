@@ -24,7 +24,7 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "../firebase";
 
-// Import your React Big Calendar component (ensure file name matches exactly)
+// Import your React Big Calendar component
 import CalendarComponent from "./calendarComponent";
 
 const TenantDashboard = () => {
@@ -124,7 +124,7 @@ const TenantDashboard = () => {
         flexDirection: "column",
       }}
     >
-      {/* TenantNavigation is assumed to be rendered elsewhere (e.g., in TenantPortal) */}
+      {/* TenantNavigation is assumed to be rendered in TenantPortal */}
 
       {/* Main Content */}
       <Box sx={{ flex: 1, p: 3 }}>
@@ -225,7 +225,14 @@ const TenantDashboard = () => {
         <Grid container spacing={3} sx={{ mt: 4 }}>
           {/* Calendar Card */}
           <Grid item xs={12} md={6}>
-            <Card sx={{ p: 2, boxShadow: 3, borderRadius: 2, height: "100%" }}>
+            <Card
+              sx={{
+                p: 2,
+                boxShadow: 3,
+                borderRadius: 2,
+                height: { xs: "100%", md: "400px", lg: "350px" },
+              }}
+            >
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   Calendar
@@ -236,7 +243,14 @@ const TenantDashboard = () => {
           </Grid>
           {/* Today's Notifications Card */}
           <Grid item xs={12} md={6}>
-            <Card sx={{ p: 2, boxShadow: 3, borderRadius: 2, height: "100%" }}>
+            <Card
+              sx={{
+                p: 2,
+                boxShadow: 3,
+                borderRadius: 2,
+                height: { xs: "100%", md: "400px", lg: "350px" },
+              }}
+            >
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   Today's Notifications
