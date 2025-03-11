@@ -20,7 +20,7 @@ const Navigation = () => {
     try {
       await signOut(auth); // Sign out the user
       localStorage.removeItem('adminToken'); // Clear admin token
-      navigate('/admin/login'); // Redirect to admin login page
+      navigate('/tenant/login'); // Redirect to admin login page
     } catch (error) {
       console.error('Logout failed:', error);
     }
