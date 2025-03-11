@@ -16,6 +16,11 @@ import { useNavigate } from "react-router-dom";
 import { doc, getDoc, collection, query, where, orderBy, onSnapshot } from "firebase/firestore";
 import { auth, db } from "../firebase";
 
+// FullCalendar Imports
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import "@fullcalendar/daygrid/main.css"; // Import FullCalendar styles
+
 const TenantDashboard = () => {
   const navigate = useNavigate();
   
@@ -102,6 +107,13 @@ const TenantDashboard = () => {
     ],
     totalOutstanding: 1200,
   };
+
+  // Mock events for FullCalendar
+  const calendarEvents = [
+    { title: "Rent Due", date: "2024-04-01" },
+    { title: "Scheduled Maintenance", date: "2024-03-15" },
+    { title: "Lease Renewal Meeting", date: "2024-03-25" },
+  ];
 
   return (
     <Box
@@ -255,22 +267,19 @@ const TenantDashboard = () => {
               </CardContent>
             </Card>
           </Grid>
-          {/* Calendar Widget Card */}
+          {/* Calendar Widget Card with FullCalendar */}
           <Grid item xs={12} md={6}>
             <Card sx={{ p: 2, boxShadow: 3, borderRadius: 2, height: "100%" }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   Calendar
                 </Typography>
-                {/* Mock Calendar Data */}
-                <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-                  April 2024
-                </Typography>
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="body2">• Rent Due: April 1, 2024</Typography>
-                  <Typography variant="body2">• Maintenance Check: March 15, 2024</Typography>
-                  <Typography variant="body2">• Lease Renewal Meeting: March 25, 2024</Typography>
-                </Box>
+                <FullCalendar
+                  plugins={[dayGridPlugin]}
+                  initialView="dayGridMonth"
+                  events={calendarEvents}
+                  height="auto"
+                />
               </CardContent>
             </Card>
           </Grid>
