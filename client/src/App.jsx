@@ -31,9 +31,6 @@ function App() {
         const authToken = localStorage.getItem('tenantToken');
         const role = localStorage.getItem('userRole');
 
-        console.log('Retrieved from localStorage - tenantToken:', authToken);
-        console.log('Retrieved from localStorage - userRole:', role);
-
         if (authToken && role) {
           setIsAuthenticated(true);
           setUserRole(role);
@@ -44,7 +41,6 @@ function App() {
         setLoading(false);
       })
       .catch((error) => {
-        console.error("Error setting Firebase persistence:", error);
         // Fallback: check localStorage even if setting persistence fails
         const authToken = localStorage.getItem('tenantToken');
         const role = localStorage.getItem('userRole');
