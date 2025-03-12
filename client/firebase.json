@@ -11,5 +11,14 @@
         "*.local"
       ]
     }
-  ]
+  ],
+  "hosting": {
+    "public": "public", // Folder containing your frontend files
+    "rewrites": [
+      {
+        "source": "/sendRentReminder",
+        "function": "sendRentReminder"
+      }
+    ]
+  }
 }
