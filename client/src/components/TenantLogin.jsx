@@ -14,8 +14,8 @@ import {
 import { useNavigate } from "react-router-dom";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth, db } from "../firebase"; // ✅ Import Firestore
-import { doc, getDoc } from "firebase/firestore"; // ✅ Firestore functions
+import { auth, db } from "../firebase"; // Import Firestore
+import { doc, getDoc } from "firebase/firestore"; // Firestore functions
 
 const TenantLogin = () => {
   const [email, setEmail] = useState("");
@@ -43,18 +43,18 @@ const TenantLogin = () => {
     }
 
     try {
-      // ✅ Login user with Firebase
+      // Login user with Firebase
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // ✅ Check if email is verified
+      // Check if email is verified
       if (!user.emailVerified) {
         setError("Please verify your email before logging in.");
         setLoading(false);
         return;
       }
 
-      // ✅ Fetch user role from Firestore
+      // Fetch user role from Firestore
       const userRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userRef);
 
@@ -62,11 +62,11 @@ const TenantLogin = () => {
         const userData = userSnap.data();
         const role = userData.role;
 
-        // ✅ Store role in localStorage
+        // Store role and token in localStorage
         localStorage.setItem("userRole", role);
         localStorage.setItem("tenantToken", user.uid);
 
-        // ✅ Redirect user based on role
+        // Redirect user based on role
         if (role === "admin") {
           navigate("/dashboard"); // Redirect Admins
         } else {
@@ -133,7 +133,7 @@ const TenantLogin = () => {
       <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError("")}>
         <Alert severity="error">{error}</Alert>
       </Snackbar>
-    </Box> 
+    </Box>
   );
 };
 

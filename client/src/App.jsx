@@ -19,17 +19,39 @@ import AdminRoute from './components/AdminRoute';
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState('');
+  const [loading, setLoading] = useState(true); // Add loading state
 
   // Check authentication state on app load
   useEffect(() => {
-    const authToken = localStorage.getItem('authToken');
+    const authToken = localStorage.getItem('tenantToken'); // Use tenantToken instead of authToken
     const role = localStorage.getItem('userRole');
+
+    console.log('Retrieved from localStorage - authToken:', authToken); // Debugging
+    console.log('Retrieved from localStorage - userRole:', role); // Debugging
 
     if (authToken && role) {
       setIsAuthenticated(true);
       setUserRole(role);
+    } else {
+      setIsAuthenticated(false);
+      setUserRole('');
     }
+    setLoading(false); // Set loading to false after checking
   }, []);
+
+  // Show a loading spinner while checking authentication
+  if (loading) {
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="100vh"
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <ThemeProvider theme={theme}>
