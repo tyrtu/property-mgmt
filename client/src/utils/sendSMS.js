@@ -1,7 +1,7 @@
 import { getFunctions, httpsCallable } from "firebase/functions";
-import { app } from "../firebase"; // Ensure this imports your Firebase config
+import { app } from "../firebase"; // ✅ Ensure `app` is correctly imported
 
-const functions = getFunctions(app);
+const functions = getFunctions(app); // ✅ Uses the exported `app`
 const sendRentReminder = httpsCallable(functions, "sendRentReminder");
 
 export const sendSMS = async (phoneNumber, message) => {
