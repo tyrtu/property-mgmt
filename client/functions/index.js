@@ -1,15 +1,17 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const twilio = require("twilio");
+require("dotenv").config(); // Load environment variables
 
 // Initialize Firebase Admin
 admin.initializeApp();
 
-// Twilio Credentials
-const accountSid = "AC174ddd0f5007a76a18cdfdb708cdb965";
-const authToken = "ee46d1ca53aad11d3dab50cf616f8b20";
+// Twilio Credentials from .env
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER;
+
 const twilioClient = twilio(accountSid, authToken);
-const twilioPhoneNumber = "+12603688590"; // Twilio number
 
 exports.sendRentReminder = functions.https.onCall(async (data, context) => {
   const { phoneNumber, message } = data;
