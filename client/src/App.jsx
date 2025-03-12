@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CssBaseline, ThemeProvider, Box, CircularProgress } from '@mui/material'; // Import Box and CircularProgress
+import { CssBaseline, ThemeProvider, Box, CircularProgress } from '@mui/material';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import theme from './theme';
 import Dashboard from './components/Dashboard';
@@ -15,39 +15,53 @@ import TenantLogin from './components/TenantLogin';
 import TenantRegister from './components/TenantRegister';
 import TenantResetPassword from './components/TenantResetPassword';
 import AdminRoute from './components/AdminRoute';
+import { auth } from './firebase';
+import { setPersistence, browserLocalPersistence } from 'firebase/auth';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState('');
-  const [loading, setLoading] = useState(true); // Add loading state
+  const [loading, setLoading] = useState(true);
 
-  // Check authentication state on app load
   useEffect(() => {
-    const authToken = localStorage.getItem('tenantToken'); // Use tenantToken instead of authToken
-    const role = localStorage.getItem('userRole');
+    // Set Firebase persistence to ensure user sessions are maintained across refreshes
+    setPersistence(auth, browserLocalPersistence)
+      .then(() => {
+        // Once persistence is set, check localStorage (if used for additional tenant info)
+        const authToken = localStorage.getItem('tenantToken');
+        const role = localStorage.getItem('userRole');
 
-    console.log('Retrieved from localStorage - authToken:', authToken); // Debugging
-    console.log('Retrieved from localStorage - userRole:', role); // Debugging
+        console.log('Retrieved from localStorage - tenantToken:', authToken);
+        console.log('Retrieved from localStorage - userRole:', role);
 
-    if (authToken && role) {
-      setIsAuthenticated(true);
-      setUserRole(role);
-    } else {
-      setIsAuthenticated(false);
-      setUserRole('');
-    }
-    setLoading(false); // Set loading to false after checking
+        if (authToken && role) {
+          setIsAuthenticated(true);
+          setUserRole(role);
+        } else {
+          setIsAuthenticated(false);
+          setUserRole('');
+        }
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error setting Firebase persistence:", error);
+        // Fallback: check localStorage even if setting persistence fails
+        const authToken = localStorage.getItem('tenantToken');
+        const role = localStorage.getItem('userRole');
+        if (authToken && role) {
+          setIsAuthenticated(true);
+          setUserRole(role);
+        } else {
+          setIsAuthenticated(false);
+          setUserRole('');
+        }
+        setLoading(false);
+      });
   }, []);
 
-  // Show a loading spinner while checking authentication
   if (loading) {
     return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="100vh"
-      >
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
         <CircularProgress />
       </Box>
     );
@@ -59,18 +73,18 @@ function App() {
       <Router>
         <ErrorBoundary>
           <Routes>
-            {/* 🔹 First page redirects to Login */}
+            {/* Redirect to Tenant Login as the initial page */}
             <Route path="/" element={<Navigate to="/tenant/login" />} />
 
-            {/* 🔹 Tenant Authentication Pages */}
+            {/* Tenant Authentication Pages */}
             <Route path="/tenant/login" element={<TenantLogin />} />
             <Route path="/tenant/register" element={<TenantRegister />} />
             <Route path="/tenant/reset-password" element={<TenantResetPassword />} />
 
-            {/* 🔹 Tenant Portal (Protected Routes) */}
+            {/* Tenant Portal (Protected Routes) */}
             <Route path="/tenant/*" element={<TenantPortal />} />
 
-            {/* 🔹 Admin Pages (Protected by AdminRoute) */}
+            {/* Admin Pages (Protected by AdminRoute) */}
             <Route
               path="/dashboard"
               element={

@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { auth, db } from '../firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { doc, getDoc } from 'firebase/firestore';
-import { CircularProgress, Box } from '@mui/material'; // Import Material-UI components for loading spinner
+import { CircularProgress, Box, Typography } from '@mui/material';
 
 const AdminRoute = ({ children }) => {
   const [user, loading] = useAuthState(auth);
@@ -34,31 +34,21 @@ const AdminRoute = ({ children }) => {
     };
 
     fetchUserRole();
-  }, [user]); // Only re-run when `user` changes
+  }, [user]);
 
-  // Show a loading spinner while fetching data
+  // Show a loading spinner while the authentication and role check is in progress
   if (loading || isAdmin === null) {
     return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="100vh"
-      >
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
         <CircularProgress />
       </Box>
     );
   }
 
-  // Handle Firestore errors
+  // Display error message if there was an error fetching role
   if (error) {
     return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="100vh"
-      >
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
         <Typography variant="h6" color="error">
           Error: Unable to verify admin status. Please try again later.
         </Typography>
@@ -66,12 +56,12 @@ const AdminRoute = ({ children }) => {
     );
   }
 
-  // Redirect if not an admin
+  // Redirect to unauthorized if the user is not an admin
   if (!isAdmin) {
     return <Navigate to="/unauthorized" />;
   }
 
-  // Render the protected component if the user is an admin
+  // If the user is an admin, render the protected component
   return children;
 };
 
