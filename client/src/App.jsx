@@ -52,7 +52,7 @@ function App() {
             <Route
               path="/dashboard"
               element={
-                <AdminRoute>
+                <AdminRoute userRole={userRole}>
                   <Dashboard />
                 </AdminRoute>
               }
@@ -60,7 +60,7 @@ function App() {
             <Route
               path="/properties"
               element={
-                <AdminRoute>
+                <AdminRoute userRole={userRole}>
                   <PropertyManagement />
                 </AdminRoute>
               }
@@ -68,7 +68,7 @@ function App() {
             <Route
               path="/tenants"
               element={
-                <AdminRoute>
+                <AdminRoute userRole={userRole}>
                   <TenantManagement />
                 </AdminRoute>
               }
@@ -76,7 +76,7 @@ function App() {
             <Route
               path="/payments"
               element={
-                <AdminRoute>
+                <AdminRoute userRole={userRole}>
                   <RentPayment />
                 </AdminRoute>
               }
@@ -84,7 +84,7 @@ function App() {
             <Route
               path="/maintenance"
               element={
-                <AdminRoute>
+                <AdminRoute userRole={userRole}>
                   <MaintenanceRequests />
                 </AdminRoute>
               }
@@ -92,7 +92,7 @@ function App() {
             <Route
               path="/reports"
               element={
-                <AdminRoute>
+                <AdminRoute userRole={userRole}>
                   <ReportsAnalytics />
                 </AdminRoute>
               }
