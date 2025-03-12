@@ -5,38 +5,29 @@ const twilio = require("twilio");
 // Initialize Firebase Admin
 admin.initializeApp();
 
-// Retrieve Twilio credentials from Firebase environment variables
-const twilioSID = functions.config().twilio.sid;
-const twilioAuthToken = functions.config().twilio.auth_token;
-const twilioPhone = functions.config().twilio.phone;
+// Twilio Credentials
+const accountSid = "AC174ddd0f5007a76a18cdfdb708cdb965";
+const authToken = "ee46d1ca53aad11d3dab50cf616f8b20";
+const twilioClient = twilio(accountSid, authToken);
+const twilioPhoneNumber = "+12603688590"; // Twilio number
 
-// Initialize Twilio client
-const client = new twilio(twilioSID, twilioAuthToken);
+exports.sendRentReminder = functions.https.onCall(async (data, context) => {
+  const { phoneNumber, message } = data;
 
-// Cloud Function to send SMS for rent due reminders
-exports.sendRentReminder = functions.pubsub.schedule("every 24 hours").onRun(async (context) => {
+  if (!phoneNumber || !message) {
+    throw new functions.https.HttpsError("invalid-argument", "Phone number and message are required");
+  }
+
   try {
-    // Fetch tenants from Firestore
-    const tenantsSnapshot = await admin.firestore().collection("tenants").get();
-
-    tenantsSnapshot.forEach(async (tenantDoc) => {
-      const tenant = tenantDoc.data();
-      const phoneNumber = tenant.phone; // Ensure this exists in Firestore
-
-      if (phoneNumber) {
-        await client.messages.create({
-          body: `Reminder: Your rent is due soon. Please make your payment to avoid penalties.`,
-          from: twilioPhone,
-          to: phoneNumber,
-        });
-
-        console.log(`Reminder sent to ${phoneNumber}`);
-      }
+    const response = await twilioClient.messages.create({
+      body: message,
+      from: twilioPhoneNumber,
+      to: phoneNumber,
     });
 
-    return null;
+    return { success: true, sid: response.sid };
   } catch (error) {
-    console.error("Error sending rent reminders:", error);
-    return null;
+    console.error("Error sending SMS:", error);
+    throw new functions.https.HttpsError("internal", "Failed to send SMS");
   }
 });
