@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import { CssBaseline, ThemeProvider } from '@mui/material';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import theme from './theme';
@@ -12,11 +13,24 @@ import ErrorBoundary from './components/ErrorBoundary';
 import TenantPortal from './components/TenantPortal';
 import TenantLogin from './components/TenantLogin';
 import TenantRegister from './components/TenantRegister';
-import TenantResetPassword from './components/TenantResetPassword'; // ✅ Import Forgot Password Page
-import AdminRoute from './components/AdminRoute'; // ✅ Import AdminRoute
-import TestSMS from './components/TestSMS'; // Import the new TestSMS component
+import TenantResetPassword from './components/TenantResetPassword';
+import AdminRoute from './components/AdminRoute';
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userRole, setUserRole] = useState('');
+
+  // Check authentication state on app load
+  useEffect(() => {
+    const authToken = localStorage.getItem('authToken');
+    const role = localStorage.getItem('userRole');
+
+    if (authToken && role) {
+      setIsAuthenticated(true);
+      setUserRole(role);
+    }
+  }, []);
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -29,7 +43,7 @@ function App() {
             {/* 🔹 Tenant Authentication Pages */}
             <Route path="/tenant/login" element={<TenantLogin />} />
             <Route path="/tenant/register" element={<TenantRegister />} />
-            <Route path="/tenant/reset-password" element={<TenantResetPassword />} /> {/* ✅ Added Route */}
+            <Route path="/tenant/reset-password" element={<TenantResetPassword />} />
 
             {/* 🔹 Tenant Portal (Protected Routes) */}
             <Route path="/tenant/*" element={<TenantPortal />} />
@@ -80,16 +94,6 @@ function App() {
               element={
                 <AdminRoute>
                   <ReportsAnalytics />
-                </AdminRoute>
-              }
-            />
-
-            {/* 🔹 New Route for Testing SMS */}
-            <Route
-              path="/test-sms"
-              element={
-                <AdminRoute>
-                  <TestSMS />
                 </AdminRoute>
               }
             />
