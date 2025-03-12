@@ -14,6 +14,7 @@ import TenantLogin from './components/TenantLogin';
 import TenantRegister from './components/TenantRegister';
 import TenantResetPassword from './components/TenantResetPassword'; // ✅ Import Forgot Password Page
 import AdminRoute from './components/AdminRoute'; // ✅ Import AdminRoute
+import TestSMS from './components/TestSMS'; // Import the new TestSMS component
 
 function App() {
   return (
@@ -79,6 +80,16 @@ function App() {
               element={
                 <AdminRoute>
                   <ReportsAnalytics />
+                </AdminRoute>
+              }
+            />
+
+            {/* 🔹 New Route for Testing SMS */}
+            <Route
+              path="/test-sms"
+              element={
+                <AdminRoute>
+                  <TestSMS />
                 </AdminRoute>
               }
             />
