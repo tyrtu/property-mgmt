@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CssBaseline, ThemeProvider } from '@mui/material';
+import { CssBaseline, ThemeProvider, Box, CircularProgress } from '@mui/material'; // Import Box and CircularProgress
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import theme from './theme';
 import Dashboard from './components/Dashboard';
