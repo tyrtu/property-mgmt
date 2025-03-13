@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>You're Offline - RentHive</title>
+    <link rel="icon" type="image/png" href="/favicon.ico">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            max-width: 400px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 24px;
+            color: #0077cc;
+        }
+
+        p {
+            font-size: 16px;
+        }
+
+        .tips {
+            text-align: left;
+            margin-top: 15px;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        button {
+            background-color: #0077cc;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        button:hover {
+            background-color: #005fa3;
+        }
+
+        .offline-img {
+            width: 100px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="/icons/offline-house.png" alt="Offline" class="offline-img">
+        <h1>Oops! You’re Offline</h1>
+        <p>It looks like you’ve lost your internet connection.</p>
+        <p>Don't worry! You can still browse previously loaded pages.</p>
+        
+        <div class="tips">
+            <h2>Try these steps:</h2>
+            <ul>
+                <li>✔️ Check your Wi-Fi or mobile data</li>
+                <li>✔️ Try reloading the page</li>
+                <li>✔️ Reconnect and return to <a href="/">RentHive</a></li>
+            </ul>
+        </div>
+
+        <button onclick="location.reload()">🔄 Retry</button>
+    </div>
+</body>
+</html>
