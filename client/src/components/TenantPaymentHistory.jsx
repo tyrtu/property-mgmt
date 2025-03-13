@@ -3,6 +3,8 @@ import axios from 'axios';
 import { Box, Typography, Chip, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from '@mui/material';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 
+const API_BASE_URL = "https://8890-102-0-11-254.ngrok-free.app"; // Update this with your latest Ngrok URL
+
 const TenantPaymentHistory = () => {
   const [payments, setPayments] = useState([
     { id: 1, amount: 1200, dueDate: '2024-03-01', status: 'Paid' },
@@ -36,7 +38,7 @@ const TenantPaymentHistory = () => {
 
     try {
       // Send a POST request to your backend endpoint for STK push
-      const response = await axios.post("http://localhost:5000/stkpush", {
+      const response = await axios.post(`${API_BASE_URL}/stkpush`, {
         amount: selectedPayment.amount,
         phone: "254708374149", // Replace with the dynamic user phone number as needed
         accountReference: `TenantPayment-${selectedPayment.id}`
