@@ -10,7 +10,7 @@ import '@fontsource/roboto/700.css';
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/pwabuilder-sw.js')
+      .register('dist/assets/pwabuilder-sw.js')
       .then((registration) => {
         console.log('Service Worker registered with scope:', registration.scope);
       })
