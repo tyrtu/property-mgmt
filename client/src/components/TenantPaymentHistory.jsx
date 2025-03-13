@@ -38,9 +38,9 @@ const TenantPaymentHistory = () => {
     setMessage("");
 
     try {
-      // Send a POST request to your backend endpoint for STK push
+      // For testing, we are always using a fixed amount ("100")
       const response = await axios.post(`${API_BASE_URL}/stkpush`, {
-        amount: selectedPayment.amount,
+        amount: "100",
         phone: "254708374149", // Replace with dynamic user phone number if needed
         accountReference: `TenantPayment-${selectedPayment.id}`
       });
@@ -61,10 +61,6 @@ const TenantPaymentHistory = () => {
       setLoading(false);
     }
   };
-
-  const totalOutstanding = payments.reduce((acc, payment) => {
-    return payment.status !== 'Paid' ? acc + payment.amount : acc;
-  }, 0);
 
   const columns = [
     { field: 'id', headerName: 'ID', width: 70 },
@@ -116,9 +112,7 @@ const TenantPaymentHistory = () => {
       <Typography variant="h4" sx={{ mb: 2 }}>
         Payment History
       </Typography>
-      <Typography variant="h6" sx={{ mb: 2 }}>
-        Total Outstanding Amount: ${totalOutstanding}
-      </Typography>
+      {/* Removed Total Outstanding Amount display */}
       <Box sx={{ height: 600 }}>
         <DataGrid
           rows={payments}
