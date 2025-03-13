@@ -167,6 +167,37 @@ const TenantNotifications = () => {
     );
   };
 
+  // Placeholder for when there are no notifications
+  const NoNotificationsPlaceholder = () => (
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        textAlign: 'center',
+        p: 4,
+        borderRadius: 2,
+        backgroundColor: 'background.paper',
+        boxShadow: 1,
+        maxWidth: 600,
+        margin: '0 auto',
+        mt: 4,
+      }}
+    >
+      <BellIcon color="primary" sx={{ fontSize: 60, mb: 2 }} />
+      <Typography variant="h5" component="h2" sx={{ mb: 2 }}>
+        No Notifications Yet
+      </Typography>
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+        You're all caught up! When new notifications arrive, they'll appear here.
+      </Typography>
+      <Button variant="contained" color="primary" onClick={() => window.location.reload()}>
+        Refresh
+      </Button>
+    </Box>
+  );
+
   if (error) {
     return (
       <Box sx={{ p: 3, textAlign: 'center' }}>
@@ -188,14 +219,6 @@ const TenantNotifications = () => {
     );
   }
 
-  if (notifications.length === 0) {
-    return (
-      <Box sx={{ p: 3, textAlign: 'center' }}>
-        <Alert severity="info">No notifications available</Alert>
-      </Box>
-    );
-  }
-
   return (
     <Box sx={{ p: { xs: 2, md: 3 } }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 4 }}>
@@ -205,11 +228,15 @@ const TenantNotifications = () => {
         </Typography>
       </Box>
       
-      <List sx={{ maxWidth: 800, margin: '0 auto' }}>
-        {notifications.map((note) => (
-          <NotificationItem key={note.id} note={note} onMarkRead={handleMarkRead} />
-        ))}
-      </List>
+      {notifications.length === 0 ? (
+        <NoNotificationsPlaceholder />
+      ) : (
+        <List sx={{ maxWidth: 800, margin: '0 auto' }}>
+          {notifications.map((note) => (
+            <NotificationItem key={note.id} note={note} onMarkRead={handleMarkRead} />
+          ))}
+        </List>
+      )}
     </Box>
   );
 };

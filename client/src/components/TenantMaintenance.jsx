@@ -16,6 +16,7 @@ import {
   TextField,
 } from "@mui/material";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
+import ConstructionIcon from "@mui/icons-material/Construction";
 
 // Firebase Firestore imports
 import { collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp } from "firebase/firestore";
@@ -145,6 +146,37 @@ const TenantMaintenance = () => {
     }
   };
 
+  // Placeholder for when no maintenance requests are found
+  const NoRequestsPlaceholder = () => (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        textAlign: "center",
+        p: 4,
+        borderRadius: 2,
+        backgroundColor: "background.paper",
+        boxShadow: 1,
+        maxWidth: 600,
+        margin: "0 auto",
+        mt: 4,
+      }}
+    >
+      <ConstructionIcon sx={{ fontSize: 60, color: "primary.main", mb: 2 }} />
+      <Typography variant="h5" component="h2" sx={{ mb: 2 }}>
+        No Maintenance Requests Found
+      </Typography>
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+        You haven't submitted any maintenance requests yet. When you do, they'll appear here.
+      </Typography>
+      <Button variant="contained" onClick={handleOpenDialog}>
+        Submit a Request
+      </Button>
+    </Box>
+  );
+
   return (
     <Box sx={{ backgroundColor: "background.default", minHeight: "100vh", p: 3 }}>
       <Typography variant="h4" sx={{ mb: 3 }}>
@@ -164,7 +196,7 @@ const TenantMaintenance = () => {
       <Paper sx={{ p: 3 }}>
         <Typography variant="h6">Your Requests</Typography>
         {requests.length === 0 ? (
-          <Typography>No requests found.</Typography>
+          <NoRequestsPlaceholder />
         ) : (
           <List>
             {requests.map((req) => (
