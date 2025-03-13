@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import { Box, Typography, Chip, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from '@mui/material';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 
@@ -8,27 +9,54 @@ const TenantPaymentHistory = () => {
     { id: 2, amount: 1200, dueDate: '2024-04-01', status: 'Pending' },
     { id: 3, amount: 1200, dueDate: '2024-05-01', status: 'Upcoming' }
   ]);
-
+  
   const [openPaymentModal, setOpenPaymentModal] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
   const handleOpenPaymentModal = (payment) => {
     setSelectedPayment(payment);
+    setMessage("");
     setOpenPaymentModal(true);
   };
 
   const handleClosePaymentModal = () => {
     setOpenPaymentModal(false);
     setSelectedPayment(null);
+    setLoading(false);
   };
 
-  const handleConfirmPayment = () => {
-    setPayments((prevPayments) =>
-      prevPayments.map((payment) =>
-        payment.id === selectedPayment.id ? { ...payment, status: 'Paid' } : payment
-      )
-    );
-    handleClosePaymentModal();
+  // Integrated STK Push function that calls your backend
+  const handleConfirmPayment = async () => {
+    if (!selectedPayment) return;
+    
+    setLoading(true);
+    setMessage("");
+
+    try {
+      // Send a POST request to your backend endpoint for STK push
+      const response = await axios.post("http://localhost:5000/stkpush", {
+        amount: selectedPayment.amount,
+        phone: "254708374149", // Replace with the dynamic user phone number as needed
+        accountReference: `TenantPayment-${selectedPayment.id}`
+      });
+
+      console.log("STK Push response:", response.data);
+      setMessage("STK Push Sent! Check your phone.");
+
+      // Optionally, update the payment status to "Paid"
+      setPayments((prevPayments) =>
+        prevPayments.map((payment) =>
+          payment.id === selectedPayment.id ? { ...payment, status: "Paid" } : payment
+        )
+      );
+    } catch (error) {
+      console.error("Error during STK push:", error);
+      setMessage("Payment failed. Try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const totalOutstanding = payments.reduce((acc, payment) => {
@@ -112,13 +140,18 @@ const TenantPaymentHistory = () => {
                 <strong>Status:</strong> {selectedPayment.status}
               </Typography>
               <TextField label="Payment Method" fullWidth margin="normal" />
+              {message && (
+                <Typography variant="body2" color="primary" sx={{ mt: 2 }}>
+                  {message}
+                </Typography>
+              )}
             </>
           )}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClosePaymentModal}>Cancel</Button>
-          <Button variant="contained" onClick={handleConfirmPayment}>
-            Confirm Payment
+          <Button variant="contained" onClick={handleConfirmPayment} disabled={loading}>
+            {loading ? "Processing..." : "Confirm Payment"}
           </Button>
         </DialogActions>
       </Dialog>
