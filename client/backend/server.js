@@ -31,35 +31,50 @@ const getAccessToken = async () => {
 // Route to trigger STK Push
 app.post("/stkpush", async (req, res) => {
     try {
-        const accessToken = await getAccessToken();
+        // Extract values from the request body, falling back to environment variables
+        const { amount, phone, accountReference } = req.body;
         const { BUSINESS_SHORTCODE, PASSKEY, PHONE_NUMBER, CALLBACK_URL } = process.env;
+        const phoneToUse = phone || PHONE_NUMBER;
+        const reference = accountReference || "Test";
+        const actualAmount = amount || "1";
 
+        // Get access token
+        const accessToken = await getAccessToken();
+
+        // Create timestamp and password
         const timestamp = moment().format("YYYYMMDDHHmmss");
         const password = Buffer.from(`${BUSINESS_SHORTCODE}${PASSKEY}${timestamp}`).toString("base64");
 
+        // Prepare STK Push request payload
         const stkRequest = {
             BusinessShortCode: BUSINESS_SHORTCODE,
             Password: password,
             Timestamp: timestamp,
             TransactionType: "CustomerPayBillOnline",
-            Amount: "1",
-            PartyA: PHONE_NUMBER,
+            Amount: actualAmount.toString(),
+            PartyA: phoneToUse,
             PartyB: BUSINESS_SHORTCODE,
-            PhoneNumber: PHONE_NUMBER,
+            PhoneNumber: phoneToUse,
             CallBackURL: CALLBACK_URL,
-            AccountReference: "Test",
+            AccountReference: reference,
             TransactionDesc: "Test Payment",
         };
 
-        const response = await axios.post("https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest", stkRequest, {
+        // Log the request payload (for debugging)
+        console.log("Sending STK Push request:", stkRequest);
+
+        const mpesaResponse = await axios.post("https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest", stkRequest, {
             headers: {
                 Authorization: `Bearer ${accessToken}`,
                 "Content-Type": "application/json",
             },
         });
 
-        res.json(response.data);
+        console.log("Safaricom Response:", mpesaResponse.data);
+        res.json(mpesaResponse.data);
     } catch (error) {
+        // Log the error details
+        console.error("Error during STK Push:", error.response?.data || error.message);
         res.status(500).json({ error: error.response?.data || error.message });
     }
 });
