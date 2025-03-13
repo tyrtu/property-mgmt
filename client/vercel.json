@@ -1,6 +1,23 @@
 {
-    "rewrites": [
-      { "source": "/(.*)", "destination": "/index.html" }
-    ]
-  }
-  
+  "headers": [
+    {
+      "source": "/pwabuilder-sw.js",
+      "headers": [
+        { "key": "Content-Type", "value": "application/javascript" }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/old-route",
+      "destination": "/new-route",
+      "statusCode": 301
+    }
+  ]
+}
