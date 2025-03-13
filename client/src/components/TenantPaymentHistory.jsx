@@ -1,10 +1,19 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Box, Typography, Chip, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from '@mui/material';
+import { 
+  Box, 
+  Typography, 
+  Chip, 
+  Button, 
+  Dialog, 
+  DialogTitle, 
+  DialogContent, 
+  DialogActions 
+} from '@mui/material';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 
 // Updated API URL to your new Ngrok URL:
-const API_BASE_URL = "https://e1c5-102-0-11-254.ngrok-free.app";
+const API_BASE_URL = "https://1605-102-0-11-254.ngrok-free.app";
 
 const TenantPaymentHistory = () => {
   const [payments, setPayments] = useState([
@@ -38,25 +47,34 @@ const TenantPaymentHistory = () => {
     setMessage("");
 
     try {
-      // For testing, we are always using a fixed amount ("100")
-      const response = await axios.post(`${API_BASE_URL}/stkpush`, {
-        amount: "100",
-        phone: "254708374149", // Replace with dynamic user phone number if needed
-        accountReference: `TenantPayment-${selectedPayment.id}`
-      });
-
-      console.log("STK Push response:", response.data);
-      setMessage("STK Push Sent! Check your phone.");
-
-      // Optionally, update the payment status to "Paid"
-      setPayments((prevPayments) =>
-        prevPayments.map((payment) =>
-          payment.id === selectedPayment.id ? { ...payment, status: "Paid" } : payment
-        )
+      const response = await axios.post(
+        `${API_BASE_URL}/stkpush`, 
+        {
+          // For testing, always send a fixed amount of "1"
+          amount: "1",
+          phone: "254708374149",
+          accountReference: `PAY-${selectedPayment.id}-${Date.now()}`
+        },
+        {
+          // Include header to skip ngrok browser warning if needed
+          headers: {
+            'ngrok-skip-browser-warning': 'true'
+          }
+        }
       );
+
+      // Check if the response indicates success
+      if (response.data.ResponseCode === "0") {
+        setMessage("Check your phone to complete payment!");
+        // Optionally, update the payment status to "Processing"
+        setPayments(prev => 
+          prev.map(p => p.id === selectedPayment.id ? { ...p, status: "Processing" } : p)
+        );
+      } else {
+        setMessage(`Failed: ${response.data.ResponseDescription}`);
+      }
     } catch (error) {
-      console.error("Error during STK push:", error);
-      setMessage("Payment failed. Try again.");
+      setMessage(error.response?.data?.error || "Payment initiation failed");
     } finally {
       setLoading(false);
     }
@@ -112,7 +130,6 @@ const TenantPaymentHistory = () => {
       <Typography variant="h4" sx={{ mb: 2 }}>
         Payment History
       </Typography>
-      {/* Removed Total Outstanding Amount display */}
       <Box sx={{ height: 600 }}>
         <DataGrid
           rows={payments}
@@ -136,7 +153,6 @@ const TenantPaymentHistory = () => {
               <Typography variant="body1">
                 <strong>Status:</strong> {selectedPayment.status}
               </Typography>
-              <TextField label="Payment Method" fullWidth margin="normal" />
               {message && (
                 <Typography variant="body2" color="primary" sx={{ mt: 2 }}>
                   {message}
