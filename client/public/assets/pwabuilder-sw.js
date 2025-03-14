@@ -12,7 +12,7 @@ self.addEventListener("install", async (event) => {
                 "/index.html",
                 OFFLINE_URL,
                 "/manifest.json",
-                "/favicon.ico",
+                "/assets/favicon.ico",
             ]);
         })
     );
