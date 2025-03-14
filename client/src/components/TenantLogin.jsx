@@ -88,7 +88,7 @@ const TenantLogin = () => {
         {/* Title with Custom PNG Image */}
         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", mb: 3 }}>
           <img
-            src="dist/assets/home.png" // Update the path to your PNG image
+            src="/assets/home.png" // Update the path to your PNG image
             alt="RentHive Logo"
             style={{ width: 40, height: 40, marginRight: 10 }} // Adjust size as needed
           />
