@@ -10,7 +10,7 @@ import {
   Avatar,
   LinearProgress,
 } from "@mui/material";
-import { AccountBalanceWallet, Home, Build } from "@mui/icons-material";
+import { AccountBalanceWallet, Home, Build, Notifications } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 // Firebase imports for fetching tenant name and notifications
 import {
@@ -114,6 +114,41 @@ const TenantDashboard = () => {
     ],
     totalOutstanding: 1200,
   };
+
+  // Placeholder for when there are no notifications
+  const NoNotificationsPlaceholder = () => (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        textAlign: "center",
+        p: 4,
+        borderRadius: 2,
+        backgroundColor: "background.paper",
+        boxShadow: 1,
+        maxWidth: 600,
+        margin: "0 auto",
+        mt: 4,
+      }}
+    >
+      <Notifications color="primary" sx={{ fontSize: 60, mb: 2 }} />
+      <Typography variant="h5" component="h2" sx={{ mb: 2 }}>
+        No Notifications Today
+      </Typography>
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+        You're all caught up! When new notifications arrive, they'll appear here.
+      </Typography>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={() => navigate("/tenant/notifications")}
+      >
+        View All Notifications
+      </Button>
+    </Box>
+  );
 
   return (
     <Box
@@ -278,9 +313,7 @@ const TenantDashboard = () => {
                     </Box>
                   ))
                 ) : (
-                  <Typography variant="body2" color="text.secondary">
-                    No notifications for today.
-                  </Typography>
+                  <NoNotificationsPlaceholder />
                 )}
                 <Button
                   variant="contained"
