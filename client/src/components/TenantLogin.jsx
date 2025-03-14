@@ -90,6 +90,7 @@ const TenantLogin = () => {
           <img
             src="/assets/home.png" // Update the path to your PNG image
             alt="RentHive Logo"
+            loading="lazy"
             style={{ width: 40, height: 40, marginRight: 10 }} // Adjust size as needed
           />
           <Typography variant="h4" sx={{ fontWeight: 600, color: "primary.main" }}>
