@@ -16,6 +16,7 @@ import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "../firebase"; // Import Firestore
 import { doc, getDoc } from "firebase/firestore"; // Firestore functions
+import HomeIcon from "@mui/icons-material/Home"; // Import an icon for apartments/estates
 
 const TenantLogin = () => {
   const [email, setEmail] = useState("");
@@ -85,6 +86,14 @@ const TenantLogin = () => {
   return (
     <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
       <Paper elevation={3} sx={{ p: 4, width: 400, textAlign: "center" }}>
+        {/* Title with Icon */}
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", mb: 3 }}>
+          <HomeIcon sx={{ fontSize: 40, color: "primary.main", mr: 1 }} />
+          <Typography variant="h4" sx={{ fontWeight: 600, color: "primary.main" }}>
+            RentHive
+          </Typography>
+        </Box>
+
         <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>Tenant Login</Typography>
         <form onSubmit={handleLogin}>
           <TextField label="Email" type="email" fullWidth required value={email} onChange={(e) => setEmail(e.target.value)} sx={{ mb: 2 }} />
