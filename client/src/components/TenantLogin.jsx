@@ -16,7 +16,6 @@ import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "../firebase"; // Import Firestore
 import { doc, getDoc } from "firebase/firestore"; // Firestore functions
-import HomeIcon from "@mui/icons-material/Home"; // Import an icon for apartments/estates
 
 const TenantLogin = () => {
   const [email, setEmail] = useState("");
@@ -86,9 +85,13 @@ const TenantLogin = () => {
   return (
     <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
       <Paper elevation={3} sx={{ p: 4, width: 400, textAlign: "center" }}>
-        {/* Title with Icon */}
+        {/* Title with Custom PNG Image */}
         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", mb: 3 }}>
-          <HomeIcon sx={{ fontSize: 40, color: "primary.main", mr: 1 }} />
+          <img
+            src="/dist/assets/home.png" // Update the path to your PNG image
+            alt="RentHive Logo"
+            style={{ width: 40, height: 40, marginRight: 10 }} // Adjust size as needed
+          />
           <Typography variant="h4" sx={{ fontWeight: 600, color: "primary.main" }}>
             RentHive
           </Typography>
