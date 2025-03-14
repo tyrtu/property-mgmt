@@ -5,26 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RentHive</title>
     <link rel="manifest" href="/manifest.json" />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico"> <!-- ✅ Add this line -->
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico"> <!-- ✅ Add this line -->
 </head>
 <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
-
-    <!-- ✅ Register Service Worker. -->
-    <script>
-        if ("serviceWorker" in navigator) {
-            window.addEventListener("load", () => {
-                navigator.serviceWorker
-                    .register("dist/assets/pwabuilder-sw.js")
-                    .then((registration) => {
-                        console.log("Service Worker registered:", registration);
-                    })
-                    .catch((error) => {
-                        console.error("Service Worker registration failed:", error);
-                    });
-            });
-        }
-    </script>
 </body>
 </html>
