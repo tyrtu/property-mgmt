@@ -1,33 +1,37 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import twilio from "https://esm.sh/twilio@4.23.0"; // Use a specific, stable version of Twilio
+import express from "express";
+import { createClient } from "@supabase/supabase-js";
+import twilio from "twilio";
 
-// Load environment variables
-const supabaseUrl = Deno.env.get("SUPABASE_URL");
-const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-const twilioAccountSid = Deno.env.get("TWILIO_ACCOUNT_SID");
-const twilioAuthToken = Deno.env.get("TWILIO_AUTH_TOKEN");
-const twilioPhoneNumber = Deno.env.get("TWILIO_PHONE_NUMBER");
+// Get env variables (Supabase provides these automatically)
+const supabaseUrl = process.env.DATABASE_URL;
+const supabaseKey = process.env.SERVICE_ROLE_KEY;
+const twilioAccountSid = process.env.TWILIO_ACCOUNT_SID;
+const twilioAuthToken = process.env.TWILIO_AUTH_TOKEN;
+const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER;
 
-// Initialize Supabase and Twilio clients
+// Check if the envs are available
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error("Supabase credentials are missing!");
+}
+
+// Initialize clients
 const supabase = createClient(supabaseUrl, supabaseKey);
 const twilioClient = twilio(twilioAccountSid, twilioAuthToken);
 
-// Serve the Edge Function
-serve(async (req) => {
+// Create Express app
+const app = express();
+app.use(express.json());
+
+app.post("/send-rent-reminders", async (req, res) => {
   try {
-    // Query unpaid rent reminders
     const { data, error } = await supabase
       .from("rent_reminders")
       .select("*")
       .eq("is_paid", false)
       .lte("due_date", new Date().toISOString());
 
-    if (error) {
-      throw new Error(`Supabase query error: ${error.message}`);
-    }
+    if (error) throw new Error(`Supabase query error: ${error.message}`);
 
-    // Send SMS reminders
     let remindersSent = 0;
     for (const reminder of data) {
       try {
@@ -39,26 +43,17 @@ serve(async (req) => {
         remindersSent++;
         console.log(`SMS sent to ${reminder.phone_number}`);
       } catch (twilioError) {
-        console.error(`Failed to send SMS to ${reminder.phone_number}:`, twilioError);
+        console.error(`Failed to send SMS:`, twilioError);
       }
     }
 
-    // Return success response
-    return new Response(
-      JSON.stringify({ success: true, remindersSent }),
-      {
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    res.json({ success: true, remindersSent });
   } catch (error) {
-    // Return error response
-    console.error("Error in function execution:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        headers: { "Content-Type": "application/json" },
-        status: 500,
-      }
-    );
+    console.error("Error:", error);
+    res.status(500).json({ error: error.message });
   }
 });
+
+// Start server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
