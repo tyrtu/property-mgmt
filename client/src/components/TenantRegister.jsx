@@ -95,7 +95,7 @@ const TenantRegister = () => {
           sx={{
             position: "relative",
             height: 150,
-            background: "primary",
+            background: "linear-gradient(90deg, #6200EE 0%, #FF9800 100%)",
           }}
         >
           <Box
@@ -130,9 +130,15 @@ const TenantRegister = () => {
               preserveAspectRatio="none"
               style={{ display: "block", width: "100%", height: 50 }}
             >
+              <defs>
+                <linearGradient id="waveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#6200EE" />
+                  <stop offset="100%" stopColor="#FF9800" />
+                </linearGradient>
+              </defs>
               <path
                 d="M-0.27,76.42 C149.99,150.00 271.56,1.66 500.00,69.97 L500.00,150.00 L0.00,150.00 Z"
-                fill="#fff"
+                fill="url(#waveGradient)"
               />
             </svg>
           </Box>
@@ -224,3 +230,4 @@ const TenantRegister = () => {
 };
 
 export default TenantRegister;
+
