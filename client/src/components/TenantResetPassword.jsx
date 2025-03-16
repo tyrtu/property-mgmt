@@ -45,7 +45,26 @@ const TenantResetPassword = () => {
 
   return (
     <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
-      <Paper elevation={3} sx={{ p: 4, width: 400, textAlign: "center" }}>
+      <Paper
+        sx={{
+          p: 4,
+          width: { xs: "100%", sm: "90%", md: 400 },
+          borderRadius: { xs: 0, sm: 2 },
+          textAlign: "center",
+        }}
+      >
+        {/* Header with Icon */}
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", mb: 3 }}>
+          <img
+            src="/assets/home.png" // Update the path to your PNG image
+            alt="RentHive Logo"
+            style={{ width: 40, height: 40, marginRight: 10 }}
+          />
+          <Typography variant="h4" sx={{ fontWeight: 600, color: "primary.main" }}>
+            RentHive
+          </Typography>
+        </Box>
+
         <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
           Reset Password
         </Typography>
@@ -69,19 +88,20 @@ const TenantResetPassword = () => {
             </Button>
           </Typography>
         </form>
+
+        {/* Success Message */}
+        <Snackbar open={!!message} autoHideDuration={6000} onClose={() => setMessage("")}>
+          <Alert severity="success">{message}</Alert>
+        </Snackbar>
+
+        {/* Error Snackbar */}
+        <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError("")}>
+          <Alert severity="error">{error}</Alert>
+        </Snackbar>
       </Paper>
-
-      {/* Success Message */}
-      <Snackbar open={!!message} autoHideDuration={6000} onClose={() => setMessage("")}>
-        <Alert severity="success">{message}</Alert>
-      </Snackbar>
-
-      {/* Error Snackbar */}
-      <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError("")}>
-        <Alert severity="error">{error}</Alert>
-      </Snackbar>
     </Box>
   );
 };
 
 export default TenantResetPassword;
+

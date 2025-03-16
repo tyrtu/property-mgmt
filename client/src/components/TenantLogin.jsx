@@ -118,7 +118,16 @@ const TenantLogin = () => {
           zIndex: 1,
         }}
       >
-        <Paper elevation={3} sx={{ p: 4, width: 400, textAlign: "center" }}>
+        <Paper
+          sx={{
+            width: { xs: "100%", sm: "90%", md: 400 },
+            borderRadius: { xs: 0, sm: 2 },
+            overflow: "hidden",
+            boxShadow: { xs: "none", sm: (theme) => theme.shadows[3] },
+            p: 4,
+            textAlign: "center",
+          }}
+        >
           {/* Title with Custom PNG Image */}
           <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", mb: 3 }}>
             <img
