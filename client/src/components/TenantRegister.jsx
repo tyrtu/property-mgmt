@@ -95,7 +95,7 @@ const TenantRegister = () => {
           sx={{
             position: "relative",
             height: 150,
-            background: "linear-gradient(90deg, #6200EE 0%, #FF9800 100%)",
+            background: "primary.main",
           }}
         >
           <Box
