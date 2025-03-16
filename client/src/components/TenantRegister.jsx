@@ -81,47 +81,66 @@ const TenantRegister = () => {
   };
 
   return (
-    <Box sx={{ position: "relative", minHeight: "100vh" }}>
-      {/* Wave background with a gradient fill */}
-      <Box
+    <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+      <Paper
+        elevation={3}
         sx={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
+          width: "90%",
+          maxWidth: 400,
+          borderRadius: 2,
           overflow: "hidden",
-          lineHeight: 0,
         }}
       >
-        <svg
-          viewBox="0 0 500 150"
-          preserveAspectRatio="none"
-          style={{ display: "block", width: "100%", height: "150px" }}
+        {/* Header with gradient background, wave design and PNG logo */}
+        <Box
+          sx={{
+            position: "relative",
+            height: 150,
+            background: "linear-gradient(90deg, #6200EE 0%, #FF9800 100%)",
+          }}
         >
-          <defs>
-            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" style={{ stopColor: "#6200EE", stopOpacity: 1 }} />
-              <stop offset="100%" style={{ stopColor: "#FF9800", stopOpacity: 1 }} />
-            </linearGradient>
-          </defs>
-          <path
-            d="M-0.27,76.42 C149.99,150.00 271.56,1.66 500.00,69.97 L500.00,0.00 L0.00,0.00 Z"
-            fill="url(#grad)"
-          />
-        </svg>
-      </Box>
+          <Box
+            sx={{
+              height: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <img
+              src="/assets/home.png" // Update the path to your PNG image
+              alt="RentHive Logo"
+              style={{ width: 40, height: 40, marginRight: 10 }}
+            />
+            <Typography variant="h4" sx={{ fontWeight: 600, color: "#fff" }}>
+              RentHive
+            </Typography>
+          </Box>
+          <Box
+            sx={{
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              width: "100%",
+              overflow: "hidden",
+              lineHeight: 0,
+            }}
+          >
+            <svg
+              viewBox="0 0 500 150"
+              preserveAspectRatio="none"
+              style={{ display: "block", width: "100%", height: 50 }}
+            >
+              <path
+                d="M-0.27,76.42 C149.99,150.00 271.56,1.66 500.00,69.97 L500.00,150.00 L0.00,150.00 Z"
+                fill="#fff"
+              />
+            </svg>
+          </Box>
+        </Box>
 
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          minHeight: "100vh",
-          position: "relative",
-          zIndex: 1,
-        }}
-      >
-        <Paper elevation={3} sx={{ p: 4, width: 400, textAlign: "center" }}>
+        {/* Registration form */}
+        <Box sx={{ p: 4 }}>
           <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
             Tenant Registration
           </Typography>
@@ -189,18 +208,18 @@ const TenantRegister = () => {
               </Button>
             </Typography>
           </form>
-        </Paper>
+        </Box>
+      </Paper>
 
-        {/* Error Snackbar */}
-        <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError("")}>
-          <Alert severity="error">{error}</Alert>
-        </Snackbar>
+      {/* Error Snackbar */}
+      <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError("")}>
+        <Alert severity="error">{error}</Alert>
+      </Snackbar>
 
-        {/* Success Snackbar */}
-        <Snackbar open={!!success} autoHideDuration={6000} onClose={() => setSuccess("")}>
-          <Alert severity="success">{success}</Alert>
-        </Snackbar>
-      </Box>
+      {/* Success Snackbar */}
+      <Snackbar open={!!success} autoHideDuration={6000} onClose={() => setSuccess("")}>
+        <Alert severity="success">{success}</Alert>
+      </Snackbar>
     </Box>
   );
 };
