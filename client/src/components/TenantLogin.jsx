@@ -83,14 +83,14 @@ const TenantLogin = () => {
   };
 
   return (
-    <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", m: 2 }}>
+    <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", m: 0.5 }}>
       <Paper
         sx={{
           width: { xs: "100%", sm: "90%", md: 400 },
           borderRadius: 2,
           overflow: "hidden",
           boxShadow: { xs: "none", sm: (theme) => theme.shadows[3] },
-          m: 2, // Added margin
+          m: 0.5, // Subtle margin
         }}
       >
         {/* Header with gradient background, wave design and PNG logo */}
@@ -143,7 +143,7 @@ const TenantLogin = () => {
         </Box>
 
         {/* Login form */}
-        <Box sx={{ p: 4, m: 2 }}> {/* Added margin */}
+        <Box sx={{ p: 4, m: 0.5 }}> {/* Minimal margin */}
           <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
             Tenant Login
           </Typography>
