@@ -45,34 +45,6 @@ const TenantResetPassword = () => {
 
   return (
     <Box sx={{ position: "relative", minHeight: "100vh", overflow: "hidden" }}>
-      {/* Wave background */}
-      <Box
-        sx={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          zIndex: 0,
-          overflow: "hidden",
-        }}
-      >
-        <svg
-          viewBox="0 0 1440 320"
-          preserveAspectRatio="none"
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            fill: (theme) => theme.palette.primary.main,
-          }}
-        >
-          <path d="M0,256L48,240C96,224,192,192,288,181.3C384,171,480,181,576,170.7C672,160,768,128,864,128C960,128,1056,160,1152,165.3C1248,171,1344,149,1392,138.7L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path>
-        </svg>
-      </Box>
-
       {/* Content */}
       <Box
         sx={{
@@ -93,10 +65,45 @@ const TenantResetPassword = () => {
             p: 4,
             textAlign: "center",
             backgroundColor: "background.paper",
+            position: "relative",
           }}
         >
+          {/* Wave inside the card */}
+          <Box
+            sx={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100px",
+              overflow: "hidden",
+              zIndex: 0,
+            }}
+          >
+            <svg
+              viewBox="0 0 500 150"
+              preserveAspectRatio="none"
+              style={{
+                width: "100%",
+                height: "100%",
+                fill: (theme) => theme.palette.primary.main,
+              }}
+            >
+              <path d="M0,70 C150,150 350,0 500,70 L500,0 L0,0 Z"></path>
+            </svg>
+          </Box>
+
           {/* Header with Icon */}
-          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", mb: 3 }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              mb: 3,
+              position: "relative",
+              zIndex: 1,
+            }}
+          >
             <img
               src="/assets/home.png" // Update the path to your PNG image
               alt="RentHive Logo"
@@ -107,7 +114,7 @@ const TenantResetPassword = () => {
             </Typography>
           </Box>
 
-          <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
+          <Typography variant="h5" sx={{ mb: 3, fontWeight: 600, position: "relative", zIndex: 1 }}>
             Reset Password
           </Typography>
           <form onSubmit={handleResetPassword}>
@@ -118,13 +125,19 @@ const TenantResetPassword = () => {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              sx={{ mb: 2 }}
+              sx={{ mb: 2, position: "relative", zIndex: 1 }}
             />
-            <Button type="submit" variant="contained" fullWidth disabled={loading} sx={{ mb: 2 }}>
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              disabled={loading}
+              sx={{ mb: 2, position: "relative", zIndex: 1 }}
+            >
               {loading ? <CircularProgress size={24} /> : "Send Reset Link"}
             </Button>
 
-            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+            <Typography variant="body2" sx={{ color: "text.secondary", position: "relative", zIndex: 1 }}>
               <Button variant="text" size="small" onClick={() => navigate("/tenant/login")}>
                 Back to Login
               </Button>
