@@ -83,69 +83,114 @@ const TenantLogin = () => {
   };
 
   return (
-    <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
-      <Paper elevation={3} sx={{ p: 4, width: 400, textAlign: "center" }}>
-        {/* Title with Custom PNG Image */}
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", mb: 3 }}>
-          <img
-            src="/assets/home.png" // Update the path to your PNG image
-            alt="RentHive Logo"
-            loading="lazy"
-            style={{ width: 40, height: 40, marginRight: 10 }} // Adjust size as needed
+    <Box sx={{ position: "relative", minHeight: "100vh" }}>
+      {/* Wave background on top (uses theme color for fill) */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          overflow: "hidden",
+          lineHeight: 0,
+          color: "primary.main", // This allows the SVG to inherit the MUI primary color
+        }}
+      >
+        <svg
+          viewBox="0 0 500 150"
+          preserveAspectRatio="none"
+          style={{ display: "block", width: "100%", height: "150px" }}
+        >
+          <path
+            d="M-0.27,76.42 C149.99,150.00 271.56,1.66 500.00,69.97 L500.00,0.00 L0.00,0.00 Z"
+            fill="currentColor"
           />
-          <Typography variant="h4" sx={{ fontWeight: 600, color: "primary.main" }}>
-            RentHive
-          </Typography>
-        </Box>
+        </svg>
+      </Box>
 
-        <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>Tenant Login</Typography>
-        <form onSubmit={handleLogin}>
-          <TextField label="Email" type="email" fullWidth required value={email} onChange={(e) => setEmail(e.target.value)} sx={{ mb: 2 }} />
-          <TextField
-            label="Password"
-            type={showPassword ? "text" : "password"}
-            fullWidth
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            sx={{ mb: 2 }}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={handleTogglePasswordVisibility} edge="end">
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-          />
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          position: "relative",
+          zIndex: 1,
+        }}
+      >
+        <Paper elevation={3} sx={{ p: 4, width: 400, textAlign: "center" }}>
+          {/* Title with Custom PNG Image */}
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", mb: 3 }}>
+            <img
+              src="/assets/home.png" // Update the path to your PNG image
+              alt="RentHive Logo"
+              style={{ width: 40, height: 40, marginRight: 10 }}
+            />
+            <Typography variant="h4" sx={{ fontWeight: 600, color: "primary.main" }}>
+              RentHive
+            </Typography>
+          </Box>
 
-          {/* Forgot Password Link - Redirects to TenantResetPassword Page */}
-          <Typography
-            variant="body2"
-            sx={{ color: "primary.main", textAlign: "right", cursor: "pointer", mb: 2 }}
-            onClick={() => navigate("/tenant/reset-password")}
-          >
-            Forgot Password?
+          <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
+            Tenant Login
           </Typography>
 
-          <Button type="submit" variant="contained" fullWidth disabled={loading} sx={{ mb: 2 }}>
-            {loading ? <CircularProgress size={24} /> : "Login"}
-          </Button>
+          <form onSubmit={handleLogin}>
+            <TextField
+              label="Email"
+              type="email"
+              fullWidth
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              label="Password"
+              type={showPassword ? "text" : "password"}
+              fullWidth
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              sx={{ mb: 2 }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={handleTogglePasswordVisibility} edge="end">
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
 
-          <Typography variant="body2" sx={{ color: "text.secondary" }}>
-            Don't have an account?{" "}
-            <Button variant="text" size="small" onClick={() => navigate("/tenant/register")}>
-              Register here
+            {/* Forgot Password Link */}
+            <Typography
+              variant="body2"
+              sx={{ color: "primary.main", textAlign: "right", cursor: "pointer", mb: 2 }}
+              onClick={() => navigate("/tenant/reset-password")}
+            >
+              Forgot Password?
+            </Typography>
+
+            <Button type="submit" variant="contained" fullWidth disabled={loading} sx={{ mb: 2 }}>
+              {loading ? <CircularProgress size={24} /> : "Login"}
             </Button>
-          </Typography>
-        </form>
-      </Paper>
 
-      {/* Error Snackbar */}
-      <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError("")}>
-        <Alert severity="error">{error}</Alert>
-      </Snackbar>
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+              Don't have an account?{" "}
+              <Button variant="text" size="small" onClick={() => navigate("/tenant/register")}>
+                Register here
+              </Button>
+            </Typography>
+          </form>
+        </Paper>
+
+        {/* Error Snackbar */}
+        <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError("")}>
+          <Alert severity="error">{error}</Alert>
+        </Snackbar>
+      </Box>
     </Box>
   );
 };
