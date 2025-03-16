@@ -325,17 +325,20 @@ const TenantManagement = () => {
       <Navigation />
       <Container maxWidth="xl" sx={{ py: 4 }}>
         <Card sx={{ p: 3, mb: 3, boxShadow: 3 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
             <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
               Tenant Management Portal
             </Typography>
             <Button
               variant="contained"
-              startIcon={<Send />}
               onClick={() => setNotificationOpen(true)}
               sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                alignItems: 'center',
+                gap: { xs: 1, sm: 2 },
                 fontSize: { xs: '0.75rem', sm: '1rem' },
-                padding: { xs: '6px 12px', sm: '8px 16px' },
+                padding: { xs: '8px', sm: '8px 16px' },
                 width: { xs: '100%', sm: 'auto' },
                 backgroundColor: '#1976D2',
                 color: '#fff',
@@ -346,6 +349,7 @@ const TenantManagement = () => {
                 textTransform: 'none',
               }}
             >
+              <Send sx={{ fontSize: { xs: '1.5rem', sm: '1rem' } }} />
               Send Notification
             </Button>
           </Box>
