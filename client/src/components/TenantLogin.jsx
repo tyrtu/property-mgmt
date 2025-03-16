@@ -87,7 +87,7 @@ const TenantLogin = () => {
       <Paper
         sx={{
           width: { xs: "100%", sm: "90%", md: 400 },
-          borderRadius: { xs: 0, sm: 2 },
+          borderRadius: 2,
           overflow: "hidden",
           boxShadow: { xs: "none", sm: (theme) => theme.shadows[3] },
         }}
