@@ -14,12 +14,12 @@ const Navigation = () => {
     setMobileOpen(!mobileOpen);
   };
 
-  // ✅ Handle Logout
   const handleLogout = async () => {
     try {
       await signOut(auth); // Sign out the user
       localStorage.removeItem('adminToken'); // Clear admin token
-      navigate('/tenant/login'); // Redirect to tenant login page
+      localStorage.removeItem('userRole'); // Ensure role is cleared
+      navigate('/tenant/login', { replace: true }); // Redirect to login
     } catch (error) {
       console.error('Logout failed:', error);
     }
@@ -36,16 +36,12 @@ const Navigation = () => {
 
   return (
     <>
-      {/* ✅ Admin Navbar with Logout Button */}
       <AppBar position="static" color="primary">
         <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-          
-          {/* ✅ Hamburger Menu for Small Screens */}
           <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleDrawerToggle} sx={{ display: { xs: 'block', md: 'none' } }}>
             <MenuIcon />
           </IconButton>
 
-          {/* ✅ Full Navigation (Large Screens) with Active Highlighting */}
           <Box sx={{ display: { xs: 'none', md: 'block' } }}>
             {navItems.map((item) => (
               <Button 
@@ -64,14 +60,12 @@ const Navigation = () => {
             ))}
           </Box>
 
-          {/* ✅ Logout Button */}
           <Button color="inherit" onClick={handleLogout}>
             Logout
           </Button>
         </Toolbar>
       </AppBar>
 
-      {/* ✅ Sidebar Drawer (Small Screens) */}
       <Drawer anchor="left" open={mobileOpen} onClose={handleDrawerToggle}>
         <Box sx={{ width: 250 }} role="presentation" onClick={handleDrawerToggle}>
           <List>
@@ -89,7 +83,6 @@ const Navigation = () => {
                 <ListItemText primary={item.text} />
               </ListItem>
             ))}
-            {/* ✅ Logout Button in Drawer */}
             <ListItem button onClick={handleLogout}>
               <ListItemText primary="Logout" />
             </ListItem>

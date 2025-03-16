@@ -36,7 +36,6 @@ const AdminRoute = ({ children }) => {
     fetchUserRole();
   }, [user]);
 
-  // Show a loading spinner while the authentication and role check is in progress
   if (loading || isAdmin === null) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
@@ -45,7 +44,10 @@ const AdminRoute = ({ children }) => {
     );
   }
 
-  // Display error message if there was an error fetching role
+  if (!user) {
+    return <Navigate to="/tenant/login" replace />;
+  }
+
   if (error) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
@@ -56,12 +58,10 @@ const AdminRoute = ({ children }) => {
     );
   }
 
-  // Redirect to unauthorized if the user is not an admin
   if (!isAdmin) {
-    return <Navigate to="/unauthorized" />;
+    return <Navigate to="/tenant/login" replace />;
   }
 
-  // If the user is an admin, render the protected component
   return children;
 };
 
