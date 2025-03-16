@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import {
   Box,
@@ -44,64 +45,100 @@ const TenantResetPassword = () => {
   };
 
   return (
-    <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
-      <Paper
+    <Box sx={{ position: "relative", minHeight: "100vh" }}>
+      {/* Wave background on top (uses theme color for fill) */}
+      <Box
         sx={{
-          p: 4,
-          width: { xs: "100%", sm: "90%", md: 400 },
-          borderRadius: { xs: 0, sm: 2 },
-          textAlign: "center",
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          overflow: "hidden",
+          lineHeight: 0,
+          color: "primary.main", // Inherit MUI primary color
         }}
       >
-        {/* Header with Icon */}
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", mb: 3 }}>
-          <img
-            src="/assets/home.png" // Update the path to your PNG image
-            alt="RentHive Logo"
-            style={{ width: 40, height: 40, marginRight: 10 }}
+        <svg
+          viewBox="0 0 500 150"
+          preserveAspectRatio="none"
+          style={{ display: "block", width: "100%", height: "150px" }}
+        >
+          <path
+            d="M-0.27,76.42 C149.99,150.00 271.56,1.66 500.00,69.97 L500.00,0.00 L0.00,0.00 Z"
+            fill="currentColor"
           />
-          <Typography variant="h4" sx={{ fontWeight: 600, color: "primary.main" }}>
-            RentHive
+        </svg>
+      </Box>
+
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          position: "relative",
+          zIndex: 1,
+        }}
+      >
+        <Paper
+          sx={{
+            width: { xs: "100%", sm: "90%", md: 400 },
+            borderRadius: { xs: 0, sm: 2 },
+            overflow: "hidden",
+            boxShadow: { xs: "none", sm: (theme) => theme.shadows[3] },
+            p: 4,
+            textAlign: "center",
+          }}
+        >
+          {/* Header with Icon */}
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", mb: 3 }}>
+            <img
+              src="/assets/home.png" // Update the path to your PNG image
+              alt="RentHive Logo"
+              style={{ width: 40, height: 40, marginRight: 10 }}
+            />
+            <Typography variant="h4" sx={{ fontWeight: 600, color: "primary.main" }}>
+              RentHive
+            </Typography>
+          </Box>
+
+          <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
+            Reset Password
           </Typography>
-        </Box>
-
-        <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
-          Reset Password
-        </Typography>
-        <form onSubmit={handleResetPassword}>
-          <TextField
-            label="Email"
-            type="email"
-            fullWidth
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            sx={{ mb: 2 }}
-          />
-          <Button type="submit" variant="contained" fullWidth disabled={loading} sx={{ mb: 2 }}>
-            {loading ? <CircularProgress size={24} /> : "Send Reset Link"}
-          </Button>
-
-          <Typography variant="body2" sx={{ color: "text.secondary" }}>
-            <Button variant="text" size="small" onClick={() => navigate("/tenant/login")}>
-              Back to Login
+          <form onSubmit={handleResetPassword}>
+            <TextField
+              label="Email"
+              type="email"
+              fullWidth
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              sx={{ mb: 2 }}
+            />
+            <Button type="submit" variant="contained" fullWidth disabled={loading} sx={{ mb: 2 }}>
+              {loading ? <CircularProgress size={24} /> : "Send Reset Link"}
             </Button>
-          </Typography>
-        </form>
 
-        {/* Success Message */}
-        <Snackbar open={!!message} autoHideDuration={6000} onClose={() => setMessage("")}>
-          <Alert severity="success">{message}</Alert>
-        </Snackbar>
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+              <Button variant="text" size="small" onClick={() => navigate("/tenant/login")}>
+                Back to Login
+              </Button>
+            </Typography>
+          </form>
 
-        {/* Error Snackbar */}
-        <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError("")}>
-          <Alert severity="error">{error}</Alert>
-        </Snackbar>
-      </Paper>
+          {/* Success Message */}
+          <Snackbar open={!!message} autoHideDuration={6000} onClose={() => setMessage("")}>
+            <Alert severity="success">{message}</Alert>
+          </Snackbar>
+
+          {/* Error Snackbar */}
+          <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError("")}>
+            <Alert severity="error">{error}</Alert>
+          </Snackbar>
+        </Paper>
+      </Box>
     </Box>
   );
 };
 
 export default TenantResetPassword;
-
