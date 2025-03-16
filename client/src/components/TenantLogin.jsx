@@ -83,84 +83,66 @@ const TenantLogin = () => {
   };
 
   return (
-    <Box sx={{ position: "relative", minHeight: "100vh" }}>
-      {/* Header with two-wave design, PNG logo and title */}
-      <Box sx={{ position: "absolute", top: 0, left: 0, width: "100%", height: 150, background: "linear-gradient(90deg, #6200EE 0%, #FF9800 100%)" }}>
-        <Box sx={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <img
-            src="/assets/home.png" // Update the path to your PNG image
-            alt="RentHive Logo"
-            style={{ width: 40, height: 40, marginRight: 10 }}
-          />
-          <Typography variant="h4" sx={{ fontWeight: 600, color: "#fff" }}>
-            RentHive
-          </Typography>
-        </Box>
-        {/* First wave: using primary color */}
-        <Box
-          sx={{
-            position: "absolute",
-            bottom: 50,
-            left: 0,
-            width: "100%",
-            overflow: "hidden",
-            lineHeight: 0,
-            color: "primary.main",
-          }}
-        >
-          <svg viewBox="0 0 500 150" preserveAspectRatio="none" style={{ display: "block", width: "100%", height: 50 }}>
-            <path
-              d="M-0.27,76.42 C149.99,150.00 271.56,1.66 500.00,69.97 L500.00,150.00 L0.00,150.00 Z"
-              fill="currentColor"
-            />
-          </svg>
-        </Box>
-        {/* Second wave: using gradient */}
-        <Box
-          sx={{
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            width: "100%",
-            overflow: "hidden",
-            lineHeight: 0,
-          }}
-        >
-          <svg viewBox="0 0 500 150" preserveAspectRatio="none" style={{ display: "block", width: "100%", height: 50 }}>
-            <defs>
-              <linearGradient id="waveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#6200EE" />
-                <stop offset="100%" stopColor="#FF9800" />
-              </linearGradient>
-            </defs>
-            <path
-              d="M-0.27,76.42 C149.99,150.00 271.56,1.66 500.00,69.97 L500.00,150.00 L0.00,150.00 Z"
-              fill="url(#waveGradient)"
-            />
-          </svg>
-        </Box>
-      </Box>
-
-      <Box
+    <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+      <Paper
         sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-          position: "relative",
-          zIndex: 1,
+          width: { xs: "100%", sm: "90%", md: 400 },
+          borderRadius: { xs: 0, sm: 2 },
+          overflow: "hidden",
+          boxShadow: { xs: "none", sm: (theme) => theme.shadows[3] },
         }}
       >
-        <Paper
+        {/* Header with gradient background, wave design and PNG logo */}
+        <Box
           sx={{
-            width: { xs: "100%", sm: "90%", md: 400 },
-            borderRadius: { xs: 0, sm: 2 },
-            overflow: "hidden",
-            boxShadow: { xs: "none", sm: (theme) => theme.shadows[3] },
-            p: 4,
-            textAlign: "center",
+            position: "relative",
+            height: 150,
+            background: "linear-gradient(90deg, #6200EE 0%, #FF9800 100%)",
           }}
         >
+          <Box
+            sx={{
+              height: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <img
+              src="/assets/home.png" // Update the path to your PNG image
+              alt="RentHive Logo"
+              style={{ width: 40, height: 40, marginRight: 10 }}
+            />
+            <Typography variant="h4" sx={{ fontWeight: 600, color: "#fff" }}>
+              RentHive
+            </Typography>
+          </Box>
+          <Box
+            sx={{
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              width: "100%",
+              overflow: "hidden",
+              lineHeight: 0,
+              color: "primary.main", // Wave colour now matches the navbar theme
+            }}
+          >
+            <svg
+              viewBox="0 0 500 150"
+              preserveAspectRatio="none"
+              style={{ display: "block", width: "100%", height: 50 }}
+            >
+              <path
+                d="M-0.27,76.42 C149.99,150.00 271.56,1.66 500.00,69.97 L500.00,150.00 L0.00,150.00 Z"
+                fill="currentColor"
+              />
+            </svg>
+          </Box>
+        </Box>
+
+        {/* Login form */}
+        <Box sx={{ p: 4 }}>
           <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
             Tenant Login
           </Typography>
@@ -210,17 +192,17 @@ const TenantLogin = () => {
             <Typography variant="body2" sx={{ color: "text.secondary" }}>
               Don't have an account?{" "}
               <Button variant="text" size="small" onClick={() => navigate("/tenant/register")}>
-                Login here
+                Register here
               </Button>
             </Typography>
           </form>
-        </Paper>
+        </Box>
+      </Paper>
 
-        {/* Error Snackbar */}
-        <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError("")}>
-          <Alert severity="error">{error}</Alert>
-        </Snackbar>
-      </Box>
+      {/* Error Snackbar */}
+      <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError("")}>
+        <Alert severity="error">{error}</Alert>
+      </Snackbar>
     </Box>
   );
 };
