@@ -334,9 +334,9 @@ const TenantManagement = () => {
               onClick={() => setNotificationOpen(true)}
               sx={{
                 display: 'flex',
-                flexDirection: { xs: 'column', sm: 'row' },
+                flexDirection: 'row',
                 alignItems: 'center',
-                gap: { xs: 1, sm: 2 },
+                gap: 2,
                 fontSize: { xs: '0.75rem', sm: '1rem' },
                 padding: { xs: '8px', sm: '8px 16px' },
                 width: { xs: '100%', sm: 'auto' },
