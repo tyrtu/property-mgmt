@@ -83,12 +83,11 @@ const TenantRegister = () => {
   return (
     <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
       <Paper
-        elevation={3}
         sx={{
-          width: "90%",
-          maxWidth: 400,
-          borderRadius: 2,
+          width: { xs: "100%", sm: "90%", md: 400 },
+          borderRadius: { xs: 0, sm: 2 },
           overflow: "hidden",
+          boxShadow: { xs: "none", sm: (theme) => theme.shadows[3] },
         }}
       >
         {/* Header with gradient background, wave design and PNG logo */}
