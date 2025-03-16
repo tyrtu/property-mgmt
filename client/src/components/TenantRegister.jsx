@@ -90,14 +90,8 @@ const TenantRegister = () => {
           boxShadow: { xs: "none", sm: (theme) => theme.shadows[3] },
         }}
       >
-        {/* Header with gradient background, wave design and PNG logo */}
-        <Box
-          sx={{
-            position: "relative",
-            height: 150,
-            background: "linear-gradient(90deg, #6200EE 0%, #FF9800 100%)",
-          }}
-        >
+        {/* Header with wave design and PNG logo */}
+        <Box sx={{ position: "relative", height: 150, background: "transparent" }}>
           <Box
             sx={{
               height: "100%",
@@ -111,7 +105,7 @@ const TenantRegister = () => {
               alt="RentHive Logo"
               style={{ width: 40, height: 40, marginRight: 10 }}
             />
-            <Typography variant="h4" sx={{ fontWeight: 600, color: "#fff" }}>
+            <Typography variant="h4" sx={{ fontWeight: 600, color: "primary.main" }}>
               RentHive
             </Typography>
           </Box>
@@ -123,22 +117,17 @@ const TenantRegister = () => {
               width: "100%",
               overflow: "hidden",
               lineHeight: 0,
+              color: "primary.main",
             }}
           >
             <svg
               viewBox="0 0 500 150"
               preserveAspectRatio="none"
-              style={{ display: "block", width: "100%", height: 50 }}
+              style={{ display: "block", width: "100%", height: "50px" }}
             >
-              <defs>
-                <linearGradient id="waveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#6200EE" />
-                  <stop offset="100%" stopColor="#FF9800" />
-                </linearGradient>
-              </defs>
               <path
                 d="M-0.27,76.42 C149.99,150.00 271.56,1.66 500.00,69.97 L500.00,150.00 L0.00,150.00 Z"
-                fill="url(#waveGradient)"
+                fill="currentColor"
               />
             </svg>
           </Box>
