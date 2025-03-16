@@ -95,7 +95,7 @@ const TenantRegister = () => {
           sx={{
             position: "relative",
             height: 150,
-            background: "primary.main",
+            background: "primary",
           }}
         >
           <Box
