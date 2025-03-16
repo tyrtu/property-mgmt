@@ -44,21 +44,32 @@ const TenantResetPassword = () => {
   };
 
   return (
-    <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100vh",
+        px: { xs: 1, sm: 0 }, // ✅ Tiny margin on small screens
+      }}
+    >
       <Paper
         sx={{
           width: { xs: "100%", sm: "90%", md: 400 },
-          borderRadius: { xs: 0, sm: 2 },
+          maxWidth: 400, // Prevents stretching
+          borderRadius: { xs: 3, sm: 6 }, // ✅ Visible border-radius on small screens
           overflow: "hidden",
-          boxShadow: { xs: "none", sm: (theme) => theme.shadows[3] },
+          boxShadow: { xs: 1, sm: 3 }, // ✅ Light shadow on small screens
         }}
       >
-        {/* Header with gradient background, wave design and PNG logo */}
+        {/* Header with gradient background, wave design, and PNG logo */}
         <Box
           sx={{
             position: "relative",
             height: 150,
             background: "linear-gradient(90deg, #6200EE 0%, #FF9800 100%)",
+            borderTopLeftRadius: { xs: 3, sm: 6 }, // ✅ Match card border-radius
+            borderTopRightRadius: { xs: 3, sm: 6 },
           }}
         >
           <Box
