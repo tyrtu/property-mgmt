@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import {
   Box,
@@ -45,31 +44,36 @@ const TenantResetPassword = () => {
   };
 
   return (
-    <Box sx={{ position: "relative", minHeight: "100vh" }}>
-      {/* Wave background on top (uses theme color for fill) */}
+    <Box sx={{ position: "relative", minHeight: "100vh", overflow: "hidden" }}>
+      {/* Wave background */}
       <Box
         sx={{
           position: "absolute",
           top: 0,
           left: 0,
           width: "100%",
+          height: "100%",
+          zIndex: 0,
           overflow: "hidden",
-          lineHeight: 0,
-          color: "primary.main", // Inherit MUI primary color
         }}
       >
         <svg
-          viewBox="0 0 500 150"
+          viewBox="0 0 1440 320"
           preserveAspectRatio="none"
-          style={{ display: "block", width: "100%", height: "150px" }}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            fill: (theme) => theme.palette.primary.main,
+          }}
         >
-          <path
-            d="M-0.27,76.42 C149.99,150.00 271.56,1.66 500.00,69.97 L500.00,0.00 L0.00,0.00 Z"
-            fill="currentColor"
-          />
+          <path d="M0,256L48,240C96,224,192,192,288,181.3C384,171,480,181,576,170.7C672,160,768,128,864,128C960,128,1056,160,1152,165.3C1248,171,1344,149,1392,138.7L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path>
         </svg>
       </Box>
 
+      {/* Content */}
       <Box
         sx={{
           display: "flex",
@@ -88,6 +92,7 @@ const TenantResetPassword = () => {
             boxShadow: { xs: "none", sm: (theme) => theme.shadows[3] },
             p: 4,
             textAlign: "center",
+            backgroundColor: "background.paper",
           }}
         >
           {/* Header with Icon */}
