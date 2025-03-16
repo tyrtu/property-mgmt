@@ -81,56 +81,128 @@ const TenantRegister = () => {
   };
 
   return (
-    <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
-      <Paper elevation={3} sx={{ p: 4, width: 400, textAlign: "center" }}>
-        <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>Tenant Registration</Typography>
-        <form onSubmit={handleRegister}>
-          <TextField label="Full Name" fullWidth required value={name} onChange={(e) => setName(e.target.value)} sx={{ mb: 2 }} />
-          <TextField label="Email" type="email" fullWidth required value={email} onChange={(e) => setEmail(e.target.value)} sx={{ mb: 2 }} />
-          <TextField label="Phone Number" type="tel" fullWidth required value={phone} onChange={(e) => setPhone(e.target.value)} sx={{ mb: 2 }} />
-          <TextField
-            label="Password"
-            type={showPassword ? "text" : "password"}
-            fullWidth
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            sx={{ mb: 2 }}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={handleTogglePasswordVisibility} edge="end">
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
+    <Box sx={{ position: "relative", minHeight: "100vh" }}>
+      {/* Wave background with a gradient fill */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          overflow: "hidden",
+          lineHeight: 0,
+        }}
+      >
+        <svg
+          viewBox="0 0 500 150"
+          preserveAspectRatio="none"
+          style={{ display: "block", width: "100%", height: "150px" }}
+        >
+          <defs>
+            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style={{ stopColor: "#6200EE", stopOpacity: 1 }} />
+              <stop offset="100%" style={{ stopColor: "#FF9800", stopOpacity: 1 }} />
+            </linearGradient>
+          </defs>
+          <path
+            d="M-0.27,76.42 C149.99,150.00 271.56,1.66 500.00,69.97 L500.00,0.00 L0.00,0.00 Z"
+            fill="url(#grad)"
           />
-          <TextField label="Confirm Password" type={showPassword ? "text" : "password"} fullWidth required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} sx={{ mb: 2 }} />
-          <Button type="submit" variant="contained" fullWidth disabled={loading} sx={{ mb: 2 }}>
-            {loading ? <CircularProgress size={24} /> : "Register"}
-          </Button>
-          <Typography variant="body2" sx={{ color: "text.secondary" }}>
-            Already have an account?{" "}
-            <Button variant="text" size="small" onClick={() => navigate("/tenant/login")}>
-              Login here
-            </Button>
+        </svg>
+      </Box>
+
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "100vh",
+          position: "relative",
+          zIndex: 1,
+        }}
+      >
+        <Paper elevation={3} sx={{ p: 4, width: 400, textAlign: "center" }}>
+          <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
+            Tenant Registration
           </Typography>
-        </form>
-      </Paper>
+          <form onSubmit={handleRegister}>
+            <TextField
+              label="Full Name"
+              fullWidth
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              label="Email"
+              type="email"
+              fullWidth
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              label="Phone Number"
+              type="tel"
+              fullWidth
+              required
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              label="Password"
+              type={showPassword ? "text" : "password"}
+              fullWidth
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              sx={{ mb: 2 }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={handleTogglePasswordVisibility} edge="end">
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+            <TextField
+              label="Confirm Password"
+              type={showPassword ? "text" : "password"}
+              fullWidth
+              required
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              sx={{ mb: 2 }}
+            />
+            <Button type="submit" variant="contained" fullWidth disabled={loading} sx={{ mb: 2 }}>
+              {loading ? <CircularProgress size={24} /> : "Register"}
+            </Button>
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+              Already have an account?{" "}
+              <Button variant="text" size="small" onClick={() => navigate("/tenant/login")}>
+                Login here
+              </Button>
+            </Typography>
+          </form>
+        </Paper>
 
-      {/* Error Snackbar */}
-      <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError("")}>
-        <Alert severity="error">{error}</Alert>
-      </Snackbar>
+        {/* Error Snackbar */}
+        <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError("")}>
+          <Alert severity="error">{error}</Alert>
+        </Snackbar>
 
-      {/* Success Snackbar */}
-      <Snackbar open={!!success} autoHideDuration={6000} onClose={() => setSuccess("")}>
-        <Alert severity="success">{success}</Alert>
-      </Snackbar>
-    </Box> 
-  );  // ✅ This closing Box is now correctly placed
+        {/* Success Snackbar */}
+        <Snackbar open={!!success} autoHideDuration={6000} onClose={() => setSuccess("")}>
+          <Alert severity="success">{success}</Alert>
+        </Snackbar>
+      </Box>
+    </Box>
+  );
 };
 
 export default TenantRegister;
-

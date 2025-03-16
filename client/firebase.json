@@ -13,7 +13,7 @@
     }
   ],
   "hosting": {
-    "public": "public", // Folder containing your frontend files
+    "public": "public", 
     "rewrites": [
       {
         "source": "/sendRentReminder",
