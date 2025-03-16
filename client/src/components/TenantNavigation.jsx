@@ -36,7 +36,7 @@ const TenantNavigation = () => {
   return (
     <>
       {/* ✅ Tenant Navbar with Logout Button */}
-      <AppBar position="static" color="secondary">
+      <AppBar position="static" sx={{ background: "linear-gradient(90deg, #6200EE 0%, #FF9800 100%)" }}>
         <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
           
           {/* ✅ Hamburger Menu for Small Screens */}
