@@ -104,7 +104,7 @@ const TenantResetPassword = () => {
 
         {/* Reset Password form */}
         <Box sx={{ p: 4 }}>
-          <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
+          <Typography variant="h5" sx={{ mb: 3, fontWeight: 600, textAlign: "center" }}>
             Reset Password
           </Typography>
           <form onSubmit={handleResetPassword}>
@@ -120,11 +120,13 @@ const TenantResetPassword = () => {
             <Button type="submit" variant="contained" fullWidth disabled={loading} sx={{ mb: 2 }}>
               {loading ? <CircularProgress size={24} /> : "Send Reset Link"}
             </Button>
-            <Typography variant="body2" sx={{ color: "text.secondary" }}>
-              <Button variant="text" size="small" onClick={() => navigate("/tenant/login")}>
-                Back to Login
-              </Button>
-            </Typography>
+            <Box sx={{ display: "flex", justifyContent: "center" }}>
+              <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                <Button variant="text" size="small" onClick={() => navigate("/tenant/login")}>
+                  Back to Login
+                </Button>
+              </Typography>
+            </Box>
           </form>
         </Box>
       </Paper>
