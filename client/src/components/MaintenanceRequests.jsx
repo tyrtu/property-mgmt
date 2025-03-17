@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Navigation from './Navigation';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
-import { Box, Typography, Select, MenuItem } from '@mui/material';
+import { Box, Typography, Select, MenuItem, Chip } from '@mui/material';
 import useAutoLogout from '../hooks/useAutoLogout';
 import {
   collection,
@@ -12,6 +12,9 @@ import {
   doc,
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import PendingIcon from '@mui/icons-material/HourglassEmpty';
+import InProgressIcon from '@mui/icons-material/BuildCircle';
+import CompletedIcon from '@mui/icons-material/CheckCircle';
 
 const MaintenanceRequests = () => {
   const [rows, setRows] = useState([]);
@@ -28,12 +31,11 @@ const MaintenanceRequests = () => {
             id: docSnap.id,
             title: data.issue,
             property: data.property || '',
-            // Store the actual timestamp for sorting and also format it for display
             date: data.createdAt
               ? new Date(data.createdAt.seconds * 1000).toLocaleDateString()
               : '',
             status: data.status || 'Pending',
-            image: data.image || null, // Fetch image URL if available
+            image: data.image || null,
           };
         });
         setRows(requests);
@@ -47,26 +49,47 @@ const MaintenanceRequests = () => {
 
   useAutoLogout();
 
+  const statusColors = {
+    Pending: { color: 'orange', icon: <PendingIcon /> },
+    'In Progress': { color: 'blue', icon: <InProgressIcon /> },
+    Completed: { color: 'green', icon: <CompletedIcon /> },
+  };
+
   const columns = [
     {
       field: 'title',
       headerName: 'Request',
-      width: 200,
+      width: 220,
+      renderCell: (params) => (
+        <Typography variant="body1" sx={{ fontWeight: 500 }}>
+          {params.value}
+        </Typography>
+      ),
     },
     {
       field: 'property',
       headerName: 'Property',
-      width: 150,
+      width: 160,
+      renderCell: (params) => (
+        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          {params.value}
+        </Typography>
+      ),
     },
     {
       field: 'date',
       headerName: 'Date',
-      width: 200, // Increased width for timestamp column
+      width: 180,
+      renderCell: (params) => (
+        <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
+          {params.value}
+        </Typography>
+      ),
     },
     {
       field: 'status',
       headerName: 'Status',
-      width: 150,
+      width: 180,
       renderCell: (params) => {
         const handleStatusChange = async (e) => {
           const newStatus = e.target.value;
@@ -80,32 +103,53 @@ const MaintenanceRequests = () => {
         };
 
         return (
-          <Select
-            value={params.value}
-            size="small"
-            sx={{ minWidth: 120 }}
-            onChange={handleStatusChange}
-          >
-            <MenuItem value="Pending">Pending</MenuItem>
-            <MenuItem value="In Progress">In Progress</MenuItem>
-            <MenuItem value="Completed">Completed</MenuItem>
-          </Select>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Select
+              value={params.value}
+              size="small"
+              sx={{
+                minWidth: 130,
+                backgroundColor: statusColors[params.value]?.color + '1A',
+                borderRadius: 1,
+              }}
+              onChange={handleStatusChange}
+            >
+              <MenuItem value="Pending">
+                <PendingIcon sx={{ color: 'orange', mr: 1 }} />
+                Pending
+              </MenuItem>
+              <MenuItem value="In Progress">
+                <InProgressIcon sx={{ color: 'blue', mr: 1 }} />
+                In Progress
+              </MenuItem>
+              <MenuItem value="Completed">
+                <CompletedIcon sx={{ color: 'green', mr: 1 }} />
+                Completed
+              </MenuItem>
+            </Select>
+          </Box>
         );
       },
     },
     {
       field: 'image',
       headerName: 'Image',
-      width: 150,
+      width: 160,
       renderCell: (params) =>
         params.value ? (
           <img
             src={params.value}
             alt="Maintenance issue"
-            style={{ width: 50, height: 50, borderRadius: 5 }}
+            style={{
+              width: 60,
+              height: 60,
+              borderRadius: 5,
+              border: '1px solid #ddd',
+              objectFit: 'cover',
+            }}
           />
         ) : (
-          'No Image'
+          <Chip label="No Image" color="default" size="small" />
         ),
     },
   ];
@@ -114,8 +158,8 @@ const MaintenanceRequests = () => {
     <Box sx={{ minHeight: '100vh', backgroundColor: 'background.default' }}>
       <Navigation />
       <Box sx={{ p: 3 }}>
-        <Typography variant="h4" gutterBottom>
-          Maintenance Requests
+        <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold' }}>
+          🛠️ Maintenance Requests
         </Typography>
         <Box sx={{ height: 600, width: '100%' }}>
           <DataGrid
@@ -124,6 +168,15 @@ const MaintenanceRequests = () => {
             slots={{ toolbar: GridToolbar }}
             pageSizeOptions={[10, 25, 50]}
             sortModel={[{ field: 'date', sort: 'desc' }]}
+            sx={{
+              '& .MuiDataGrid-columnHeaders': {
+                backgroundColor: 'primary.light',
+                fontSize: 16,
+              },
+              '& .MuiDataGrid-row:nth-of-type(odd)': {
+                backgroundColor: 'action.hover',
+              },
+            }}
           />
         </Box>
       </Box>
