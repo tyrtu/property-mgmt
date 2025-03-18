@@ -25,19 +25,19 @@ import {
   Select,
   MenuItem,
 } from '@mui/material';
-import { Add, Edit, Delete, Search, Apartment, Visibility, VisibilityOff } from '@mui/icons-material';
+import { Add, Edit, Delete, Search, Apartment } from '@mui/icons-material';
 import Navigation from './Navigation';
 import useAutoLogout from '../hooks/useAutoLogout';
 import { db } from '../firebase';
-import { 
-  collection, 
-  getDocs, 
-  addDoc, 
-  updateDoc, 
-  doc, 
-  deleteDoc, 
-  query, 
-  where 
+import {
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  doc,
+  deleteDoc,
+  query,
+  where,
 } from 'firebase/firestore';
 
 const PropertyManagement = () => {
@@ -55,11 +55,11 @@ const PropertyManagement = () => {
     amenities: [],
     photos: [],
     status: 'Vacant',
-    unitNumbers: '', // comma-separated input for unit numbers
-    occupiedUnits: 0, // count of units that are occupied
+    unitNumbers: '', // comma-separated unit numbers input
+    occupiedUnits: 0, // number of occupied units (for percentage calculation)
   });
-  
-  // State for viewing full details of a property
+
+  // State for viewing full property details
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
   const [selectedPropertyDetails, setSelectedPropertyDetails] = useState(null);
 
@@ -69,12 +69,16 @@ const PropertyManagement = () => {
   // Fetch properties from Firestore
   useEffect(() => {
     const fetchProperties = async () => {
-      const querySnapshot = await getDocs(collection(db, 'properties'));
-      const propertyList = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setProperties(propertyList);
+      try {
+        const querySnapshot = await getDocs(collection(db, 'properties'));
+        const propertyList = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setProperties(propertyList);
+      } catch (error) {
+        console.error('Error fetching properties:', error);
+      }
     };
 
     fetchProperties();
@@ -191,14 +195,34 @@ const PropertyManagement = () => {
   };
 
   // Handle viewing full property details (including units)
+  // This function will try to fetch property details using property id; if not found, it falls back to using propertyNo.
   const handleViewDetails = async (property) => {
     try {
-      const unitsSnapshot = await getDocs(collection(db, 'properties', property.id, 'units'));
-      const unitsData = unitsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setSelectedPropertyDetails({ ...property, units: unitsData });
+      let propertyId = property.id;
+      // If id is not available, query by propertyNo
+      if (!propertyId) {
+        const q = query(collection(db, 'properties'), where('propertyNo', '==', property.propertyNo));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          propertyId = querySnapshot.docs[0].id;
+        } else {
+          console.error('No property found with propertyNo:', property.propertyNo);
+          return;
+        }
+      }
+      const unitsSnapshot = await getDocs(collection(db, 'properties', propertyId, 'units'));
+      const unitsData = unitsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      // Count how many units are occupied
+      const occupiedCount = unitsData.filter((unit) => unit.occupied).length;
+      // If the count has changed, update the property document
+      if (occupiedCount !== property.occupiedUnits) {
+        await updateDoc(doc(db, 'properties', propertyId), { occupiedUnits: occupiedCount });
+        property.occupiedUnits = occupiedCount;
+      }
+      setSelectedPropertyDetails({ ...property, id: propertyId, units: unitsData });
       setOpenDetailsDialog(true);
-    } catch (err) {
-      console.error("Error fetching property units:", err);
+    } catch (error) {
+      console.error('Error fetching property units:', error);
     }
   };
 
@@ -296,7 +320,12 @@ const PropertyManagement = () => {
                     <Button startIcon={<Edit />} onClick={() => handleEdit(property.id)} sx={{ mr: 1 }}>
                       Edit
                     </Button>
-                    <Button startIcon={<Delete />} onClick={() => handleDelete(property.propertyNo)} color="error" sx={{ mr: 1 }}>
+                    <Button
+                      startIcon={<Delete />}
+                      onClick={() => handleDelete(property.propertyNo)}
+                      color="error"
+                      sx={{ mr: 1 }}
+                    >
                       Delete
                     </Button>
                     <Button variant="outlined" onClick={() => handleViewDetails(property)}>
@@ -414,14 +443,25 @@ const PropertyManagement = () => {
           <DialogContent>
             {selectedPropertyDetails && (
               <Box>
-                <Typography variant="h6">{selectedPropertyDetails.name} (No. {selectedPropertyDetails.propertyNo})</Typography>
-                <Typography variant="body1">Address: {selectedPropertyDetails.address}</Typography>
+                <Typography variant="h6">
+                  {selectedPropertyDetails.name} (No. {selectedPropertyDetails.propertyNo})
+                </Typography>
+                <Typography variant="body1">
+                  Address: {selectedPropertyDetails.address}
+                </Typography>
                 <Typography variant="body1">
                   Occupancy: {selectedPropertyDetails.occupiedUnits}/{selectedPropertyDetails.totalUnits} (
-                  {selectedPropertyDetails.totalUnits > 0 ? ((selectedPropertyDetails.occupiedUnits / selectedPropertyDetails.totalUnits) * 100).toFixed(1) : 0}%)
+                  {selectedPropertyDetails.totalUnits > 0
+                    ? ((selectedPropertyDetails.occupiedUnits / selectedPropertyDetails.totalUnits) * 100).toFixed(1)
+                    : 0}
+                  %)
                 </Typography>
-                <Typography variant="body1">Rent: ${selectedPropertyDetails.rentAmount.toLocaleString()}</Typography>
-                <Typography variant="body1">Status: {selectedPropertyDetails.status}</Typography>
+                <Typography variant="body1">
+                  Rent: ${selectedPropertyDetails.rentAmount.toLocaleString()}
+                </Typography>
+                <Typography variant="body1">
+                  Status: {selectedPropertyDetails.status}
+                </Typography>
                 <Box sx={{ mt: 2 }}>
                   <Typography variant="subtitle1">Units:</Typography>
                   {selectedPropertyDetails.units && selectedPropertyDetails.units.length > 0 ? (
@@ -439,7 +479,9 @@ const PropertyManagement = () => {
                             <TableRow key={unit.id}>
                               <TableCell>{unit.number}</TableCell>
                               <TableCell>{unit.occupied ? 'Yes' : 'No'}</TableCell>
-                              <TableCell>{unit.occupied ? unit.tenantId || 'N/A' : 'N/A'}</TableCell>
+                              <TableCell>
+                                {unit.occupied ? unit.tenantId || 'N/A' : 'N/A'}
+                              </TableCell>
                             </TableRow>
                           ))}
                         </TableBody>
