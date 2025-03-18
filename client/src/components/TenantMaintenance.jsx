@@ -14,8 +14,11 @@ import {
   DialogContent,
   DialogActions,
   TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from "@mui/material";
-import AttachFileIcon from "@mui/icons-material/AttachFile";
 import ConstructionIcon from "@mui/icons-material/Construction";
 
 // Firebase Firestore imports
@@ -32,6 +35,26 @@ const TenantMaintenance = () => {
   const [file, setFile] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [propertyDetails, setPropertyDetails] = useState({ property: "", unit: "" });
+  const [selectedProperty, setSelectedProperty] = useState("All Properties");
+  const [properties, setProperties] = useState([]);
+
+  // Fetch available properties for selection
+  useEffect(() => {
+    const fetchProperties = async () => {
+      try {
+        const querySnapshot = await getDoc(collection(db, "properties"));
+        const propertyList = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          name: doc.data().name,
+        }));
+        setProperties(propertyList);
+      } catch (error) {
+        console.error("Error fetching properties:", error);
+      }
+    };
+
+    fetchProperties();
+  }, []);
 
   // Fetch tenant's property and unit details
   useEffect(() => {
@@ -56,16 +79,17 @@ const TenantMaintenance = () => {
     fetchTenantDetails();
   }, []);
 
-  // Fetch maintenance requests for the current tenant
+  // Fetch maintenance requests
   useEffect(() => {
     const user = auth.currentUser;
     if (!user) return;
-    const maintenanceRef = collection(db, "maintenanceRequests");
-    const q = query(
-      maintenanceRef,
-      where("userId", "==", user.uid),
-      orderBy("createdAt", "desc")
-    );
+
+    let maintenanceRef = collection(db, "maintenanceRequests");
+    let q = query(maintenanceRef, where("userId", "==", user.uid), orderBy("createdAt", "desc"));
+
+    if (selectedProperty !== "All Properties") {
+      q = query(maintenanceRef, where("property", "==", selectedProperty), where("userId", "==", user.uid), orderBy("createdAt", "desc"));
+    }
 
     const unsubscribe = onSnapshot(
       q,
@@ -88,7 +112,7 @@ const TenantMaintenance = () => {
       }
     );
     return () => unsubscribe();
-  }, []);
+  }, [selectedProperty]);
 
   // Open modal
   const handleOpenDialog = () => {
@@ -102,44 +126,6 @@ const TenantMaintenance = () => {
     setFile(null);
   };
 
-  // Handle file selection
-  const handleFileUpload = (event) => {
-    setFile(event.target.files[0]);
-  };
-
-  // Upload file to Supabase Storage and return public URL
-  const uploadFileToSupabase = async (file) => {
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
-      const filePath = fileName;
-
-      const { data, error } = await supabase.storage
-        .from('maintenance-images')
-        .upload(filePath, file, { cacheControl: '3600', upsert: false });
-
-      if (error) {
-        console.error("Upload error:", error);
-        return null;
-      }
-
-      // Retrieve public URL
-      const { data: publicUrlData, error: urlError } = supabase.storage
-        .from('maintenance-images')
-        .getPublicUrl(filePath);
-
-      if (urlError || !publicUrlData) {
-        console.error("Error fetching public URL:", urlError);
-        return null;
-      }
-
-      return publicUrlData.publicUrl;
-    } catch (error) {
-      console.error("Unexpected upload error:", error);
-      return null;
-    }
-  };
-
   // Submit new maintenance request
   const handleSubmitRequest = async () => {
     if (newIssue.trim() === "") return;
@@ -147,19 +133,13 @@ const TenantMaintenance = () => {
     if (!user) return;
 
     try {
-      let imageUrl = null;
-      if (file) {
-        imageUrl = await uploadFileToSupabase(file);
-      }
-
       await addDoc(collection(db, "maintenanceRequests"), {
         userId: user.uid,
         issue: newIssue,
         status: "Pending",
         createdAt: serverTimestamp(),
-        image: imageUrl || null, // Ensure null instead of undefined
-        property: propertyDetails.property, // Add property details
-        unit: propertyDetails.unit, // Add unit details
+        property: propertyDetails.property,
+        unit: propertyDetails.unit,
       });
 
       setSuccessMessage("Maintenance request submitted successfully!");
@@ -172,42 +152,27 @@ const TenantMaintenance = () => {
     }
   };
 
-  // Placeholder for when no maintenance requests are found
-  const NoRequestsPlaceholder = () => (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        textAlign: "center",
-        p: 4,
-        borderRadius: 2,
-        backgroundColor: "background.paper",
-        boxShadow: 1,
-        maxWidth: 600,
-        margin: "0 auto",
-        mt: 4,
-      }}
-    >
-      <ConstructionIcon sx={{ fontSize: 60, color: "primary.main", mb: 2 }} />
-      <Typography variant="h5" component="h2" sx={{ mb: 2 }}>
-        No Maintenance Requests Found
-      </Typography>
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-        You haven't submitted any maintenance requests yet. When you do, they'll appear here.
-      </Typography>
-      <Button variant="contained" onClick={handleOpenDialog}>
-        Submit a Request
-      </Button>
-    </Box>
-  );
-
   return (
     <Box sx={{ backgroundColor: "background.default", minHeight: "100vh", p: 3 }}>
-      <Typography variant="h4" sx={{ mb: 3 }}>
-        Maintenance Requests
-      </Typography>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+        <Typography variant="h4">Maintenance Requests</Typography>
+
+        {/* Property selection dropdown */}
+        <FormControl sx={{ minWidth: 200 }}>
+          <InputLabel>Select Property</InputLabel>
+          <Select
+            value={selectedProperty}
+            onChange={(e) => setSelectedProperty(e.target.value)}
+          >
+            <MenuItem value="All Properties">All Properties</MenuItem>
+            {properties.map((property) => (
+              <MenuItem key={property.id} value={property.name}>
+                {property.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Box>
 
       <Button variant="contained" onClick={handleOpenDialog} sx={{ mb: 2 }}>
         Request Maintenance
@@ -222,7 +187,16 @@ const TenantMaintenance = () => {
       <Paper sx={{ p: 3 }}>
         <Typography variant="h6">Your Requests</Typography>
         {requests.length === 0 ? (
-          <NoRequestsPlaceholder />
+          <Box sx={{ textAlign: "center", p: 4 }}>
+            <ConstructionIcon sx={{ fontSize: 60, color: "primary.main", mb: 2 }} />
+            <Typography variant="h5">No Maintenance Requests Found</Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+              You haven't submitted any maintenance requests yet. When you do, they'll appear here.
+            </Typography>
+            <Button variant="contained" onClick={handleOpenDialog}>
+              Submit a Request
+            </Button>
+          </Box>
         ) : (
           <List>
             {requests.map((req) => (
@@ -241,13 +215,6 @@ const TenantMaintenance = () => {
                       : "default"
                   }
                 />
-                {req.image && (
-                  <img
-                    src={req.image}
-                    alt="Uploaded issue"
-                    style={{ width: 50, height: 50, marginLeft: 10, borderRadius: 5 }}
-                  />
-                )}
               </ListItem>
             ))}
           </List>

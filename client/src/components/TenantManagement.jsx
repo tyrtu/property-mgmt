@@ -32,26 +32,24 @@ import {
   MarkEmailRead,
   CheckCircle,
 } from '@mui/icons-material';
-import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid';
+import { DataGrid } from '@mui/x-data-grid';
 import { collection, getDocs, onSnapshot, query, where, orderBy, doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import SendNotification from './SendNotification';
 import Navigation from './Navigation';
 import useAutoLogout from '../hooks/useAutoLogout';
 
-// Styled badge for active lease indicator
 const TenantManagement = () => {
   const [tenants, setTenants] = useState([]);
-  const [filteredTenants, setFilteredTenants] = useState([]); // Filtered tenants list
+  const [filteredTenants, setFilteredTenants] = useState([]);
+  const [properties, setProperties] = useState([]); // Store properties from Firebase
   const [openDialog, setOpenDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedProperty, setSelectedProperty] = useState('all'); // Property filter
-  const [viewTenant, setViewTenant] = useState(null); // Tenant details view
+  const [selectedProperty, setSelectedProperty] = useState('all');
+  const [viewTenant, setViewTenant] = useState(null);
   const [recentNotifications, setRecentNotifications] = useState([]);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
 
-  // Auto logout
   useAutoLogout();
 
   // Fetch tenants from Firestore
@@ -61,10 +59,24 @@ const TenantManagement = () => {
     const unsubscribe = onSnapshot(tenantsQuery, (snapshot) => {
       const tenantData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       setTenants(tenantData);
-      setFilteredTenants(tenantData); // Set initial filtered list
+      setFilteredTenants(tenantData); // Initialize filtered list
     });
 
     return () => unsubscribe();
+  }, []);
+
+  // Fetch properties dynamically from Firebase
+  useEffect(() => {
+    const fetchProperties = async () => {
+      const propertiesSnapshot = await getDocs(collection(db, 'properties'));
+      const propertyList = propertiesSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        name: doc.data().name, // Ensure each property has a "name" field
+      }));
+      setProperties(propertyList);
+    };
+
+    fetchProperties();
   }, []);
 
   // Fetch recent notifications
@@ -84,17 +96,20 @@ const TenantManagement = () => {
     return () => unsubscribe();
   }, []);
 
-  // Property filtering logic
+  // Filter tenants based on property selection and search input
   useEffect(() => {
     let filtered = tenants;
+
     if (selectedProperty !== 'all') {
-      filtered = tenants.filter((tenant) => tenant.propertyId === selectedProperty);
+      filtered = filtered.filter((tenant) => tenant.propertyId === selectedProperty);
     }
+
     if (searchTerm) {
       filtered = filtered.filter((tenant) =>
         tenant.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
+
     setFilteredTenants(filtered);
   }, [searchTerm, selectedProperty, tenants]);
 
@@ -123,15 +138,17 @@ const TenantManagement = () => {
     {
       field: 'name',
       headerName: 'Tenant',
-      width: 250,
+      width: 300, // Increased width for better visibility
       renderCell: (params) => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Avatar src={`https://i.pravatar.cc/80?u=${params.row.id}`}>
             {params.row.name[0]}
           </Avatar>
           <Box>
-            <Typography variant="subtitle1">{params.row.name}</Typography>
-            <Typography variant="caption" color="text.secondary">
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              {params.row.name}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'normal' }}>
               {params.row.email}
             </Typography>
           </Box>
@@ -172,15 +189,30 @@ const TenantManagement = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               InputProps={{ startAdornment: <Search /> }}
             />
-            <Select value={selectedProperty} onChange={(e) => setSelectedProperty(e.target.value)}>
+            <Select
+              value={selectedProperty}
+              onChange={(e) => setSelectedProperty(e.target.value)}
+              displayEmpty
+            >
               <MenuItem value="all">All Properties</MenuItem>
-              <MenuItem value="property1">Property 1</MenuItem>
-              <MenuItem value="property2">Property 2</MenuItem>
+              {properties.map((property) => (
+                <MenuItem key={property.id} value={property.id}>
+                  {property.name}
+                </MenuItem>
+              ))}
             </Select>
           </Box>
 
           {/* Data Table */}
-          <DataGrid rows={filteredTenants} columns={columns} pageSize={10} />
+          <Box sx={{ height: 600, width: '100%' }}>
+            <DataGrid
+              rows={filteredTenants}
+              columns={columns}
+              pageSize={10}
+              rowsPerPageOptions={[10]}
+              disableSelectionOnClick
+            />
+          </Box>
 
           {/* Recent Notifications */}
           <Card sx={{ p: 3, mt: 3 }}>
@@ -223,11 +255,6 @@ const TenantManagement = () => {
           </DialogActions>
         </Dialog>
       )}
-
-      {/* Snackbar */}
-      <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={() => setSnackbarOpen(false)}>
-        <Alert severity="success">{snackbarMessage}</Alert>
-      </Snackbar>
     </>
   );
 };
