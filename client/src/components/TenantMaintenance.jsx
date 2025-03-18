@@ -19,7 +19,7 @@ import AttachFileIcon from "@mui/icons-material/AttachFile";
 import ConstructionIcon from "@mui/icons-material/Construction";
 
 // Firebase Firestore imports
-import { collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp, doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
 
 // Supabase client import
@@ -31,6 +31,30 @@ const TenantMaintenance = () => {
   const [newIssue, setNewIssue] = useState("");
   const [file, setFile] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
+  const [propertyDetails, setPropertyDetails] = useState({ property: "", unit: "" });
+
+  // Fetch tenant's property and unit details
+  useEffect(() => {
+    const fetchTenantDetails = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      try {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          setPropertyDetails({
+            property: userData.propertyId || "Unknown Property",
+            unit: userData.unit || "Unknown Unit",
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching tenant details:", error);
+      }
+    };
+
+    fetchTenantDetails();
+  }, []);
 
   // Fetch maintenance requests for the current tenant
   useEffect(() => {
@@ -134,6 +158,8 @@ const TenantMaintenance = () => {
         status: "Pending",
         createdAt: serverTimestamp(),
         image: imageUrl || null, // Ensure null instead of undefined
+        property: propertyDetails.property, // Add property details
+        unit: propertyDetails.unit, // Add unit details
       });
 
       setSuccessMessage("Maintenance request submitted successfully!");
@@ -203,7 +229,7 @@ const TenantMaintenance = () => {
               <ListItem key={req.id} sx={{ mb: 2, borderBottom: "1px solid #ddd" }}>
                 <ListItemText
                   primary={req.issue}
-                  secondary={`Submitted: ${req.submittedAt} | Status: ${req.status}`}
+                  secondary={`Property: ${req.property} | Unit: ${req.unit} | Submitted: ${req.submittedAt} | Status: ${req.status}`}
                 />
                 <Chip
                   label={req.status}
@@ -241,17 +267,6 @@ const TenantMaintenance = () => {
             onChange={(e) => setNewIssue(e.target.value)}
             sx={{ mt: 2 }}
           />
-          <Button
-            variant="contained"
-            component="label"
-            fullWidth
-            sx={{ mt: 2 }}
-            startIcon={<AttachFileIcon />}
-          >
-            Upload Image
-            <input type="file" hidden accept="image/*" onChange={handleFileUpload} />
-          </Button>
-          {file && <Typography sx={{ mt: 1 }}>Attached: {file.name}</Typography>}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
