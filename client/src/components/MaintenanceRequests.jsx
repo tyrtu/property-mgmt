@@ -1,7 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import Navigation from './Navigation';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
-import { Box, Typography, Select, MenuItem, Chip, FormControl, InputLabel } from '@mui/material';
+import {
+  Box,
+  Typography,
+  Select,
+  MenuItem,
+  Chip,
+  FormControl,
+  InputLabel,
+  TextField,
+  InputAdornment,
+} from '@mui/material';
 import useAutoLogout from '../hooks/useAutoLogout';
 import {
   collection,
@@ -16,11 +26,13 @@ import { db } from '../firebase';
 import PendingIcon from '@mui/icons-material/HourglassEmpty';
 import InProgressIcon from '@mui/icons-material/BuildCircle';
 import CompletedIcon from '@mui/icons-material/CheckCircle';
+import SearchIcon from '@mui/icons-material/Search'; // Added SearchIcon
 
 const MaintenanceRequests = () => {
   const [rows, setRows] = useState([]);
   const [properties, setProperties] = useState([]); // List of properties
   const [selectedProperty, setSelectedProperty] = useState("All Properties"); // Default selection
+  const [searchQuery, setSearchQuery] = useState(''); // Added searchQuery state
 
   useEffect(() => {
     const fetchProperties = async () => {
@@ -58,13 +70,19 @@ const MaintenanceRequests = () => {
           };
         });
 
-        // Filter requests based on selected property
+        // Filter requests based on selected property and search query
         const filteredRequests =
           selectedProperty === "All Properties"
             ? requests
             : requests.filter(req => req.property === selectedProperty);
 
-        setRows(filteredRequests);
+        const searchedRequests = filteredRequests.filter(
+          req =>
+            req.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            req.property.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+
+        setRows(searchedRequests);
       },
       (error) => {
         console.error('Error fetching maintenance requests: ', error);
@@ -72,7 +90,7 @@ const MaintenanceRequests = () => {
     );
 
     return () => unsubscribe();
-  }, [selectedProperty]); // Re-run effect when property selection changes
+  }, [selectedProperty, searchQuery]); // Re-run effect when property selection or search query changes
 
   useAutoLogout();
 
@@ -193,18 +211,41 @@ const MaintenanceRequests = () => {
           🛠️ Maintenance Requests
         </Typography>
 
-        {/* Property Selection Dropdown */}
-        <FormControl sx={{ mb: 2, minWidth: 220 }}>
-          <InputLabel>Select Property</InputLabel>
-          <Select value={selectedProperty} onChange={handlePropertyChange}>
-            <MenuItem value="All Properties">All Properties</MenuItem>
-            {properties.map((property, index) => (
-              <MenuItem key={index} value={property}>
-                {property}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        {/* Search and Property Selection */}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 2, mb: 2 }}>
+          {/* Search Input */}
+          <TextField
+            placeholder="Search requests..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+            sx={{ width: 220 }}
+          />
+
+          {/* Property Selection Dropdown */}
+          <FormControl sx={{ minWidth: 220 }}>
+            <InputLabel>Select Property</InputLabel>
+            <Select
+              value={selectedProperty}
+              onChange={handlePropertyChange}
+              label="Select Property"
+              sx={{ "& .MuiSelect-select": { overflow: "hidden", textOverflow: "ellipsis" } }} // Ensure text isn't cut off
+            >
+              <MenuItem value="All Properties">All Properties</MenuItem>
+              {properties.map((property, index) => (
+                <MenuItem key={index} value={property}>
+                  {property}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
 
         <Box sx={{ height: 600, width: '100%' }}>
           <DataGrid

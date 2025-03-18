@@ -18,10 +18,8 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  InputAdornment,
 } from "@mui/material";
 import ConstructionIcon from "@mui/icons-material/Construction";
-import SearchIcon from "@mui/icons-material/Search"; // Added SearchIcon
 
 // Firebase Firestore imports
 import { collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp, doc, getDoc } from "firebase/firestore";
@@ -39,7 +37,6 @@ const TenantMaintenance = () => {
   const [propertyDetails, setPropertyDetails] = useState({ property: "", unit: "" });
   const [selectedProperty, setSelectedProperty] = useState("All Properties");
   const [properties, setProperties] = useState([]);
-  const [searchQuery, setSearchQuery] = useState(""); // Added searchQuery state
 
   // Fetch available properties for selection
   useEffect(() => {
@@ -160,41 +157,21 @@ const TenantMaintenance = () => {
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
         <Typography variant="h4">Maintenance Requests</Typography>
 
-        {/* Search and Property selection */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          {/* Search Input */}
-          <TextField
-            placeholder="Search property..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-            }}
-            sx={{ width: 200 }}
-          />
-
-          {/* Property selection dropdown */}
-          <FormControl sx={{ minWidth: 200 }}>
-            <InputLabel>Select Property</InputLabel>
-            <Select
-              value={selectedProperty}
-              onChange={(e) => setSelectedProperty(e.target.value)}
-              label="Select Property"
-              sx={{ "& .MuiSelect-select": { overflow: "hidden", textOverflow: "ellipsis" } }} // Ensure text isn't cut off
-            >
-              <MenuItem value="All Properties">All Properties</MenuItem>
-              {properties.map((property) => (
-                <MenuItem key={property.id} value={property.name}>
-                  {property.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Box>
+        {/* Property selection dropdown */}
+        <FormControl sx={{ minWidth: 200 }}>
+          <InputLabel>Select Property</InputLabel>
+          <Select
+            value={selectedProperty}
+            onChange={(e) => setSelectedProperty(e.target.value)}
+          >
+            <MenuItem value="All Properties">All Properties</MenuItem>
+            {properties.map((property) => (
+              <MenuItem key={property.id} value={property.name}>
+                {property.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </Box>
 
       <Button variant="contained" onClick={handleOpenDialog} sx={{ mb: 2 }}>
