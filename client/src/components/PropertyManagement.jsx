@@ -28,8 +28,17 @@ import {
 import { Add, Edit, Delete, Search, Apartment } from '@mui/icons-material';
 import Navigation from './Navigation';
 import useAutoLogout from '../hooks/useAutoLogout';
-import { db } from '../firebase'; // Import Firestore
-import { collection, getDocs, addDoc, updateDoc, doc, deleteDoc } from 'firebase/firestore';
+import { db } from '../firebase';
+import { 
+  collection, 
+  getDocs, 
+  addDoc, 
+  updateDoc, 
+  doc, 
+  deleteDoc, 
+  query, 
+  where 
+} from 'firebase/firestore';
 
 const PropertyManagement = () => {
   const [properties, setProperties] = useState([]);
@@ -38,6 +47,7 @@ const PropertyManagement = () => {
   const [editMode, setEditMode] = useState(false);
   const [propertyDetails, setPropertyDetails] = useState({
     id: null,
+    propertyNo: null,
     name: '',
     address: '',
     totalUnits: 0,
@@ -54,7 +64,10 @@ const PropertyManagement = () => {
   useEffect(() => {
     const fetchProperties = async () => {
       const querySnapshot = await getDocs(collection(db, 'properties'));
-      const propertyList = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      const propertyList = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
       setProperties(propertyList);
     };
 
@@ -77,22 +90,23 @@ const PropertyManagement = () => {
         // Update existing property
         const propertyRef = doc(db, 'properties', propertyDetails.id);
         await updateDoc(propertyRef, propertyDetails);
+        setProperties(
+          properties.map((property) =>
+            property.id === propertyDetails.id ? { ...propertyDetails } : property
+          )
+        );
       } else {
-        // Add new property
-        const docRef = await addDoc(collection(db, 'properties'), {
-          name: propertyDetails.name,
-          address: propertyDetails.address,
-          totalUnits: propertyDetails.totalUnits,
-          rentAmount: propertyDetails.rentAmount,
-          amenities: propertyDetails.amenities,
-          photos: propertyDetails.photos,
-          status: propertyDetails.status,
-        });
-        console.log('New property added with ID:', docRef.id);
+        // Assign a sequential property number.
+        // (This simply uses the current count of properties + 1.
+        // In a real-world scenario, you might need a more robust solution.)
+        const propertyNo = properties.length + 1;
+        const newPropertyData = { ...propertyDetails, propertyNo };
 
-        // Update the state with the new property including the generated ID
-        const newProperty = { id: docRef.id, ...propertyDetails };
-        setProperties((prevProperties) => [...prevProperties, newProperty]);
+        // Add new property to Firestore and let Firestore generate a document ID.
+        const docRef = await addDoc(collection(db, 'properties'), newPropertyData);
+        console.log('New property added with propertyNo:', propertyNo, 'and doc id:', docRef.id);
+        // Update state with the new property (include the generated doc id)
+        setProperties([...properties, { id: docRef.id, ...newPropertyData }]);
       }
       handleCloseDialog();
     } catch (error) {
@@ -111,14 +125,23 @@ const PropertyManagement = () => {
     }
   };
 
-  const handleDelete = async (id) => {
+  // Use propertyNo (the sequential property number) for deletion
+  const handleDelete = async (propertyNo) => {
     try {
-      if (!id) {
-        console.error('Error: Property ID is undefined or null');
+      if (!propertyNo) {
+        console.error('Error: Property number is undefined or null');
         return;
       }
-      await deleteDoc(doc(db, 'properties', id));
-      setProperties(properties.filter((property) => property.id !== id));
+      // Query Firestore for the document with the matching propertyNo
+      const q = query(collection(db, 'properties'), where('propertyNo', '==', propertyNo));
+      const querySnapshot = await getDocs(q);
+      if (querySnapshot.empty) {
+        console.error('No property found with property number:', propertyNo);
+        return;
+      }
+      const docId = querySnapshot.docs[0].id;
+      await deleteDoc(doc(db, 'properties', docId));
+      setProperties(properties.filter((property) => property.propertyNo !== propertyNo));
     } catch (error) {
       console.error('Error deleting property:', error);
     }
@@ -129,6 +152,7 @@ const PropertyManagement = () => {
     setEditMode(false);
     setPropertyDetails({
       id: null,
+      propertyNo: null,
       name: '',
       address: '',
       totalUnits: 0,
@@ -192,7 +216,6 @@ const PropertyManagement = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>ID</TableCell>
                 <TableCell>Property</TableCell>
                 <TableCell>Address</TableCell>
                 <TableCell>Status</TableCell>
@@ -205,13 +228,12 @@ const PropertyManagement = () => {
             <TableBody>
               {filteredProperties.map((property) => (
                 <TableRow key={property.id}>
-                  <TableCell>{property.id}</TableCell>
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                       <Avatar sx={{ bgcolor: 'primary.main' }}>
                         <Apartment />
                       </Avatar>
-                      {property.name}
+                      {property.name} (No. {property.propertyNo})
                     </Box>
                   </TableCell>
                   <TableCell>{property.address}</TableCell>
@@ -244,7 +266,7 @@ const PropertyManagement = () => {
                     </Button>
                     <Button
                       startIcon={<Delete />}
-                      onClick={() => handleDelete(property.id)}
+                      onClick={() => handleDelete(property.propertyNo)}
                       color="error"
                     >
                       Delete
@@ -266,7 +288,9 @@ const PropertyManagement = () => {
                   label="Property Name"
                   margin="normal"
                   value={propertyDetails.name}
-                  onChange={(e) => setPropertyDetails({ ...propertyDetails, name: e.target.value })}
+                  onChange={(e) =>
+                    setPropertyDetails({ ...propertyDetails, name: e.target.value })
+                  }
                 />
                 <TextField
                   fullWidth
@@ -275,7 +299,9 @@ const PropertyManagement = () => {
                   multiline
                   rows={3}
                   value={propertyDetails.address}
-                  onChange={(e) => setPropertyDetails({ ...propertyDetails, address: e.target.value })}
+                  onChange={(e) =>
+                    setPropertyDetails({ ...propertyDetails, address: e.target.value })
+                  }
                 />
                 <TextField
                   fullWidth
@@ -284,7 +310,10 @@ const PropertyManagement = () => {
                   type="number"
                   value={propertyDetails.totalUnits}
                   onChange={(e) =>
-                    setPropertyDetails({ ...propertyDetails, totalUnits: parseInt(e.target.value) })
+                    setPropertyDetails({
+                      ...propertyDetails,
+                      totalUnits: parseInt(e.target.value),
+                    })
                   }
                 />
                 <TextField
@@ -294,7 +323,10 @@ const PropertyManagement = () => {
                   type="number"
                   value={propertyDetails.rentAmount}
                   onChange={(e) =>
-                    setPropertyDetails({ ...propertyDetails, rentAmount: parseFloat(e.target.value) })
+                    setPropertyDetails({
+                      ...propertyDetails,
+                      rentAmount: parseFloat(e.target.value),
+                    })
                   }
                 />
                 <FormControl fullWidth margin="normal">
