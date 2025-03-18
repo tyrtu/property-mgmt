@@ -37,7 +37,7 @@ const PropertyManagement = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [propertyDetails, setPropertyDetails] = useState({
-    id: '', // Changed initial value to an empty string instead of null
+    id: null,
     name: '',
     address: '',
     totalUnits: 0,
@@ -80,9 +80,9 @@ const PropertyManagement = () => {
       } else {
         // Add new property
         const docRef = await addDoc(collection(db, 'properties'), propertyDetails);
+        const newProperty = { id: docRef.id, ...propertyDetails };
+        setProperties((prevProperties) => [...prevProperties, newProperty]);
         console.log('New property added with ID:', docRef.id);
-        // Update the state with the new property including the generated ID
-        setProperties([...properties, { id: docRef.id, ...propertyDetails }]);
       }
       handleCloseDialog();
     } catch (error) {
@@ -107,8 +107,10 @@ const PropertyManagement = () => {
         console.error('Error: Property ID is undefined or null');
         return;
       }
+      // Delete from Firestore
       await deleteDoc(doc(db, 'properties', id));
-      setProperties(properties.filter((property) => property.id !== id));
+      // Update the state by filtering out the deleted property
+      setProperties((prevProperties) => prevProperties.filter((property) => property.id !== id));
     } catch (error) {
       console.error('Error deleting property:', error);
     }
@@ -118,7 +120,7 @@ const PropertyManagement = () => {
     setOpenDialog(false);
     setEditMode(false);
     setPropertyDetails({
-      id: '', // Reset to empty string
+      id: null,
       name: '',
       address: '',
       totalUnits: 0,
