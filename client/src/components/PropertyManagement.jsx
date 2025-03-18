@@ -94,8 +94,14 @@ const PropertyManagement = () => {
 
   const handleDelete = async (id) => {
     try {
-      await deleteDoc(doc(db, 'properties', id));
-      setProperties(properties.filter((property) => property.id !== id));
+      const propertyRef = doc(db, 'properties', id);
+      const propertySnapshot = await propertyRef.get();
+      if (propertySnapshot.exists()) {
+        await deleteDoc(propertyRef);
+        setProperties(properties.filter((property) => property.id !== id));
+      } else {
+        console.error('Property not found!');
+      }
     } catch (error) {
       console.error('Error deleting property:', error);
     }
