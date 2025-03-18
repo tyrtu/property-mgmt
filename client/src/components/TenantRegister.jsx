@@ -145,7 +145,6 @@ const TenantRegister = () => {
         alignItems: "center",
         height: "100vh",
         background: "linear-gradient(135deg, #6200EE 0%, #FF9800 100%)",
-        overflow: "hidden",
         px: 2,
       }}
     >
@@ -157,8 +156,10 @@ const TenantRegister = () => {
           boxShadow: 3,
           backgroundColor: "rgba(255, 255, 255, 0.95)",
           backdropFilter: "blur(10px)",
-          maxHeight: "90vh", // Ensures it fits in large screens
-          overflowY: "auto", // Enables scrolling if needed
+          minHeight: "85vh", // Ensures full visibility on large screens
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
         }}
       >
         <Box sx={{ p: 4 }}>
