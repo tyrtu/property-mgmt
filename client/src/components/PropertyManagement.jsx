@@ -54,7 +54,8 @@ const PropertyManagement = () => {
     rentAmount: 0,
     amenities: [],
     photos: [],
-    status: 'Vacant', // Default status
+    status: 'Vacant',
+    unitNumbers: '', // Comma-separated unit numbers input
   });
 
   // Enable auto-logout after 15 minutes of inactivity
@@ -96,17 +97,29 @@ const PropertyManagement = () => {
           )
         );
       } else {
-        // Assign a sequential property number.
-        // (This simply uses the current count of properties + 1.
-        // In a real-world scenario, you might need a more robust solution.)
+        // Assign a sequential property number (current count + 1)
         const propertyNo = properties.length + 1;
         const newPropertyData = { ...propertyDetails, propertyNo };
 
-        // Add new property to Firestore and let Firestore generate a document ID.
+        // Add new property to Firestore (Firestore auto-generates an ID)
         const docRef = await addDoc(collection(db, 'properties'), newPropertyData);
         console.log('New property added with propertyNo:', propertyNo, 'and doc id:', docRef.id);
-        // Update state with the new property (include the generated doc id)
         setProperties([...properties, { id: docRef.id, ...newPropertyData }]);
+
+        // Create units in the "units" subcollection if unitNumbers were provided
+        if (newPropertyData.unitNumbers.trim() !== '') {
+          const unitNumbersArr = newPropertyData.unitNumbers
+            .split(',')
+            .map(item => item.trim())
+            .filter(item => item !== '');
+          for (const unitNumber of unitNumbersArr) {
+            await addDoc(collection(db, 'properties', docRef.id, 'units'), {
+              number: unitNumber,
+              occupied: false,
+              tenantId: null,
+            });
+          }
+        }
       }
       handleCloseDialog();
     } catch (error) {
@@ -125,14 +138,13 @@ const PropertyManagement = () => {
     }
   };
 
-  // Use propertyNo (the sequential property number) for deletion
+  // Delete by property number (sequential propertyNo)
   const handleDelete = async (propertyNo) => {
     try {
       if (!propertyNo) {
         console.error('Error: Property number is undefined or null');
         return;
       }
-      // Query Firestore for the document with the matching propertyNo
       const q = query(collection(db, 'properties'), where('propertyNo', '==', propertyNo));
       const querySnapshot = await getDocs(q);
       if (querySnapshot.empty) {
@@ -160,6 +172,7 @@ const PropertyManagement = () => {
       amenities: [],
       photos: [],
       status: 'Vacant',
+      unitNumbers: '',
     });
   };
 
@@ -310,10 +323,7 @@ const PropertyManagement = () => {
                   type="number"
                   value={propertyDetails.totalUnits}
                   onChange={(e) =>
-                    setPropertyDetails({
-                      ...propertyDetails,
-                      totalUnits: parseInt(e.target.value),
-                    })
+                    setPropertyDetails({ ...propertyDetails, totalUnits: parseInt(e.target.value) })
                   }
                 />
                 <TextField
@@ -323,10 +333,7 @@ const PropertyManagement = () => {
                   type="number"
                   value={propertyDetails.rentAmount}
                   onChange={(e) =>
-                    setPropertyDetails({
-                      ...propertyDetails,
-                      rentAmount: parseFloat(e.target.value),
-                    })
+                    setPropertyDetails({ ...propertyDetails, rentAmount: parseFloat(e.target.value) })
                   }
                 />
                 <FormControl fullWidth margin="normal">
@@ -358,6 +365,18 @@ const PropertyManagement = () => {
                   value={propertyDetails.photos.join(', ')}
                   onChange={(e) => handleArrayInput('photos', e.target.value)}
                   helperText="Enter photo URLs separated by commas"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Units (comma-separated)"
+                  margin="normal"
+                  value={propertyDetails.unitNumbers}
+                  onChange={(e) =>
+                    setPropertyDetails({ ...propertyDetails, unitNumbers: e.target.value })
+                  }
+                  helperText="Enter unit numbers separated by commas, e.g., 101,102,103"
                 />
               </Grid>
             </Grid>
