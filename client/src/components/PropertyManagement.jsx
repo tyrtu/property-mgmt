@@ -77,20 +77,12 @@ const PropertyManagement = () => {
         // Update existing property
         const propertyRef = doc(db, 'properties', propertyDetails.id);
         await updateDoc(propertyRef, propertyDetails);
-        // Update the property in the state after update
-        setProperties(properties.map((property) =>
-          property.id === propertyDetails.id ? { ...propertyDetails } : property
-        ));
       } else {
-        // Add new property
+        // Add new property with an auto-generated ID from Firestore
         const docRef = await addDoc(collection(db, 'properties'), propertyDetails);
         console.log('New property added with ID:', docRef.id);
-
         // Update the state with the new property including the generated ID
-        setProperties([
-          ...properties,
-          { id: docRef.id, ...propertyDetails },  // Include the generated ID
-        ]);
+        setProperties([...properties, { id: docRef.id, ...propertyDetails }]);
       }
       handleCloseDialog();
     } catch (error) {
