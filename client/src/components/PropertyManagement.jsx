@@ -94,14 +94,21 @@ const PropertyManagement = () => {
 
   const handleDelete = async (name) => {
     try {
+      // Find the property by its name
       const propertyToDelete = properties.find((property) => property.name === name);
-      if (propertyToDelete) {
-        const propertyRef = doc(db, 'properties', propertyToDelete.id);
-        await deleteDoc(propertyRef);
-        setProperties(properties.filter((property) => property.id !== propertyToDelete.id));
-      } else {
+      
+      // Check if property was found
+      if (!propertyToDelete) {
         console.error('Property not found!');
+        return; // Early exit if property is not found
       }
+
+      // Delete the property from Firestore
+      const propertyRef = doc(db, 'properties', propertyToDelete.id);
+      await deleteDoc(propertyRef);
+      
+      // Update the properties state to remove the deleted property
+      setProperties(properties.filter((property) => property.id !== propertyToDelete.id));
     } catch (error) {
       console.error('Error deleting property:', error);
     }
@@ -197,36 +204,25 @@ const PropertyManagement = () => {
                   </TableCell>
                   <TableCell>{property.address}</TableCell>
                   <TableCell>
-                    <Chip
-                      label={property.status}
-                      color={property.status === 'Occupied' ? 'success' : 'warning'}
-                      variant="outlined"
-                    />
+                    <Chip label={property.status} color={property.status === 'Vacant' ? 'warning' : 'success'} />
                   </TableCell>
-                  <TableCell>
-                    {property.occupiedUnits}/{property.totalUnits} (
-                    {((property.occupiedUnits / property.totalUnits) * 100).toFixed(1)}%)
-                  </TableCell>
-                  <TableCell>${property.rentAmount.toLocaleString()}</TableCell>
-                  <TableCell>
-                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                      {property.amenities?.map((amenity, index) => (
-                        <Chip key={index} label={amenity} size="small" />
-                      ))}
-                    </Box>
-                  </TableCell>
+                  <TableCell>{property.totalUnits}</TableCell>
+                  <TableCell>${property.rentAmount}</TableCell>
+                  <TableCell>{property.amenities.join(', ')}</TableCell>
                   <TableCell>
                     <Button
+                      variant="contained"
+                      color="primary"
                       startIcon={<Edit />}
                       onClick={() => handleEdit(property.id)}
-                      sx={{ mr: 1 }}
                     >
                       Edit
                     </Button>
                     <Button
+                      variant="contained"
+                      color="secondary"
                       startIcon={<Delete />}
-                      onClick={() => handleDelete(property.name)} // Changed to delete by name
-                      color="error"
+                      onClick={() => handleDelete(property.name)} // Pass property name to delete
                     >
                       Delete
                     </Button>
@@ -237,86 +233,76 @@ const PropertyManagement = () => {
           </Table>
         </TableContainer>
 
-        <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-          <DialogTitle>{editMode ? 'Edit Property' : 'Add New Property'}</DialogTitle>
+        <Dialog open={openDialog} onClose={handleCloseDialog}>
+          <DialogTitle>{editMode ? 'Edit Property' : 'Add Property'}</DialogTitle>
           <DialogContent>
-            <Grid container spacing={3} sx={{ mt: 1 }}>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Property Name"
-                  margin="normal"
-                  value={propertyDetails.name}
-                  onChange={(e) => setPropertyDetails({ ...propertyDetails, name: e.target.value })}
-                />
-                <TextField
-                  fullWidth
-                  label="Address"
-                  margin="normal"
-                  multiline
-                  rows={3}
-                  value={propertyDetails.address}
-                  onChange={(e) => setPropertyDetails({ ...propertyDetails, address: e.target.value })}
-                />
-                <TextField
-                  fullWidth
-                  label="Total Units"
-                  margin="normal"
-                  type="number"
-                  value={propertyDetails.totalUnits}
-                  onChange={(e) =>
-                    setPropertyDetails({ ...propertyDetails, totalUnits: parseInt(e.target.value) })
-                  }
-                />
-                <TextField
-                  fullWidth
-                  label="Rent Amount"
-                  margin="normal"
-                  type="number"
-                  value={propertyDetails.rentAmount}
-                  onChange={(e) =>
-                    setPropertyDetails({ ...propertyDetails, rentAmount: parseFloat(e.target.value) })
-                  }
-                />
-                <FormControl fullWidth margin="normal">
-                  <InputLabel>Status</InputLabel>
-                  <Select
-                    value={propertyDetails.status}
-                    onChange={(e) =>
-                      setPropertyDetails({ ...propertyDetails, status: e.target.value })
-                    }
-                  >
-                    <MenuItem value="Occupied">Occupied</MenuItem>
-                    <MenuItem value="Vacant">Vacant</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Amenities (comma-separated)"
-                  margin="normal"
-                  value={propertyDetails.amenities.join(', ')}
-                  onChange={(e) => handleArrayInput('amenities', e.target.value)}
-                  helperText="Enter amenities separated by commas, e.g., Gym, Pool, Parking"
-                />
-                <TextField
-                  fullWidth
-                  label="Photo URLs (comma-separated)"
-                  margin="normal"
-                  value={propertyDetails.photos.join(', ')}
-                  onChange={(e) => handleArrayInput('photos', e.target.value)}
-                  helperText="Enter photo URLs separated by commas"
-                />
-              </Grid>
-            </Grid>
+            <form onSubmit={handleSubmit}>
+              <TextField
+                label="Property Name"
+                fullWidth
+                value={propertyDetails.name}
+                onChange={(e) => setPropertyDetails({ ...propertyDetails, name: e.target.value })}
+                sx={{ mb: 2 }}
+              />
+              <TextField
+                label="Address"
+                fullWidth
+                value={propertyDetails.address}
+                onChange={(e) => setPropertyDetails({ ...propertyDetails, address: e.target.value })}
+                sx={{ mb: 2 }}
+              />
+              <TextField
+                label="Total Units"
+                type="number"
+                fullWidth
+                value={propertyDetails.totalUnits}
+                onChange={(e) =>
+                  setPropertyDetails({ ...propertyDetails, totalUnits: parseInt(e.target.value, 10) })
+                }
+                sx={{ mb: 2 }}
+              />
+              <TextField
+                label="Rent Amount"
+                type="number"
+                fullWidth
+                value={propertyDetails.rentAmount}
+                onChange={(e) =>
+                  setPropertyDetails({ ...propertyDetails, rentAmount: parseFloat(e.target.value) })
+                }
+                sx={{ mb: 2 }}
+              />
+              <TextField
+                label="Amenities (comma separated)"
+                fullWidth
+                value={propertyDetails.amenities.join(', ')}
+                onChange={(e) => handleArrayInput('amenities', e.target.value)}
+                sx={{ mb: 2 }}
+              />
+              <TextField
+                label="Photos (comma separated URLs)"
+                fullWidth
+                value={propertyDetails.photos.join(', ')}
+                onChange={(e) => handleArrayInput('photos', e.target.value)}
+                sx={{ mb: 2 }}
+              />
+              <FormControl fullWidth sx={{ mb: 2 }}>
+                <InputLabel>Status</InputLabel>
+                <Select
+                  value={propertyDetails.status}
+                  onChange={(e) => setPropertyDetails({ ...propertyDetails, status: e.target.value })}
+                >
+                  <MenuItem value="Vacant">Vacant</MenuItem>
+                  <MenuItem value="Occupied">Occupied</MenuItem>
+                </Select>
+              </FormControl>
+              <DialogActions>
+                <Button onClick={handleCloseDialog}>Cancel</Button>
+                <Button type="submit" variant="contained">
+                  {editMode ? 'Save Changes' : 'Add Property'}
+                </Button>
+              </DialogActions>
+            </form>
           </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseDialog}>Cancel</Button>
-            <Button variant="contained" onClick={handleSubmit}>
-              {editMode ? 'Update Property' : 'Add Property'}
-            </Button>
-          </DialogActions>
         </Dialog>
       </Box>
     </Box>
