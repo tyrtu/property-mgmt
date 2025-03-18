@@ -45,6 +45,7 @@ const PropertyManagement = () => {
     amenities: [],
     photos: [],
     status: 'Vacant', // Default status
+    occupiedUnits: 0, // Initialize the occupied units
   });
 
   // Enable auto-logout after 15 minutes of inactivity
@@ -72,14 +73,19 @@ const PropertyManagement = () => {
   // Handle adding/updating a property
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // If in edit mode, update the existing property
     if (editMode) {
       const propertyRef = doc(db, 'properties', propertyDetails.id);
       await updateDoc(propertyRef, propertyDetails);
     } else {
-      await addDoc(collection(db, 'properties'), propertyDetails);
+      // If adding a new property, create a new document
+      const newPropertyRef = await addDoc(collection(db, 'properties'), propertyDetails);
+      setPropertyDetails({ ...propertyDetails, id: newPropertyRef.id }); // Set the ID after creating the document
     }
+
     handleCloseDialog();
-    // Refresh the properties list
+    // Refresh the properties list to include the newly added/updated property
     const querySnapshot = await getDocs(collection(db, 'properties'));
     const propertyList = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
     setProperties(propertyList);
@@ -118,6 +124,7 @@ const PropertyManagement = () => {
       amenities: [],
       photos: [],
       status: 'Vacant',
+      occupiedUnits: 0, // Reset occupied units
     });
   };
 
@@ -292,6 +299,16 @@ const PropertyManagement = () => {
                     <MenuItem value="Vacant">Vacant</MenuItem>
                   </Select>
                 </FormControl>
+                <TextField
+                  fullWidth
+                  label="Occupied Units"
+                  margin="normal"
+                  type="number"
+                  value={propertyDetails.occupiedUnits}
+                  onChange={(e) =>
+                    setPropertyDetails({ ...propertyDetails, occupiedUnits: parseInt(e.target.value) })
+                  }
+                />
               </Grid>
               <Grid item xs={12} md={6}>
                 <TextField
