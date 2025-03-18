@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Navigation from './Navigation';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
-import { Box, Typography, Select, MenuItem, Chip } from '@mui/material';
+import { Box, Typography, Select, MenuItem, Chip, FormControl, InputLabel } from '@mui/material';
 import useAutoLogout from '../hooks/useAutoLogout';
 import {
   collection,
@@ -10,6 +10,7 @@ import {
   onSnapshot,
   updateDoc,
   doc,
+  getDocs,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import PendingIcon from '@mui/icons-material/HourglassEmpty';
@@ -18,10 +19,28 @@ import CompletedIcon from '@mui/icons-material/CheckCircle';
 
 const MaintenanceRequests = () => {
   const [rows, setRows] = useState([]);
+  const [properties, setProperties] = useState([]); // List of properties
+  const [selectedProperty, setSelectedProperty] = useState("All Properties"); // Default selection
+
+  useEffect(() => {
+    const fetchProperties = async () => {
+      try {
+        const propertiesRef = collection(db, 'properties'); // Ensure you have a 'properties' collection
+        const snapshot = await getDocs(propertiesRef);
+        const propertyList = snapshot.docs.map(doc => doc.data().name); // Assuming property name field is 'name'
+        setProperties(propertyList);
+      } catch (error) {
+        console.error("Error fetching properties:", error);
+      }
+    };
+
+    fetchProperties();
+  }, []);
 
   useEffect(() => {
     const maintenanceRef = collection(db, 'maintenanceRequests');
     const q = query(maintenanceRef, orderBy('createdAt', 'desc'));
+
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
@@ -38,14 +57,22 @@ const MaintenanceRequests = () => {
             image: data.image || null,
           };
         });
-        setRows(requests);
+
+        // Filter requests based on selected property
+        const filteredRequests =
+          selectedProperty === "All Properties"
+            ? requests
+            : requests.filter(req => req.property === selectedProperty);
+
+        setRows(filteredRequests);
       },
       (error) => {
         console.error('Error fetching maintenance requests: ', error);
       }
     );
+
     return () => unsubscribe();
-  }, []);
+  }, [selectedProperty]); // Re-run effect when property selection changes
 
   useAutoLogout();
 
@@ -53,6 +80,10 @@ const MaintenanceRequests = () => {
     Pending: { color: 'orange', icon: <PendingIcon /> },
     'In Progress': { color: 'blue', icon: <InProgressIcon /> },
     Completed: { color: 'green', icon: <CompletedIcon /> },
+  };
+
+  const handlePropertyChange = (event) => {
+    setSelectedProperty(event.target.value);
   };
 
   const columns = [
@@ -161,6 +192,20 @@ const MaintenanceRequests = () => {
         <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold' }}>
           🛠️ Maintenance Requests
         </Typography>
+
+        {/* Property Selection Dropdown */}
+        <FormControl sx={{ mb: 2, minWidth: 220 }}>
+          <InputLabel>Select Property</InputLabel>
+          <Select value={selectedProperty} onChange={handlePropertyChange}>
+            <MenuItem value="All Properties">All Properties</MenuItem>
+            {properties.map((property, index) => (
+              <MenuItem key={index} value={property}>
+                {property}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
         <Box sx={{ height: 600, width: '100%' }}>
           <DataGrid
             rows={rows}
