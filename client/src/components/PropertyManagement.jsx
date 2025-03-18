@@ -37,7 +37,7 @@ const PropertyManagement = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [propertyDetails, setPropertyDetails] = useState({
-    id: null,
+    id: '', // Changed initial value to an empty string instead of null
     name: '',
     address: '',
     totalUnits: 0,
@@ -118,7 +118,7 @@ const PropertyManagement = () => {
     setOpenDialog(false);
     setEditMode(false);
     setPropertyDetails({
-      id: null,
+      id: '', // Reset to empty string
       name: '',
       address: '',
       totalUnits: 0,
