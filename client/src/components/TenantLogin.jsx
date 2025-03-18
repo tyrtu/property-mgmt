@@ -83,7 +83,36 @@ const TenantLogin = () => {
   };
 
   return (
-    <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", m: 0.5 }}>
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100vh",
+        background:
+          "linear-gradient(135deg, #6200EE 0%, #FF9800 100%)", // Gradient background
+        overflow: "hidden",
+        position: "relative",
+      }}
+    >
+      {/* Animated background circles */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: "-50%",
+          left: "-50%",
+          width: "200%",
+          height: "200%",
+          background: "radial-gradient(circle, rgba(255, 255, 255, 0.1) 20%, transparent 20%)",
+          backgroundSize: "40px 40px",
+          animation: "moveBackground 10s linear infinite",
+          "@keyframes moveBackground": {
+            "0%": { transform: "translate(0, 0)" },
+            "100%": { transform: "translate(-20px, -20px)" },
+          },
+        }}
+      />
+
       <Paper
         sx={{
           width: { xs: "100%", sm: "90%", md: 400 },
@@ -91,6 +120,10 @@ const TenantLogin = () => {
           overflow: "hidden",
           boxShadow: { xs: "none", sm: (theme) => theme.shadows[3] },
           m: 0.5, // Subtle margin
+          backgroundColor: "rgba(255, 255, 255, 0.9)", // Semi-transparent white
+          backdropFilter: "blur(10px)", // Blur effect
+          position: "relative",
+          zIndex: 1,
         }}
       >
         {/* Header with gradient background, wave design and PNG logo */}
