@@ -224,22 +224,30 @@ const MaintenanceRequests = () => {
                   <SearchIcon />
                 </InputAdornment>
               ),
+              sx: { fontSize: '14px', height: '40px' }, // Reduced font size and height
             }}
-            sx={{ width: 220 }}
+            sx={{ width: 300 }} // Increased width of the search field
           />
 
           {/* Property Selection Dropdown */}
-          <FormControl sx={{ minWidth: 220 }}>
-            <InputLabel>Select Property</InputLabel>
+          <FormControl sx={{ minWidth: 180 }}> // Reduced width of the dropdown
+            <InputLabel sx={{ fontSize: '14px' }}>Select Property</InputLabel> // Reduced font size
             <Select
               value={selectedProperty}
               onChange={handlePropertyChange}
               label="Select Property"
-              sx={{ "& .MuiSelect-select": { overflow: "hidden", textOverflow: "ellipsis" } }} // Ensure text isn't cut off
+              sx={{ 
+                "& .MuiSelect-select": { 
+                  overflow: "hidden", 
+                  textOverflow: "ellipsis", 
+                  fontSize: '14px', // Reduced font size
+                  height: '40px', // Reduced height
+                },
+              }}
             >
               <MenuItem value="All Properties">All Properties</MenuItem>
               {properties.map((property, index) => (
-                <MenuItem key={index} value={property}>
+                <MenuItem key={index} value={property} sx={{ fontSize: '14px' }}> // Reduced font size
                   {property}
                 </MenuItem>
               ))}
