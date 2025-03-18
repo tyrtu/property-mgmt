@@ -93,15 +93,14 @@ const PropertyManagement = () => {
   };
 
   const handleDelete = async (id) => {
+    if (!id) {
+      console.error('Invalid property ID:', id);
+      return; // Return early if the ID is not valid
+    }
+
     try {
-      const propertyRef = doc(db, 'properties', id);
-      const propertySnapshot = await propertyRef.get();
-      if (propertySnapshot.exists()) {
-        await deleteDoc(propertyRef);
-        setProperties(properties.filter((property) => property.id !== id));
-      } else {
-        console.error('Property not found!');
-      }
+      await deleteDoc(doc(db, 'properties', id));
+      setProperties(properties.filter((property) => property.id !== id));
     } catch (error) {
       console.error('Error deleting property:', error);
     }
@@ -185,54 +184,57 @@ const PropertyManagement = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredProperties.map((property) => (
-                <TableRow key={property.id}>
-                  <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <Avatar sx={{ bgcolor: 'primary.main' }}>
-                        <Apartment />
-                      </Avatar>
-                      {property.name}
-                    </Box>
-                  </TableCell>
-                  <TableCell>{property.address}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={property.status}
-                      color={property.status === 'Occupied' ? 'success' : 'warning'}
-                      variant="outlined"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    {property.occupiedUnits}/{property.totalUnits} (
-                    {((property.occupiedUnits / property.totalUnits) * 100).toFixed(1)}%)
-                  </TableCell>
-                  <TableCell>${property.rentAmount.toLocaleString()}</TableCell>
-                  <TableCell>
-                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                      {property.amenities?.map((amenity, index) => (
-                        <Chip key={index} label={amenity} size="small" />
-                      ))}
-                    </Box>
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      startIcon={<Edit />}
-                      onClick={() => handleEdit(property.id)}
-                      sx={{ mr: 1 }}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      startIcon={<Delete />}
-                      onClick={() => handleDelete(property.id)}
-                      color="error"
-                    >
-                      Delete
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {filteredProperties.map((property) => {
+                if (!property) return null; // Skip any null or undefined property
+                return (
+                  <TableRow key={property.id}>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Avatar sx={{ bgcolor: 'primary.main' }}>
+                          <Apartment />
+                        </Avatar>
+                        {property.name}
+                      </Box>
+                    </TableCell>
+                    <TableCell>{property.address}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={property.status}
+                        color={property.status === 'Occupied' ? 'success' : 'warning'}
+                        variant="outlined"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      {property.occupiedUnits}/{property.totalUnits} (
+                      {((property.occupiedUnits / property.totalUnits) * 100).toFixed(1)}%)
+                    </TableCell>
+                    <TableCell>${property.rentAmount.toLocaleString()}</TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                        {property.amenities?.map((amenity, index) => (
+                          <Chip key={index} label={amenity} size="small" />
+                        ))}
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        startIcon={<Edit />}
+                        onClick={() => handleEdit(property.id)}
+                        sx={{ mr: 1 }}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        startIcon={<Delete />}
+                        onClick={() => handleDelete(property.id)}
+                        color="error"
+                      >
+                        Delete
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </TableContainer>
