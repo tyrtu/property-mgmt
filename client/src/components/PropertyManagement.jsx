@@ -79,7 +79,15 @@ const PropertyManagement = () => {
         await updateDoc(propertyRef, propertyDetails);
       } else {
         // Add new property
-        const docRef = await addDoc(collection(db, 'properties'), propertyDetails);
+        const docRef = await addDoc(collection(db, 'properties'), {
+          name: propertyDetails.name,
+          address: propertyDetails.address,
+          totalUnits: propertyDetails.totalUnits,
+          rentAmount: propertyDetails.rentAmount,
+          amenities: propertyDetails.amenities,
+          photos: propertyDetails.photos,
+          status: propertyDetails.status,
+        });
         console.log('New property added with ID:', docRef.id);
 
         // Update the state with the new property including the generated ID
