@@ -25,7 +25,7 @@ import {
   Select,
   MenuItem,
 } from '@mui/material';
-import { Add, Edit, Delete, Search, Apartment } from '@mui/icons-material';
+import { Add, Edit, Delete, Search, Apartment, Visibility, VisibilityOff } from '@mui/icons-material';
 import Navigation from './Navigation';
 import useAutoLogout from '../hooks/useAutoLogout';
 import { db } from '../firebase';
@@ -55,8 +55,13 @@ const PropertyManagement = () => {
     amenities: [],
     photos: [],
     status: 'Vacant',
-    unitNumbers: '', // Comma-separated unit numbers input
+    unitNumbers: '', // comma-separated input for unit numbers
+    occupiedUnits: 0, // count of units that are occupied
   });
+  
+  // State for viewing full details of a property
+  const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
+  const [selectedPropertyDetails, setSelectedPropertyDetails] = useState(null);
 
   // Enable auto-logout after 15 minutes of inactivity
   useAutoLogout();
@@ -99,7 +104,7 @@ const PropertyManagement = () => {
       } else {
         // Assign a sequential property number (current count + 1)
         const propertyNo = properties.length + 1;
-        const newPropertyData = { ...propertyDetails, propertyNo };
+        const newPropertyData = { ...propertyDetails, propertyNo, occupiedUnits: 0 };
 
         // Add new property to Firestore (Firestore auto-generates an ID)
         const docRef = await addDoc(collection(db, 'properties'), newPropertyData);
@@ -138,7 +143,7 @@ const PropertyManagement = () => {
     }
   };
 
-  // Delete by property number (sequential propertyNo)
+  // Delete property using its sequential propertyNo
   const handleDelete = async (propertyNo) => {
     try {
       if (!propertyNo) {
@@ -173,6 +178,7 @@ const PropertyManagement = () => {
       photos: [],
       status: 'Vacant',
       unitNumbers: '',
+      occupiedUnits: 0,
     });
   };
 
@@ -182,6 +188,23 @@ const PropertyManagement = () => {
       ...prev,
       [field]: value.split(',').map((item) => item.trim()),
     }));
+  };
+
+  // Handle viewing full property details (including units)
+  const handleViewDetails = async (property) => {
+    try {
+      const unitsSnapshot = await getDocs(collection(db, 'properties', property.id, 'units'));
+      const unitsData = unitsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setSelectedPropertyDetails({ ...property, units: unitsData });
+      setOpenDetailsDialog(true);
+    } catch (err) {
+      console.error("Error fetching property units:", err);
+    }
+  };
+
+  const handleCloseDetailsDialog = () => {
+    setOpenDetailsDialog(false);
+    setSelectedPropertyDetails(null);
   };
 
   return (
@@ -259,7 +282,7 @@ const PropertyManagement = () => {
                   </TableCell>
                   <TableCell>
                     {property.occupiedUnits}/{property.totalUnits} (
-                    {((property.occupiedUnits / property.totalUnits) * 100).toFixed(1)}%)
+                    {property.totalUnits > 0 ? ((property.occupiedUnits / property.totalUnits) * 100).toFixed(1) : 0}%)
                   </TableCell>
                   <TableCell>${property.rentAmount.toLocaleString()}</TableCell>
                   <TableCell>
@@ -270,19 +293,14 @@ const PropertyManagement = () => {
                     </Box>
                   </TableCell>
                   <TableCell>
-                    <Button
-                      startIcon={<Edit />}
-                      onClick={() => handleEdit(property.id)}
-                      sx={{ mr: 1 }}
-                    >
+                    <Button startIcon={<Edit />} onClick={() => handleEdit(property.id)} sx={{ mr: 1 }}>
                       Edit
                     </Button>
-                    <Button
-                      startIcon={<Delete />}
-                      onClick={() => handleDelete(property.propertyNo)}
-                      color="error"
-                    >
+                    <Button startIcon={<Delete />} onClick={() => handleDelete(property.propertyNo)} color="error" sx={{ mr: 1 }}>
                       Delete
+                    </Button>
+                    <Button variant="outlined" onClick={() => handleViewDetails(property)}>
+                      View Details
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -291,6 +309,7 @@ const PropertyManagement = () => {
           </Table>
         </TableContainer>
 
+        {/* Dialog for adding/editing property */}
         <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
           <DialogTitle>{editMode ? 'Edit Property' : 'Add New Property'}</DialogTitle>
           <DialogContent>
@@ -386,6 +405,55 @@ const PropertyManagement = () => {
             <Button variant="contained" onClick={handleSubmit}>
               {editMode ? 'Update Property' : 'Add Property'}
             </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Dialog for viewing full property details */}
+        <Dialog open={openDetailsDialog} onClose={handleCloseDetailsDialog} maxWidth="md" fullWidth>
+          <DialogTitle>Property Details</DialogTitle>
+          <DialogContent>
+            {selectedPropertyDetails && (
+              <Box>
+                <Typography variant="h6">{selectedPropertyDetails.name} (No. {selectedPropertyDetails.propertyNo})</Typography>
+                <Typography variant="body1">Address: {selectedPropertyDetails.address}</Typography>
+                <Typography variant="body1">
+                  Occupancy: {selectedPropertyDetails.occupiedUnits}/{selectedPropertyDetails.totalUnits} (
+                  {selectedPropertyDetails.totalUnits > 0 ? ((selectedPropertyDetails.occupiedUnits / selectedPropertyDetails.totalUnits) * 100).toFixed(1) : 0}%)
+                </Typography>
+                <Typography variant="body1">Rent: ${selectedPropertyDetails.rentAmount.toLocaleString()}</Typography>
+                <Typography variant="body1">Status: {selectedPropertyDetails.status}</Typography>
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="subtitle1">Units:</Typography>
+                  {selectedPropertyDetails.units && selectedPropertyDetails.units.length > 0 ? (
+                    <TableContainer component={Paper}>
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow>
+                            <TableCell>Unit Number</TableCell>
+                            <TableCell>Occupied</TableCell>
+                            <TableCell>Tenant ID</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {selectedPropertyDetails.units.map((unit) => (
+                            <TableRow key={unit.id}>
+                              <TableCell>{unit.number}</TableCell>
+                              <TableCell>{unit.occupied ? 'Yes' : 'No'}</TableCell>
+                              <TableCell>{unit.occupied ? unit.tenantId || 'N/A' : 'N/A'}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  ) : (
+                    <Typography variant="body2">No units available.</Typography>
+                  )}
+                </Box>
+              </Box>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseDetailsDialog}>Close</Button>
           </DialogActions>
         </Dialog>
       </Box>
