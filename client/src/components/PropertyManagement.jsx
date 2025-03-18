@@ -1,308 +1,341 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import {
-  Box,
+  Card,
   Typography,
-  TextField,
   Button,
-  IconButton,
+  TextField,
+  Grid,
+  Box,
+  Chip,
+  Avatar,
   InputAdornment,
-  CircularProgress,
-  Snackbar,
-  Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   Paper,
+  FormControl,
+  InputLabel,
+  Select,
   MenuItem,
-} from "@mui/material";
-import { useNavigate } from "react-router-dom";
-import { Visibility, VisibilityOff } from "@mui/icons-material";
-import {
-  createUserWithEmailAndPassword,
-  sendEmailVerification,
-} from "firebase/auth";
-import { setDoc, doc, collection, getDocs, updateDoc, addDoc } from "firebase/firestore";
-import { auth, db } from "../firebase";
+} from '@mui/material';
+import { Add, Edit, Delete, Search, Apartment } from '@mui/icons-material';
+import Navigation from './Navigation';
+import useAutoLogout from '../hooks/useAutoLogout';
+import { db } from '../firebase'; // Import Firestore
+import { collection, getDocs, addDoc, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 
-const TenantRegister = () => {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-
-  // Property and Unit Selection
+const PropertyManagement = () => {
   const [properties, setProperties] = useState([]);
-  const [selectedProperty, setSelectedProperty] = useState("");
-  const [units, setUnits] = useState([]);
-  const [selectedUnit, setSelectedUnit] = useState("");
+  const [searchText, setSearchText] = useState('');
+  const [openDialog, setOpenDialog] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [propertyDetails, setPropertyDetails] = useState({
+    id: null,
+    name: '',
+    address: '',
+    totalUnits: 0,
+    rentAmount: 0,
+    amenities: [],
+    photos: [],
+    status: 'Vacant', // Default status
+  });
 
-  const navigate = useNavigate();
+  // Enable auto-logout after 15 minutes of inactivity
+  useAutoLogout();
 
+  // Fetch properties from Firestore
   useEffect(() => {
     const fetchProperties = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, "properties"));
-        const propertyList = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          name: doc.data().name,
-        }));
-        setProperties(propertyList);
-      } catch (err) {
-        console.error("Error fetching properties:", err);
-      }
+      const querySnapshot = await getDocs(collection(db, 'properties'));
+      const propertyList = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setProperties(propertyList);
     };
 
     fetchProperties();
   }, []);
 
-  useEffect(() => {
-    const fetchUnits = async () => {
-      if (!selectedProperty) return;
+  const handleSearch = (e) => setSearchText(e.target.value);
 
-      try {
-        const querySnapshot = await getDocs(
-          collection(db, "properties", selectedProperty, "units")
-        );
-        const unitList = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          number: doc.data().number,
-          occupied: doc.data().occupied,
-        }));
+  const filteredProperties = properties.filter(
+    (property) =>
+      property.name.toLowerCase().includes(searchText.toLowerCase()) ||
+      property.address.toLowerCase().includes(searchText.toLowerCase())
+  );
 
-        // Filter out occupied units
-        const availableUnits = unitList.filter((unit) => !unit.occupied);
-        setUnits(availableUnits);
-      } catch (err) {
-        console.error("Error fetching units:", err);
+  // Handle adding/updating a property
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (editMode) {
+        // Update existing property
+        const propertyRef = doc(db, 'properties', propertyDetails.id);
+        await updateDoc(propertyRef, propertyDetails);
+        // Update the property in the state after update
+        setProperties(properties.map((property) =>
+          property.id === propertyDetails.id ? { ...propertyDetails } : property
+        ));
+      } else {
+        // Add new property
+        const docRef = await addDoc(collection(db, 'properties'), propertyDetails);
+        console.log('New property added with ID:', docRef.id);
+
+        // Update the state with the new property including the generated ID
+        setProperties([
+          ...properties,
+          { id: docRef.id, ...propertyDetails },  // Include the generated ID
+        ]);
       }
-    };
-
-    fetchUnits();
-  }, [selectedProperty]);
-
-  const handleTogglePasswordVisibility = () => {
-    setShowPassword((prev) => !prev);
+      handleCloseDialog();
+    } catch (error) {
+      console.error('Error adding/updating property:', error);
+    }
   };
 
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    setSuccess("");
-
-    if (!name || !email || !phone || !password || !confirmPassword || !selectedProperty || !selectedUnit) {
-      setError("Please fill in all fields.");
-      setLoading(false);
-      return;
+  const handleEdit = (id) => {
+    const property = properties.find((p) => p.id === id);
+    if (property) {
+      setPropertyDetails(property);
+      setEditMode(true);
+      setOpenDialog(true);
+    } else {
+      console.error('Property not found for editing');
     }
+  };
 
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      setLoading(false);
-      return;
-    }
-
+  const handleDelete = async (id) => {
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      // Check if property exists
-      let propertyId = selectedProperty;
-      if (!selectedProperty) {
-        // Add new property and capture its ID if no property is selected
-        const newPropertyRef = await addDoc(collection(db, "properties"), {
-          name: name, // you can use the name as property name or modify based on your form data
-        });
-        propertyId = newPropertyRef.id; // Get the new property's ID
+      if (!id) {
+        console.error('Error: Property ID is undefined or null');
+        return;
       }
-
-      // Save tenant data in Firestore
-      await setDoc(doc(db, "users", user.uid), {
-        uid: user.uid,
-        name,
-        email,
-        phone,
-        role: "tenant",
-        propertyId, // Store the property ID (either selected or newly created)
-        unitId: selectedUnit,
-        createdAt: new Date().toISOString(),
-      });
-
-      // Mark the unit as occupied
-      await updateDoc(doc(db, "properties", propertyId, "units", selectedUnit), {
-        occupied: true,
-        tenantId: user.uid,
-      });
-
-      await sendEmailVerification(user);
-
-      setSuccess("Registration successful! Please verify your email before logging in.");
-      setTimeout(() => navigate("/tenant/login"), 4000);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      await deleteDoc(doc(db, 'properties', id));
+      setProperties(properties.filter((property) => property.id !== id));
+    } catch (error) {
+      console.error('Error deleting property:', error);
     }
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setEditMode(false);
+    setPropertyDetails({
+      id: null,
+      name: '',
+      address: '',
+      totalUnits: 0,
+      rentAmount: 0,
+      amenities: [],
+      photos: [],
+      status: 'Vacant',
+    });
+  };
+
+  // Handle array inputs (amenities and photos)
+  const handleArrayInput = (field, value) => {
+    setPropertyDetails((prev) => ({
+      ...prev,
+      [field]: value.split(',').map((item) => item.trim()),
+    }));
   };
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "100vh",
-        background: "linear-gradient(135deg, #6200EE 0%, #FF9800 100%)",
-        overflow: "hidden",
-        position: "relative",
-      }}
-    >
-      {/* Animated background circles */}
-      <Box
-        sx={{
-          position: "absolute",
-          top: "-50%",
-          left: "-50%",
-          width: "200%",
-          height: "200%",
-          background: "radial-gradient(circle, rgba(255, 255, 255, 0.1) 20%, transparent 20%)",
-          backgroundSize: "40px 40px",
-          animation: "moveBackground 10s linear infinite",
-          "@keyframes moveBackground": {
-            "0%": { transform: "translate(0, 0)" },
-            "100%": { transform: "translate(-20px, -20px)" },
-          },
-        }}
-      />
-
-      <Paper
-        sx={{
-          width: { xs: "100%", sm: "90%", md: 450 },
-          borderRadius: 2,
-          boxShadow: 3,
-          backgroundColor: "rgba(255, 255, 255, 0.95)",
-          backdropFilter: "blur(10px)",
-          overflow: "hidden",
-          position: "relative",
-          zIndex: 1,
-          maxHeight: "90vh", // Ensures the form is not cut off on large screens
-          overflowY: "auto", // Adds scroll if content exceeds height
-        }}
-      >
-        {/* Header with gradient background, wave design, and PNG logo */}
-        <Box
-          sx={{
-            position: "relative",
-            height: 150,
-            background: "linear-gradient(90deg, #6200EE 0%, #FF9800 100%)",
-          }}
-        >
-          <Box
-            sx={{
-              height: "100%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <img
-              src="/assets/home.png" // Update the path to your PNG image
-              alt="RentHive Logo"
-              style={{ width: 40, height: 40, marginRight: 10 }}
-            />
-            <Typography variant="h4" sx={{ fontWeight: 600, color: "#fff" }}>
-              RentHive
-            </Typography>
-          </Box>
-          <Box
-            sx={{
-              position: "absolute",
-              bottom: 0,
-              left: 0,
-              width: "100%",
-              overflow: "hidden",
-              lineHeight: 0,
-              color: "primary.main", // Wave colour now matches the navbar theme
-            }}
-          >
-            <svg
-              viewBox="0 0 500 150"
-              preserveAspectRatio="none"
-              style={{ display: "block", width: "100%", height: 50 }}
-            >
-              <path
-                d="M-0.27,76.42 C149.99,150.00 271.56,1.66 500.00,69.97 L500.00,150.00 L0.00,150.00 Z"
-                fill="currentColor"
-              />
-            </svg>
-          </Box>
+    <Box sx={{ minHeight: '100vh', backgroundColor: 'background.default' }}>
+      <Navigation />
+      <Box sx={{ p: 3, height: '100vh' }}>
+        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h4">Property Management</Typography>
+          <Button variant="contained" startIcon={<Add />} onClick={() => setOpenDialog(true)}>
+            Add Property
+          </Button>
         </Box>
 
-        {/* Registration form */}
-        <Box sx={{ p: 4 }}>
-          <Typography variant="h5" sx={{ mb: 3, fontWeight: 600, textAlign: "center" }}>
-            Tenant Registration
-          </Typography>
-          <form onSubmit={handleRegister}>
-            <TextField label="Full Name" fullWidth required value={name} onChange={(e) => setName(e.target.value)} sx={{ mb: 2 }} />
-            <TextField label="Email" type="email" fullWidth required value={email} onChange={(e) => setEmail(e.target.value)} sx={{ mb: 2 }} />
-            <TextField label="Phone Number" type="tel" fullWidth required value={phone} onChange={(e) => setPhone(e.target.value)} sx={{ mb: 2 }} />
-
-            {/* Property Dropdown */}
-            <TextField select label="Select Property" fullWidth required value={selectedProperty} onChange={(e) => setSelectedProperty(e.target.value)} sx={{ mb: 2 }}>
-              {properties.map((property) => (
-                <MenuItem key={property.id} value={property.id}>
-                  {property.name}
-                </MenuItem>
-              ))}
-            </TextField>
-
-            {/* Unit Dropdown */}
-            <TextField select label="Select Unit" fullWidth required value={selectedUnit} onChange={(e) => setSelectedUnit(e.target.value)} sx={{ mb: 2 }}>
-              {units.map((unit) => (
-                <MenuItem key={unit.id} value={unit.id}>
-                  Unit {unit.number}
-                </MenuItem>
-              ))}
-            </TextField>
-
-            <TextField label="Password" type={showPassword ? "text" : "password"} fullWidth required value={password} onChange={(e) => setPassword(e.target.value)} sx={{ mb: 2 }}
+        <Card sx={{ mb: 3 }}>
+          <Box sx={{ p: 2, display: 'flex', gap: 2, alignItems: 'center' }}>
+            <TextField
+              fullWidth
+              variant="outlined"
+              placeholder="Search properties..."
               InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={handleTogglePasswordVisibility} edge="end">
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search />
                   </InputAdornment>
                 ),
               }}
+              value={searchText}
+              onChange={handleSearch}
             />
-            <TextField label="Confirm Password" type={showPassword ? "text" : "password"} fullWidth required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} sx={{ mb: 2 }} />
+            <Chip label={`Total: ${properties.length}`} variant="outlined" />
+            <Chip
+              label={`Occupied: ${properties.filter((p) => p.status === 'Occupied').length}`}
+              color="success"
+              variant="outlined"
+            />
+            <Chip
+              label={`Vacant: ${properties.filter((p) => p.status === 'Vacant').length}`}
+              color="warning"
+              variant="outlined"
+            />
+          </Box>
+        </Card>
 
-            <Button type="submit" variant="contained" fullWidth disabled={loading} sx={{ mb: 2 }}>
-              {loading ? <CircularProgress size={24} /> : "Register"}
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Property</TableCell>
+                <TableCell>Address</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Occupancy</TableCell>
+                <TableCell>Rent</TableCell>
+                <TableCell>Amenities</TableCell>
+                <TableCell>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredProperties.map((property) => (
+                <TableRow key={property.id}>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Avatar sx={{ bgcolor: 'primary.main' }}>
+                        <Apartment />
+                      </Avatar>
+                      {property.name}
+                    </Box>
+                  </TableCell>
+                  <TableCell>{property.address}</TableCell>
+                  <TableCell>
+                    <Chip
+                      label={property.status}
+                      color={property.status === 'Occupied' ? 'success' : 'warning'}
+                      variant="outlined"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    {property.occupiedUnits}/{property.totalUnits} (
+                    {((property.occupiedUnits / property.totalUnits) * 100).toFixed(1)}%)
+                  </TableCell>
+                  <TableCell>${property.rentAmount.toLocaleString()}</TableCell>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                      {property.amenities?.map((amenity, index) => (
+                        <Chip key={index} label={amenity} size="small" />
+                      ))}
+                    </Box>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      startIcon={<Edit />}
+                      onClick={() => handleEdit(property.id)}
+                      sx={{ mr: 1 }}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      startIcon={<Delete />}
+                      onClick={() => handleDelete(property.id)}
+                      color="error"
+                    >
+                      Delete
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+          <DialogTitle>{editMode ? 'Edit Property' : 'Add New Property'}</DialogTitle>
+          <DialogContent>
+            <Grid container spacing={3} sx={{ mt: 1 }}>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Property Name"
+                  margin="normal"
+                  value={propertyDetails.name}
+                  onChange={(e) => setPropertyDetails({ ...propertyDetails, name: e.target.value })}
+                />
+                <TextField
+                  fullWidth
+                  label="Address"
+                  margin="normal"
+                  multiline
+                  rows={3}
+                  value={propertyDetails.address}
+                  onChange={(e) => setPropertyDetails({ ...propertyDetails, address: e.target.value })}
+                />
+                <TextField
+                  fullWidth
+                  label="Total Units"
+                  margin="normal"
+                  type="number"
+                  value={propertyDetails.totalUnits}
+                  onChange={(e) =>
+                    setPropertyDetails({ ...propertyDetails, totalUnits: parseInt(e.target.value) })
+                  }
+                />
+                <TextField
+                  fullWidth
+                  label="Rent Amount"
+                  margin="normal"
+                  type="number"
+                  value={propertyDetails.rentAmount}
+                  onChange={(e) =>
+                    setPropertyDetails({ ...propertyDetails, rentAmount: parseFloat(e.target.value) })
+                  }
+                />
+                <FormControl fullWidth margin="normal">
+                  <InputLabel>Status</InputLabel>
+                  <Select
+                    value={propertyDetails.status}
+                    onChange={(e) =>
+                      setPropertyDetails({ ...propertyDetails, status: e.target.value })
+                    }
+                  >
+                    <MenuItem value="Occupied">Occupied</MenuItem>
+                    <MenuItem value="Vacant">Vacant</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Amenities (comma-separated)"
+                  margin="normal"
+                  value={propertyDetails.amenities.join(', ')}
+                  onChange={(e) => handleArrayInput('amenities', e.target.value)}
+                  helperText="Enter amenities separated by commas, e.g., Gym, Pool, Parking"
+                />
+                <TextField
+                  fullWidth
+                  label="Photo URLs (comma-separated)"
+                  margin="normal"
+                  value={propertyDetails.photos.join(', ')}
+                  onChange={(e) => handleArrayInput('photos', e.target.value)}
+                  helperText="Enter photo URLs separated by commas"
+                />
+              </Grid>
+            </Grid>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseDialog}>Cancel</Button>
+            <Button variant="contained" onClick={handleSubmit}>
+              {editMode ? 'Update Property' : 'Add Property'}
             </Button>
-
-            <Button fullWidth variant="text" onClick={() => navigate("/tenant/login")} sx={{ textTransform: "none" }}>
-              Back to Login
-            </Button>
-          </form>
-        </Box>
-      </Paper>
-
-      {/* Error Snackbar */}
-      <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError("")}>
-        <Alert severity="error">{error}</Alert>
-      </Snackbar>
-
-      {/* Success Snackbar */}
-      <Snackbar open={!!success} autoHideDuration={6000} onClose={() => setSuccess("")}>
-        <Alert severity="success">{success}</Alert>
-      </Snackbar>
+          </DialogActions>
+        </Dialog>
+      </Box>
     </Box>
   );
 };
 
-export default TenantRegister;
+export default PropertyManagement;
