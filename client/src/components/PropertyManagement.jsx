@@ -6,8 +6,9 @@ import {
 } from '@mui/material';
 import { Add, Edit, Delete, Search, Apartment } from '@mui/icons-material';
 import Navigation from './Navigation';
-import { mockProperties } from '../mockData';
-import useAutoLogout from '../hooks/useAutoLogout'; // Import the auto-logout hook
+import useAutoLogout from '../hooks/useAutoLogout';
+import { db } from '../firebase'; // Import Firestore
+import { collection, getDocs, addDoc, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 
 const PropertyManagement = () => {
   const [properties, setProperties] = useState([]);
@@ -27,8 +28,15 @@ const PropertyManagement = () => {
   // Enable auto-logout after 15 minutes of inactivity
   useAutoLogout();
 
+  // Fetch properties from Firestore
   useEffect(() => {
-    setProperties(mockProperties);
+    const fetchProperties = async () => {
+      const querySnapshot = await getDocs(collection(db, "properties"));
+      const propertyList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setProperties(propertyList);
+    };
+    
+    fetchProperties();
   }, []);
 
   const handleSearch = (e) => setSearchText(e.target.value);
@@ -38,19 +46,14 @@ const PropertyManagement = () => {
     property.address.toLowerCase().includes(searchText.toLowerCase())
   );
 
-  const handleSubmit = (e) => {
+  // Handle adding/updating a property
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (editMode) {
-      setProperties(properties.map(prop => 
-        prop.id === propertyDetails.id ? propertyDetails : prop
-      ));
+      const propertyRef = doc(db, "properties", propertyDetails.id);
+      await updateDoc(propertyRef, propertyDetails);
     } else {
-      setProperties([...properties, {
-        ...propertyDetails,
-        id: Math.max(...properties.map(p => p.id)) + 1,
-        occupiedUnits: 0,
-        status: 'Vacant'
-      }]);
+      await addDoc(collection(db, "properties"), propertyDetails);
     }
     handleCloseDialog();
   };
@@ -62,7 +65,8 @@ const PropertyManagement = () => {
     setOpenDialog(true);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
+    await deleteDoc(doc(db, "properties", id));
     setProperties(properties.filter(property => property.id !== id));
   };
 
@@ -211,31 +215,6 @@ const PropertyManagement = () => {
                   rows={3}
                   value={propertyDetails.address}
                   onChange={e => setPropertyDetails({...propertyDetails, address: e.target.value})}
-                />
-                <TextField
-                  fullWidth
-                  label="Total Units"
-                  type="number"
-                  margin="normal"
-                  value={propertyDetails.totalUnits}
-                  onChange={e => setPropertyDetails({
-                    ...propertyDetails, 
-                    totalUnits: Math.max(0, parseInt(e.target.value))
-                  })}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Rent Amount"
-                  type="number"
-                  margin="normal"
-                  InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }}
-                  value={propertyDetails.rentAmount}
-                  onChange={e => setPropertyDetails({
-                    ...propertyDetails, 
-                    rentAmount: Math.max(0, parseFloat(e.target.value))
-                  })}
                 />
               </Grid>
             </Grid>
