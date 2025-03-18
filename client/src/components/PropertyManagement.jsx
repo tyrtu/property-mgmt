@@ -45,7 +45,6 @@ const PropertyManagement = () => {
     amenities: [],
     photos: [],
     status: 'Vacant', // Default status
-    occupiedUnits: 0, // Initialize the occupied units
   });
 
   // Enable auto-logout after 15 minutes of inactivity
@@ -73,19 +72,14 @@ const PropertyManagement = () => {
   // Handle adding/updating a property
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // If in edit mode, update the existing property
     if (editMode) {
       const propertyRef = doc(db, 'properties', propertyDetails.id);
       await updateDoc(propertyRef, propertyDetails);
     } else {
-      // If adding a new property, create a new document
-      const newPropertyRef = await addDoc(collection(db, 'properties'), propertyDetails);
-      setPropertyDetails({ ...propertyDetails, id: newPropertyRef.id }); // Set the ID after creating the document
+      await addDoc(collection(db, 'properties'), propertyDetails);
     }
-
     handleCloseDialog();
-    // Refresh the properties list to include the newly added/updated property
+    // Refresh the properties list
     const querySnapshot = await getDocs(collection(db, 'properties'));
     const propertyList = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
     setProperties(propertyList);
@@ -98,15 +92,16 @@ const PropertyManagement = () => {
     setOpenDialog(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!id) {
-      console.error('Invalid property ID:', id);
-      return; // Return early if the ID is not valid
-    }
-
+  const handleDelete = async (name) => {
     try {
-      await deleteDoc(doc(db, 'properties', id));
-      setProperties(properties.filter((property) => property.id !== id));
+      const propertyToDelete = properties.find((property) => property.name === name);
+      if (propertyToDelete) {
+        const propertyRef = doc(db, 'properties', propertyToDelete.id);
+        await deleteDoc(propertyRef);
+        setProperties(properties.filter((property) => property.id !== propertyToDelete.id));
+      } else {
+        console.error('Property not found!');
+      }
     } catch (error) {
       console.error('Error deleting property:', error);
     }
@@ -124,7 +119,6 @@ const PropertyManagement = () => {
       amenities: [],
       photos: [],
       status: 'Vacant',
-      occupiedUnits: 0, // Reset occupied units
     });
   };
 
@@ -191,57 +185,54 @@ const PropertyManagement = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredProperties.map((property) => {
-                if (!property) return null; // Skip any null or undefined property
-                return (
-                  <TableRow key={property.id}>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <Avatar sx={{ bgcolor: 'primary.main' }}>
-                          <Apartment />
-                        </Avatar>
-                        {property.name}
-                      </Box>
-                    </TableCell>
-                    <TableCell>{property.address}</TableCell>
-                    <TableCell>
-                      <Chip
-                        label={property.status}
-                        color={property.status === 'Occupied' ? 'success' : 'warning'}
-                        variant="outlined"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      {property.occupiedUnits}/{property.totalUnits} (
-                      {((property.occupiedUnits / property.totalUnits) * 100).toFixed(1)}%)
-                    </TableCell>
-                    <TableCell>${property.rentAmount.toLocaleString()}</TableCell>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                        {property.amenities?.map((amenity, index) => (
-                          <Chip key={index} label={amenity} size="small" />
-                        ))}
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        startIcon={<Edit />}
-                        onClick={() => handleEdit(property.id)}
-                        sx={{ mr: 1 }}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        startIcon={<Delete />}
-                        onClick={() => handleDelete(property.id)}
-                        color="error"
-                      >
-                        Delete
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
+              {filteredProperties.map((property) => (
+                <TableRow key={property.id}>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Avatar sx={{ bgcolor: 'primary.main' }}>
+                        <Apartment />
+                      </Avatar>
+                      {property.name}
+                    </Box>
+                  </TableCell>
+                  <TableCell>{property.address}</TableCell>
+                  <TableCell>
+                    <Chip
+                      label={property.status}
+                      color={property.status === 'Occupied' ? 'success' : 'warning'}
+                      variant="outlined"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    {property.occupiedUnits}/{property.totalUnits} (
+                    {((property.occupiedUnits / property.totalUnits) * 100).toFixed(1)}%)
+                  </TableCell>
+                  <TableCell>${property.rentAmount.toLocaleString()}</TableCell>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                      {property.amenities?.map((amenity, index) => (
+                        <Chip key={index} label={amenity} size="small" />
+                      ))}
+                    </Box>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      startIcon={<Edit />}
+                      onClick={() => handleEdit(property.id)}
+                      sx={{ mr: 1 }}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      startIcon={<Delete />}
+                      onClick={() => handleDelete(property.name)} // Changed to delete by name
+                      color="error"
+                    >
+                      Delete
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </TableContainer>
@@ -299,16 +290,6 @@ const PropertyManagement = () => {
                     <MenuItem value="Vacant">Vacant</MenuItem>
                   </Select>
                 </FormControl>
-                <TextField
-                  fullWidth
-                  label="Occupied Units"
-                  margin="normal"
-                  type="number"
-                  value={propertyDetails.occupiedUnits}
-                  onChange={(e) =>
-                    setPropertyDetails({ ...propertyDetails, occupiedUnits: parseInt(e.target.value) })
-                  }
-                />
               </Grid>
               <Grid item xs={12} md={6}>
                 <TextField

@@ -33,7 +33,7 @@ import {
   CheckCircle,
 } from '@mui/icons-material';
 import { DataGrid } from '@mui/x-data-grid';
-import { collection, getDocs, onSnapshot, query, where, doc, getDoc, deleteDoc, setDoc, addDoc } from 'firebase/firestore';
+import { collection, getDocs, onSnapshot, query, where, orderBy, doc, getDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import Navigation from './Navigation';
 import useAutoLogout from '../hooks/useAutoLogout';
@@ -49,15 +49,6 @@ const TenantManagement = () => {
   const [recentNotifications, setRecentNotifications] = useState([]);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  
-  const [newTenant, setNewTenant] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    propertyId: '',
-    rentAmount: '',
-    paymentStatus: 'pending',
-  });
 
   useAutoLogout();
 
@@ -136,48 +127,22 @@ const TenantManagement = () => {
 
   const handleCloseViewDialog = () => setViewTenant(null);
 
-  // Success notification
-  const handleNotificationSuccess = (message) => {
-    setSnackbarMessage(message);
-    setSnackbarOpen(true);
-  };
-
   // Delete tenant from Firestore
   const handleDeleteTenant = async (tenantId) => {
     try {
       await deleteDoc(doc(db, 'users', tenantId));
-      handleNotificationSuccess('Tenant deleted successfully');
+      setSnackbarMessage('Tenant deleted successfully');
+      setSnackbarOpen(true);
     } catch (error) {
-      console.error('Error deleting tenant:', error);
+      setSnackbarMessage('Error deleting tenant');
+      setSnackbarOpen(true);
     }
   };
 
-  // Add new tenant to Firestore
-  const handleAddTenant = async () => {
-    if (!newTenant.name || !newTenant.email || !newTenant.phone || !newTenant.propertyId || !newTenant.rentAmount) {
-      handleNotificationSuccess('All fields are required!');
-      return;
-    }
-
-    try {
-      await addDoc(collection(db, 'users'), {
-        ...newTenant,
-        role: 'tenant',
-        paymentStatus: 'pending',
-      });
-      handleNotificationSuccess('Tenant added successfully');
-      setNewTenant({
-        name: '',
-        email: '',
-        phone: '',
-        propertyId: '',
-        rentAmount: '',
-        paymentStatus: 'pending',
-      });
-      setOpenDialog(false);
-    } catch (error) {
-      console.error('Error adding tenant:', error);
-    }
+  // Success notification
+  const handleNotificationSuccess = (message) => {
+    setSnackbarMessage(message);
+    setSnackbarOpen(true);
   };
 
   // Table columns
@@ -185,7 +150,7 @@ const TenantManagement = () => {
     {
       field: 'name',
       headerName: 'Tenant',
-      width: 300,
+      width: 300, // Increased width for better visibility
       renderCell: (params) => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Avatar src={`https://i.pravatar.cc/80?u=${params.row.id}`}>
@@ -213,7 +178,11 @@ const TenantManagement = () => {
           <Button variant="outlined" color="primary" onClick={() => handleViewTenant(params.row.id)}>
             View More
           </Button>
-          <Button variant="outlined" color="error" onClick={() => handleDeleteTenant(params.row.id)}>
+          <Button
+            variant="outlined"
+            color="secondary"
+            onClick={() => handleDeleteTenant(params.row.id)}
+          >
             Delete
           </Button>
         </Box>
@@ -229,13 +198,6 @@ const TenantManagement = () => {
           <Typography variant="h4" sx={{ fontWeight: 700 }}>
             Tenant Management Portal
           </Typography>
-
-          {/* Add Tenant Button */}
-          <Box sx={{ display: 'flex', gap: 2, my: 3 }}>
-            <Button variant="contained" color="primary" onClick={() => setOpenDialog(true)}>
-              Add Tenant
-            </Button>
-          </Box>
 
           {/* Search & Filter */}
           <Box sx={{ display: 'flex', gap: 2, my: 3 }}>
@@ -313,65 +275,13 @@ const TenantManagement = () => {
         </Dialog>
       )}
 
-      {/* Add Tenant Dialog */}
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
-        <DialogTitle>Add New Tenant</DialogTitle>
-        <DialogContent>
-          <TextField
-            fullWidth
-            label="Name"
-            value={newTenant.name}
-            onChange={(e) => setNewTenant({ ...newTenant, name: e.target.value })}
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            fullWidth
-            label="Email"
-            value={newTenant.email}
-            onChange={(e) => setNewTenant({ ...newTenant, email: e.target.value })}
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            fullWidth
-            label="Phone"
-            value={newTenant.phone}
-            onChange={(e) => setNewTenant({ ...newTenant, phone: e.target.value })}
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            fullWidth
-            label="Rent Amount"
-            value={newTenant.rentAmount}
-            onChange={(e) => setNewTenant({ ...newTenant, rentAmount: e.target.value })}
-            sx={{ mb: 2 }}
-          />
-          <Select
-            fullWidth
-            value={newTenant.propertyId}
-            onChange={(e) => setNewTenant({ ...newTenant, propertyId: e.target.value })}
-            displayEmpty
-          >
-            <MenuItem value="">Select Property</MenuItem>
-            {properties.map((property) => (
-              <MenuItem key={property.id} value={property.id}>
-                {property.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
-          <Button onClick={handleAddTenant}>Add Tenant</Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Snackbar for notifications */}
+      {/* Snackbar for Notifications */}
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={6000}
         onClose={() => setSnackbarOpen(false)}
       >
-        <Alert onClose={() => setSnackbarOpen(false)} severity="success">
+        <Alert severity="success" onClose={() => setSnackbarOpen(false)}>
           {snackbarMessage}
         </Alert>
       </Snackbar>
