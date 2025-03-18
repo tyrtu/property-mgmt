@@ -76,16 +76,50 @@ const TenantRegister = () => {
   };
 
   return (
-    <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100vh",
+        background:
+          "linear-gradient(135deg, #6200EE 0%, #FF9800 100%)", // Gradient background
+        overflow: "hidden",
+        position: "relative",
+      }}
+    >
+      {/* Animated background circles */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: "-50%",
+          left: "-50%",
+          width: "200%",
+          height: "200%",
+          background: "radial-gradient(circle, rgba(255, 255, 255, 0.1) 20%, transparent 20%)",
+          backgroundSize: "40px 40px",
+          animation: "moveBackground 10s linear infinite",
+          "@keyframes moveBackground": {
+            "0%": { transform: "translate(0, 0)" },
+            "100%": { transform: "translate(-20px, -20px)" },
+          },
+        }}
+      />
+
       <Paper
         sx={{
           width: { xs: "100%", sm: "90%", md: 400 },
-          borderRadius: { xs: 2, sm: 4 }, // Ensuring small screens have a visible radius
+          borderRadius: 2,
           overflow: "hidden",
-          boxShadow: { xs: "none", sm: 3 },
-          margin: { xs: "2px", sm: "auto" }, // Small margin on very small screens
+          boxShadow: { xs: "none", sm: (theme) => theme.shadows[3] },
+          m: 0.5, // Subtle margin
+          backgroundColor: "rgba(255, 255, 255, 0.9)", // Semi-transparent white
+          backdropFilter: "blur(10px)", // Blur effect
+          position: "relative",
+          zIndex: 1,
         }}
       >
+        {/* Header with gradient background, wave design, and PNG logo */}
         <Box
           sx={{
             position: "relative",
@@ -93,8 +127,19 @@ const TenantRegister = () => {
             background: "linear-gradient(90deg, #6200EE 0%, #FF9800 100%)",
           }}
         >
-          <Box sx={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <img src="/assets/home.png" alt="RentHive Logo" style={{ width: 40, height: 40, marginRight: 10 }} />
+          <Box
+            sx={{
+              height: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <img
+              src="/assets/home.png" // Update the path to your PNG image
+              alt="RentHive Logo"
+              style={{ width: 40, height: 40, marginRight: 10 }}
+            />
             <Typography variant="h4" sx={{ fontWeight: 600, color: "#fff" }}>
               RentHive
             </Typography>
@@ -107,23 +152,54 @@ const TenantRegister = () => {
               width: "100%",
               overflow: "hidden",
               lineHeight: 0,
-              color: "primary.main",
+              color: "primary.main", // Wave colour now matches the navbar theme
             }}
           >
-            <svg viewBox="0 0 500 150" preserveAspectRatio="none" style={{ display: "block", width: "100%", height: 50 }}>
-              <path d="M-0.27,76.42 C149.99,150.00 271.56,1.66 500.00,69.97 L500.00,150.00 L0.00,150.00 Z" fill="currentColor" />
+            <svg
+              viewBox="0 0 500 150"
+              preserveAspectRatio="none"
+              style={{ display: "block", width: "100%", height: 50 }}
+            >
+              <path
+                d="M-0.27,76.42 C149.99,150.00 271.56,1.66 500.00,69.97 L500.00,150.00 L0.00,150.00 Z"
+                fill="currentColor"
+              />
             </svg>
           </Box>
         </Box>
 
+        {/* Registration form */}
         <Box sx={{ p: 4 }}>
           <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
             Tenant Registration
           </Typography>
           <form onSubmit={handleRegister}>
-            <TextField label="Full Name" fullWidth required value={name} onChange={(e) => setName(e.target.value)} sx={{ mb: 2 }} />
-            <TextField label="Email" type="email" fullWidth required value={email} onChange={(e) => setEmail(e.target.value)} sx={{ mb: 2 }} />
-            <TextField label="Phone Number" type="tel" fullWidth required value={phone} onChange={(e) => setPhone(e.target.value)} sx={{ mb: 2 }} />
+            <TextField
+              label="Full Name"
+              fullWidth
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              label="Email"
+              type="email"
+              fullWidth
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              label="Phone Number"
+              type="tel"
+              fullWidth
+              required
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              sx={{ mb: 2 }}
+            />
             <TextField
               label="Password"
               type={showPassword ? "text" : "password"}
@@ -164,10 +240,12 @@ const TenantRegister = () => {
         </Box>
       </Paper>
 
+      {/* Error Snackbar */}
       <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError("")}>
         <Alert severity="error">{error}</Alert>
       </Snackbar>
 
+      {/* Success Snackbar */}
       <Snackbar open={!!success} autoHideDuration={6000} onClose={() => setSuccess("")}>
         <Alert severity="success">{success}</Alert>
       </Snackbar>

@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { sendPasswordResetEmail } from "firebase/auth";
-import { auth } from "../firebase"; // ✅ Import Firebase Auth
+import { auth } from "../firebase"; // Import Firebase Auth
 
 const TenantResetPassword = () => {
   const [email, setEmail] = useState("");
@@ -50,16 +50,41 @@ const TenantResetPassword = () => {
         justifyContent: "center",
         alignItems: "center",
         height: "100vh",
-        px: { xs: 1, sm: 0 }, // ✅ Tiny margin on small screens
+        background:
+          "linear-gradient(135deg, #6200EE 0%, #FF9800 100%)", // Gradient background
+        overflow: "hidden",
+        position: "relative",
       }}
     >
+      {/* Animated background circles */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: "-50%",
+          left: "-50%",
+          width: "200%",
+          height: "200%",
+          background: "radial-gradient(circle, rgba(255, 255, 255, 0.1) 20%, transparent 20%)",
+          backgroundSize: "40px 40px",
+          animation: "moveBackground 10s linear infinite",
+          "@keyframes moveBackground": {
+            "0%": { transform: "translate(0, 0)" },
+            "100%": { transform: "translate(-20px, -20px)" },
+          },
+        }}
+      />
+
       <Paper
         sx={{
           width: { xs: "100%", sm: "90%", md: 400 },
-          maxWidth: 400, // Prevents stretching
-          borderRadius: { xs: 3, sm: 6 }, // ✅ Visible border-radius on small screens
+          borderRadius: 2,
           overflow: "hidden",
-          boxShadow: { xs: 1, sm: 3 }, // ✅ Light shadow on small screens
+          boxShadow: { xs: "none", sm: (theme) => theme.shadows[3] },
+          m: 0.5, // Subtle margin
+          backgroundColor: "rgba(255, 255, 255, 0.9)", // Semi-transparent white
+          backdropFilter: "blur(10px)", // Blur effect
+          position: "relative",
+          zIndex: 1,
         }}
       >
         {/* Header with gradient background, wave design, and PNG logo */}
@@ -68,8 +93,6 @@ const TenantResetPassword = () => {
             position: "relative",
             height: 150,
             background: "linear-gradient(90deg, #6200EE 0%, #FF9800 100%)",
-            borderTopLeftRadius: { xs: 3, sm: 6 }, // ✅ Match card border-radius
-            borderTopRightRadius: { xs: 3, sm: 6 },
           }}
         >
           <Box
