@@ -146,19 +146,23 @@ const TenantRegister = () => {
         height: "100vh",
         background: "linear-gradient(135deg, #6200EE 0%, #FF9800 100%)",
         overflow: "hidden",
+        px: 2,
       }}
     >
       <Paper
         sx={{
-          width: { xs: "100%", sm: "90%", md: 400 },
+          width: "100%",
+          maxWidth: 450,
           borderRadius: 2,
-          boxShadow: { xs: "none", sm: 3 },
-          backgroundColor: "rgba(255, 255, 255, 0.9)",
+          boxShadow: 3,
+          backgroundColor: "rgba(255, 255, 255, 0.95)",
           backdropFilter: "blur(10px)",
+          maxHeight: "90vh", // Ensures it fits in large screens
+          overflowY: "auto", // Enables scrolling if needed
         }}
       >
         <Box sx={{ p: 4 }}>
-          <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
+          <Typography variant="h5" sx={{ mb: 3, fontWeight: 600, textAlign: "center" }}>
             Tenant Registration
           </Typography>
           <form onSubmit={handleRegister}>
@@ -199,6 +203,10 @@ const TenantRegister = () => {
 
             <Button type="submit" variant="contained" fullWidth disabled={loading} sx={{ mb: 2 }}>
               {loading ? <CircularProgress size={24} /> : "Register"}
+            </Button>
+
+            <Button fullWidth variant="text" onClick={() => navigate("/tenant/login")} sx={{ textTransform: "none" }}>
+              Back to Login
             </Button>
           </form>
         </Box>
