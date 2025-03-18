@@ -92,7 +92,7 @@ const PropertyManagement = () => {
 
         // Update the state with the new property including the generated ID
         const newProperty = { id: docRef.id, ...propertyDetails };
-        setProperties([...properties, newProperty]);
+        setProperties((prevProperties) => [...prevProperties, newProperty]);
       }
       handleCloseDialog();
     } catch (error) {
