@@ -78,11 +78,13 @@ const PropertyManagement = () => {
         const propertyRef = doc(db, 'properties', propertyDetails.id);
         await updateDoc(propertyRef, propertyDetails);
       } else {
-        // Add new property with an auto-generated ID from Firestore
+        // Add new property
         const docRef = await addDoc(collection(db, 'properties'), propertyDetails);
         console.log('New property added with ID:', docRef.id);
+
         // Update the state with the new property including the generated ID
-        setProperties([...properties, { id: docRef.id, ...propertyDetails }]);
+        const newProperty = { id: docRef.id, ...propertyDetails };
+        setProperties([...properties, newProperty]);
       }
       handleCloseDialog();
     } catch (error) {
@@ -182,6 +184,7 @@ const PropertyManagement = () => {
           <Table>
             <TableHead>
               <TableRow>
+                <TableCell>ID</TableCell>
                 <TableCell>Property</TableCell>
                 <TableCell>Address</TableCell>
                 <TableCell>Status</TableCell>
@@ -194,6 +197,7 @@ const PropertyManagement = () => {
             <TableBody>
               {filteredProperties.map((property) => (
                 <TableRow key={property.id}>
+                  <TableCell>{property.id}</TableCell>
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                       <Avatar sx={{ bgcolor: 'primary.main' }}>
