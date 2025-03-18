@@ -145,23 +145,92 @@ const TenantRegister = () => {
         alignItems: "center",
         height: "100vh",
         background: "linear-gradient(135deg, #6200EE 0%, #FF9800 100%)",
-        px: 2,
+        overflow: "hidden",
+        position: "relative",
       }}
     >
+      {/* Animated background circles */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: "-50%",
+          left: "-50%",
+          width: "200%",
+          height: "200%",
+          background: "radial-gradient(circle, rgba(255, 255, 255, 0.1) 20%, transparent 20%)",
+          backgroundSize: "40px 40px",
+          animation: "moveBackground 10s linear infinite",
+          "@keyframes moveBackground": {
+            "0%": { transform: "translate(0, 0)" },
+            "100%": { transform: "translate(-20px, -20px)" },
+          },
+        }}
+      />
+
       <Paper
         sx={{
-          width: "100%",
-          maxWidth: 450,
+          width: { xs: "100%", sm: "90%", md: 450 },
           borderRadius: 2,
           boxShadow: 3,
           backgroundColor: "rgba(255, 255, 255, 0.95)",
           backdropFilter: "blur(10px)",
-          minHeight: "85vh", // Ensures full visibility on large screens
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
+          overflow: "hidden",
+          position: "relative",
+          zIndex: 1,
+          maxHeight: "90vh", // Ensures the form is not cut off on large screens
+          overflowY: "auto", // Adds scroll if content exceeds height
         }}
       >
+        {/* Header with gradient background, wave design, and PNG logo */}
+        <Box
+          sx={{
+            position: "relative",
+            height: 150,
+            background: "linear-gradient(90deg, #6200EE 0%, #FF9800 100%)",
+          }}
+        >
+          <Box
+            sx={{
+              height: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <img
+              src="/assets/home.png" // Update the path to your PNG image
+              alt="RentHive Logo"
+              style={{ width: 40, height: 40, marginRight: 10 }}
+            />
+            <Typography variant="h4" sx={{ fontWeight: 600, color: "#fff" }}>
+              RentHive
+            </Typography>
+          </Box>
+          <Box
+            sx={{
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              width: "100%",
+              overflow: "hidden",
+              lineHeight: 0,
+              color: "primary.main", // Wave colour now matches the navbar theme
+            }}
+          >
+            <svg
+              viewBox="0 0 500 150"
+              preserveAspectRatio="none"
+              style={{ display: "block", width: "100%", height: 50 }}
+            >
+              <path
+                d="M-0.27,76.42 C149.99,150.00 271.56,1.66 500.00,69.97 L500.00,150.00 L0.00,150.00 Z"
+                fill="currentColor"
+              />
+            </svg>
+          </Box>
+        </Box>
+
+        {/* Registration form */}
         <Box sx={{ p: 4 }}>
           <Typography variant="h5" sx={{ mb: 3, fontWeight: 600, textAlign: "center" }}>
             Tenant Registration
@@ -213,8 +282,15 @@ const TenantRegister = () => {
         </Box>
       </Paper>
 
-      <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError("")}><Alert severity="error">{error}</Alert></Snackbar>
-      <Snackbar open={!!success} autoHideDuration={6000} onClose={() => setSuccess("")}><Alert severity="success">{success}</Alert></Snackbar>
+      {/* Error Snackbar */}
+      <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError("")}>
+        <Alert severity="error">{error}</Alert>
+      </Snackbar>
+
+      {/* Success Snackbar */}
+      <Snackbar open={!!success} autoHideDuration={6000} onClose={() => setSuccess("")}>
+        <Alert severity="success">{success}</Alert>
+      </Snackbar>
     </Box>
   );
 };
