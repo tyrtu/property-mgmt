@@ -1,8 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Card, Typography, Button, TextField, Grid, Box, Chip, 
-  Avatar, InputAdornment, Dialog, DialogTitle, DialogContent, DialogActions,
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper
+import {
+  Card,
+  Typography,
+  Button,
+  TextField,
+  Grid,
+  Box,
+  Chip,
+  Avatar,
+  InputAdornment,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import { Add, Edit, Delete, Search, Apartment } from '@mui/icons-material';
 import Navigation from './Navigation';
@@ -22,7 +43,8 @@ const PropertyManagement = () => {
     totalUnits: 0,
     rentAmount: 0,
     amenities: [],
-    photos: []
+    photos: [],
+    status: 'Vacant', // Default status
   });
 
   // Enable auto-logout after 15 minutes of inactivity
@@ -31,43 +53,52 @@ const PropertyManagement = () => {
   // Fetch properties from Firestore
   useEffect(() => {
     const fetchProperties = async () => {
-      const querySnapshot = await getDocs(collection(db, "properties"));
-      const propertyList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const querySnapshot = await getDocs(collection(db, 'properties'));
+      const propertyList = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       setProperties(propertyList);
     };
-    
+
     fetchProperties();
   }, []);
 
   const handleSearch = (e) => setSearchText(e.target.value);
 
-  const filteredProperties = properties.filter(property =>
-    property.name.toLowerCase().includes(searchText.toLowerCase()) ||
-    property.address.toLowerCase().includes(searchText.toLowerCase())
+  const filteredProperties = properties.filter(
+    (property) =>
+      property.name.toLowerCase().includes(searchText.toLowerCase()) ||
+      property.address.toLowerCase().includes(searchText.toLowerCase())
   );
 
   // Handle adding/updating a property
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (editMode) {
-      const propertyRef = doc(db, "properties", propertyDetails.id);
+      const propertyRef = doc(db, 'properties', propertyDetails.id);
       await updateDoc(propertyRef, propertyDetails);
     } else {
-      await addDoc(collection(db, "properties"), propertyDetails);
+      await addDoc(collection(db, 'properties'), propertyDetails);
     }
     handleCloseDialog();
+    // Refresh the properties list
+    const querySnapshot = await getDocs(collection(db, 'properties'));
+    const propertyList = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    setProperties(propertyList);
   };
 
   const handleEdit = (id) => {
-    const property = properties.find(p => p.id === id);
+    const property = properties.find((p) => p.id === id);
     setPropertyDetails(property);
     setEditMode(true);
     setOpenDialog(true);
   };
 
   const handleDelete = async (id) => {
-    await deleteDoc(doc(db, "properties", id));
-    setProperties(properties.filter(property => property.id !== id));
+    try {
+      await deleteDoc(doc(db, 'properties', id));
+      setProperties(properties.filter((property) => property.id !== id));
+    } catch (error) {
+      console.error('Error deleting property:', error);
+    }
   };
 
   const handleCloseDialog = () => {
@@ -80,8 +111,17 @@ const PropertyManagement = () => {
       totalUnits: 0,
       rentAmount: 0,
       amenities: [],
-      photos: []
+      photos: [],
+      status: 'Vacant',
     });
+  };
+
+  // Handle array inputs (amenities and photos)
+  const handleArrayInput = (field, value) => {
+    setPropertyDetails((prev) => ({
+      ...prev,
+      [field]: value.split(',').map((item) => item.trim()),
+    }));
   };
 
   return (
@@ -90,11 +130,7 @@ const PropertyManagement = () => {
       <Box sx={{ p: 3, height: '100vh' }}>
         <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="h4">Property Management</Typography>
-          <Button 
-            variant="contained" 
-            startIcon={<Add />}
-            onClick={() => setOpenDialog(true)}
-          >
+          <Button variant="contained" startIcon={<Add />} onClick={() => setOpenDialog(true)}>
             Add Property
           </Button>
         </Box>
@@ -110,21 +146,21 @@ const PropertyManagement = () => {
                   <InputAdornment position="start">
                     <Search />
                   </InputAdornment>
-                )
+                ),
               }}
               value={searchText}
               onChange={handleSearch}
             />
             <Chip label={`Total: ${properties.length}`} variant="outlined" />
-            <Chip 
-              label={`Occupied: ${properties.filter(p => p.status === 'Occupied').length}`} 
-              color="success" 
-              variant="outlined" 
+            <Chip
+              label={`Occupied: ${properties.filter((p) => p.status === 'Occupied').length}`}
+              color="success"
+              variant="outlined"
             />
-            <Chip 
-              label={`Vacant: ${properties.filter(p => p.status === 'Vacant').length}`} 
-              color="warning" 
-              variant="outlined" 
+            <Chip
+              label={`Vacant: ${properties.filter((p) => p.status === 'Vacant').length}`}
+              color="warning"
+              variant="outlined"
             />
           </Box>
         </Card>
@@ -155,15 +191,15 @@ const PropertyManagement = () => {
                   </TableCell>
                   <TableCell>{property.address}</TableCell>
                   <TableCell>
-                    <Chip 
-                      label={property.status} 
+                    <Chip
+                      label={property.status}
                       color={property.status === 'Occupied' ? 'success' : 'warning'}
                       variant="outlined"
                     />
                   </TableCell>
                   <TableCell>
-                    {property.occupiedUnits}/{property.totalUnits} {' '}
-                    ({((property.occupiedUnits / property.totalUnits) * 100).toFixed(1)}%)
+                    {property.occupiedUnits}/{property.totalUnits} (
+                    {((property.occupiedUnits / property.totalUnits) * 100).toFixed(1)}%)
                   </TableCell>
                   <TableCell>${property.rentAmount.toLocaleString()}</TableCell>
                   <TableCell>
@@ -174,15 +210,15 @@ const PropertyManagement = () => {
                     </Box>
                   </TableCell>
                   <TableCell>
-                    <Button 
-                      startIcon={<Edit />} 
+                    <Button
+                      startIcon={<Edit />}
                       onClick={() => handleEdit(property.id)}
                       sx={{ mr: 1 }}
                     >
                       Edit
                     </Button>
-                    <Button 
-                      startIcon={<Delete />} 
+                    <Button
+                      startIcon={<Delete />}
                       onClick={() => handleDelete(property.id)}
                       color="error"
                     >
@@ -205,7 +241,7 @@ const PropertyManagement = () => {
                   label="Property Name"
                   margin="normal"
                   value={propertyDetails.name}
-                  onChange={e => setPropertyDetails({...propertyDetails, name: e.target.value})}
+                  onChange={(e) => setPropertyDetails({ ...propertyDetails, name: e.target.value })}
                 />
                 <TextField
                   fullWidth
@@ -214,7 +250,57 @@ const PropertyManagement = () => {
                   multiline
                   rows={3}
                   value={propertyDetails.address}
-                  onChange={e => setPropertyDetails({...propertyDetails, address: e.target.value})}
+                  onChange={(e) => setPropertyDetails({ ...propertyDetails, address: e.target.value })}
+                />
+                <TextField
+                  fullWidth
+                  label="Total Units"
+                  margin="normal"
+                  type="number"
+                  value={propertyDetails.totalUnits}
+                  onChange={(e) =>
+                    setPropertyDetails({ ...propertyDetails, totalUnits: parseInt(e.target.value) })
+                  }
+                />
+                <TextField
+                  fullWidth
+                  label="Rent Amount"
+                  margin="normal"
+                  type="number"
+                  value={propertyDetails.rentAmount}
+                  onChange={(e) =>
+                    setPropertyDetails({ ...propertyDetails, rentAmount: parseFloat(e.target.value) })
+                  }
+                />
+                <FormControl fullWidth margin="normal">
+                  <InputLabel>Status</InputLabel>
+                  <Select
+                    value={propertyDetails.status}
+                    onChange={(e) =>
+                      setPropertyDetails({ ...propertyDetails, status: e.target.value })
+                    }
+                  >
+                    <MenuItem value="Occupied">Occupied</MenuItem>
+                    <MenuItem value="Vacant">Vacant</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Amenities (comma-separated)"
+                  margin="normal"
+                  value={propertyDetails.amenities.join(', ')}
+                  onChange={(e) => handleArrayInput('amenities', e.target.value)}
+                  helperText="Enter amenities separated by commas, e.g., Gym, Pool, Parking"
+                />
+                <TextField
+                  fullWidth
+                  label="Photo URLs (comma-separated)"
+                  margin="normal"
+                  value={propertyDetails.photos.join(', ')}
+                  onChange={(e) => handleArrayInput('photos', e.target.value)}
+                  helperText="Enter photo URLs separated by commas"
                 />
               </Grid>
             </Grid>
