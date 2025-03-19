@@ -271,7 +271,7 @@ const PropertyManagement = () => {
         {/* Summary Cards */}
         <Grid container spacing={3} sx={{ mb: 3 }}>
           <Grid item xs={12} md={4}>
-            <Card sx={{ p: 2, bgcolor: '#5d917f', borderRadius: 2 }}>
+            <Card sx={{ p: 2, bgcolor: '#bccef5', borderRadius: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Home sx={{ fontSize: 40, color: '#00bcd4' }} />
                 <Box>
