@@ -27,7 +27,7 @@ import {
   Switch,
   CircularProgress,
 } from '@mui/material';
-import { Add, Edit, Delete, Search, Apartment } from '@mui/icons-material';
+import { Add, Edit, Delete, Search, Apartment, Home, Hotel, MeetingRoom } from '@mui/icons-material';
 import Navigation from './Navigation';
 import useAutoLogout from '../hooks/useAutoLogout';
 import { db } from '../firebase';
@@ -41,7 +41,7 @@ import {
   query,
   where,
 } from 'firebase/firestore';
-import { PieChart, Pie, Cell, Legend, Tooltip } from 'recharts';
+import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer } from 'recharts';
 
 const PropertyManagement = () => {
   const [properties, setProperties] = useState([]);
@@ -271,25 +271,42 @@ const PropertyManagement = () => {
         {/* Summary Cards */}
         <Grid container spacing={3} sx={{ mb: 3 }}>
           <Grid item xs={12} md={4}>
-            <Card sx={{ p: 2 }}>
-              <Typography variant="h6">Total Properties</Typography>
-              <Typography variant="h4">{properties.length}</Typography>
+            <Card sx={{ p: 2, bgcolor: '#e3f2fd', borderRadius: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Home sx={{ fontSize: 40, color: '#1976d2' }} />
+                <Box>
+                  <Typography variant="h6">Total Properties</Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+                    {properties.length}
+                  </Typography>
+                </Box>
+              </Box>
             </Card>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Card sx={{ p: 2 }}>
-              <Typography variant="h6">Occupied Units</Typography>
-              <Typography variant="h4">
-                {properties.reduce((acc, property) => acc + property.occupiedUnits, 0)}
-              </Typography>
+            <Card sx={{ p: 2, bgcolor: '#f0f4c3', borderRadius: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Hotel sx={{ fontSize: 40, color: '#8bc34a' }} />
+                <Box>
+                  <Typography variant="h6">Occupied Units</Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+                    {properties.reduce((acc, property) => acc + property.occupiedUnits, 0)}
+                  </Typography>
+                </Box>
+              </Box>
             </Card>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Card sx={{ p: 2 }}>
-              <Typography variant="h6">Vacant Units</Typography>
-              <Typography variant="h4">
-                {properties.reduce((acc, property) => acc + (property.totalUnits - property.occupiedUnits), 0)}
-              </Typography>
+            <Card sx={{ p: 2, bgcolor: '#ffccbc', borderRadius: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <MeetingRoom sx={{ fontSize: 40, color: '#ff5722' }} />
+                <Box>
+                  <Typography variant="h6">Vacant Units</Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+                    {properties.reduce((acc, property) => acc + (property.totalUnits - property.occupiedUnits), 0)}
+                  </Typography>
+                </Box>
+              </Box>
             </Card>
           </Grid>
         </Grid>
@@ -385,7 +402,7 @@ const PropertyManagement = () => {
               <CircularProgress />
             </Box>
           ) : selectedProperty ? (
-            <Card sx={{ p: 3 }}>
+            <Card sx={{ p: 3, borderRadius: 2 }}>
               <Grid container spacing={3}>
                 <Grid item xs={12} md={6}>
                   <Typography variant="h6">
@@ -442,23 +459,36 @@ const PropertyManagement = () => {
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <Typography variant="h6" sx={{ mb: 2 }}>Occupancy Chart</Typography>
-                  <PieChart width={400} height={400}>
-                    <Pie
-                      data={occupancyData}
-                      cx={200}
-                      cy={200}
-                      labelLine={false}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {occupancyData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={occupancyData}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                        label
+                      >
+                        {occupancyData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#fff',
+                          border: '1px solid #ddd',
+                          borderRadius: '4px',
+                          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                        }}
+                      />
+                      <Legend
+                        wrapperStyle={{
+                          paddingTop: '10px',
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
                 </Grid>
               </Grid>
             </Card>
