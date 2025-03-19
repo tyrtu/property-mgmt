@@ -273,7 +273,7 @@ const PropertyManagement = () => {
           <Grid item xs={12} md={4}>
             <Card sx={{ p: 2, bgcolor: '#f5d0db', borderRadius: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Home sx={{ fontSize: 40, color: '#9860f7' }} />
+                <Home sx={{ fontSize: 40, color: '#af89f0' }} />
                 <Box>
                   <Typography variant="h6">Total Properties</Typography>
                   <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
