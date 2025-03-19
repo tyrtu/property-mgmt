@@ -24,6 +24,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Switch,
+  CircularProgress,
 } from '@mui/material';
 import { Add, Edit, Delete, Search, Apartment } from '@mui/icons-material';
 import Navigation from './Navigation';
@@ -62,6 +64,7 @@ const PropertyManagement = () => {
 
   // State for viewing full property details
   const [selectedProperty, setSelectedProperty] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   // Enable auto-logout after 15 minutes of inactivity
   useAutoLogout();
@@ -76,6 +79,11 @@ const PropertyManagement = () => {
           ...doc.data(),
         }));
         setProperties(propertyList);
+
+        // Select the first property by default
+        if (propertyList.length > 0) {
+          handleViewDetails(propertyList[0]);
+        }
       } catch (error) {
         console.error('Error fetching properties:', error);
       }
@@ -197,6 +205,7 @@ const PropertyManagement = () => {
   // Handle viewing full property details (including units)
   const handleViewDetails = async (property) => {
     try {
+      setLoading(true);
       let propertyId = property.id;
       // If id is not available, query by propertyNo
       if (!propertyId) {
@@ -221,14 +230,30 @@ const PropertyManagement = () => {
       setSelectedProperty({ ...property, id: propertyId, units: unitsData });
     } catch (error) {
       console.error('Error fetching property units:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Toggle occupancy status of a unit
+  const handleToggleOccupancy = async (unitId, isOccupied) => {
+    try {
+      const unitRef = doc(db, 'properties', selectedProperty.id, 'units', unitId);
+      await updateDoc(unitRef, { occupied: !isOccupied });
+      // Refresh the selected property details
+      handleViewDetails(selectedProperty);
+    } catch (error) {
+      console.error('Error toggling occupancy:', error);
     }
   };
 
   // Data for the occupancy pie chart
-  const occupancyData = [
-    { name: 'Occupied', value: selectedProperty ? selectedProperty.occupiedUnits : 0 },
-    { name: 'Vacant', value: selectedProperty ? selectedProperty.totalUnits - selectedProperty.occupiedUnits : 0 },
-  ];
+  const occupancyData = selectedProperty
+    ? [
+        { name: 'Occupied', value: selectedProperty.occupiedUnits },
+        { name: 'Vacant', value: selectedProperty.totalUnits - selectedProperty.occupiedUnits },
+      ]
+    : [];
 
   const COLORS = ['#0088FE', '#00C49F'];
 
@@ -243,36 +268,33 @@ const PropertyManagement = () => {
           </Button>
         </Box>
 
-        <Card sx={{ mb: 3 }}>
-          <Box sx={{ p: 2, display: 'flex', gap: 2, alignItems: 'center' }}>
-            <TextField
-              fullWidth
-              variant="outlined"
-              placeholder="Search properties..."
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Search />
-                  </InputAdornment>
-                ),
-              }}
-              value={searchText}
-              onChange={handleSearch}
-            />
-            <Chip label={`Total: ${properties.length}`} variant="outlined" />
-            <Chip
-              label={`Occupied: ${properties.filter((p) => p.status === 'Occupied').length}`}
-              color="success"
-              variant="outlined"
-            />
-            <Chip
-              label={`Vacant: ${properties.filter((p) => p.status === 'Vacant').length}`}
-              color="warning"
-              variant="outlined"
-            />
-          </Box>
-        </Card>
+        {/* Summary Cards */}
+        <Grid container spacing={3} sx={{ mb: 3 }}>
+          <Grid item xs={12} md={4}>
+            <Card sx={{ p: 2 }}>
+              <Typography variant="h6">Total Properties</Typography>
+              <Typography variant="h4">{properties.length}</Typography>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Card sx={{ p: 2 }}>
+              <Typography variant="h6">Occupied Units</Typography>
+              <Typography variant="h4">
+                {properties.reduce((acc, property) => acc + property.occupiedUnits, 0)}
+              </Typography>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Card sx={{ p: 2 }}>
+              <Typography variant="h6">Vacant Units</Typography>
+              <Typography variant="h4">
+                {properties.reduce((acc, property) => acc + (property.totalUnits - property.occupiedUnits), 0)}
+              </Typography>
+            </Card>
+          </Grid>
+        </Grid>
 
+        {/* Property List Table */}
         <TableContainer component={Paper}>
           <Table>
             <TableHead>
@@ -336,7 +358,7 @@ const PropertyManagement = () => {
           </Table>
         </TableContainer>
 
-        {/* New Section: Property Details */}
+        {/* Property Details Section */}
         <Box sx={{ mt: 4 }}>
           <Typography variant="h5" sx={{ mb: 2 }}>Property Details</Typography>
           <FormControl fullWidth sx={{ mb: 3 }}>
@@ -358,7 +380,11 @@ const PropertyManagement = () => {
             </Select>
           </FormControl>
 
-          {selectedProperty && (
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : selectedProperty ? (
             <Card sx={{ p: 3 }}>
               <Grid container spacing={3}>
                 <Grid item xs={12} md={6}>
@@ -390,7 +416,7 @@ const PropertyManagement = () => {
                             <TableRow>
                               <TableCell>Unit Number</TableCell>
                               <TableCell>Occupied</TableCell>
-                              <TableCell>Tenant ID</TableCell>
+                              <TableCell>Toggle Occupancy</TableCell>
                             </TableRow>
                           </TableHead>
                           <TableBody>
@@ -399,7 +425,10 @@ const PropertyManagement = () => {
                                 <TableCell>{unit.number}</TableCell>
                                 <TableCell>{unit.occupied ? 'Yes' : 'No'}</TableCell>
                                 <TableCell>
-                                  {unit.occupied ? unit.tenantId || 'N/A' : 'N/A'}
+                                  <Switch
+                                    checked={unit.occupied}
+                                    onChange={() => handleToggleOccupancy(unit.id, unit.occupied)}
+                                  />
                                 </TableCell>
                               </TableRow>
                             ))}
@@ -433,6 +462,8 @@ const PropertyManagement = () => {
                 </Grid>
               </Grid>
             </Card>
+          ) : (
+            <Typography variant="body1">No property selected.</Typography>
           )}
         </Box>
 
