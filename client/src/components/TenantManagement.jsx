@@ -22,6 +22,11 @@ import {
   ListItemIcon,
   ListItemText,
   Divider,
+  Switch,
+  FormControlLabel,
+  Tooltip,
+  IconButton,
+  Badge,
 } from '@mui/material';
 import {
   Edit,
@@ -31,6 +36,12 @@ import {
   Notifications,
   MarkEmailRead,
   CheckCircle,
+  DarkMode,
+  LightMode,
+  Send,
+  Payment,
+  History,
+  Assignment,
 } from '@mui/icons-material';
 import { DataGrid } from '@mui/x-data-grid';
 import { collection, getDocs, onSnapshot, query, where, orderBy, doc, getDoc, deleteDoc } from 'firebase/firestore';
@@ -41,7 +52,7 @@ import useAutoLogout from '../hooks/useAutoLogout';
 const TenantManagement = () => {
   const [tenants, setTenants] = useState([]);
   const [filteredTenants, setFilteredTenants] = useState([]);
-  const [properties, setProperties] = useState([]); // Store properties from Firebase
+  const [properties, setProperties] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProperty, setSelectedProperty] = useState('all');
@@ -49,6 +60,8 @@ const TenantManagement = () => {
   const [recentNotifications, setRecentNotifications] = useState([]);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [darkMode, setDarkMode] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
   useAutoLogout();
 
@@ -59,7 +72,7 @@ const TenantManagement = () => {
     const unsubscribe = onSnapshot(tenantsQuery, (snapshot) => {
       const tenantData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       setTenants(tenantData);
-      setFilteredTenants(tenantData); // Initialize filtered list
+      setFilteredTenants(tenantData);
     });
 
     return () => unsubscribe();
@@ -71,7 +84,7 @@ const TenantManagement = () => {
       const propertiesSnapshot = await getDocs(collection(db, 'properties'));
       const propertyList = propertiesSnapshot.docs.map((doc) => ({
         id: doc.id,
-        name: doc.data().name, // Ensure each property has a "name" field
+        name: doc.data().name,
       }));
       setProperties(propertyList);
     };
@@ -137,67 +150,34 @@ const TenantManagement = () => {
       setSnackbarMessage('Error deleting tenant');
       setSnackbarOpen(true);
     }
+    setConfirmDelete(null);
   };
 
-  // Success notification
-  const handleNotificationSuccess = (message) => {
-    setSnackbarMessage(message);
-    setSnackbarOpen(true);
+  // Confirm delete dialog
+  const handleConfirmDelete = (tenantId) => {
+    setConfirmDelete(tenantId);
   };
 
-  // Table columns
-  const columns = [
-    {
-      field: 'name',
-      headerName: 'Tenant',
-      width: 300, // Increased width for better visibility
-      renderCell: (params) => (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Avatar src={`https://i.pravatar.cc/80?u=${params.row.id}`}>
-            {params.row.name[0]}
-          </Avatar>
-          <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-              {params.row.name}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'normal' }}>
-              {params.row.email}
-            </Typography>
-          </Box>
-        </Box>
-      ),
-    },
-    { field: 'phone', headerName: 'Phone', width: 150 },
-    { field: 'paymentStatus', headerName: 'Payment Status', width: 150 },
-    {
-      field: 'actions',
-      headerName: 'Actions',
-      width: 200,
-      renderCell: (params) => (
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <Button variant="outlined" color="primary" onClick={() => handleViewTenant(params.row.id)}>
-            View More
-          </Button>
-          <Button
-            variant="outlined"
-            color="secondary"
-            onClick={() => handleDeleteTenant(params.row.id)}
-          >
-            Delete
-          </Button>
-        </Box>
-      ),
-    },
-  ];
+  // Toggle dark mode
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+  };
 
   return (
-    <>
+    <Box sx={{ backgroundColor: darkMode ? '#121212' : '#f5f5f5', minHeight: '100vh' }}>
       <Navigation />
       <Container maxWidth="xl" sx={{ py: 4 }}>
-        <Card sx={{ p: 3, mb: 3 }}>
-          <Typography variant="h4" sx={{ fontWeight: 700 }}>
-            Tenant Management Portal
-          </Typography>
+        <Card sx={{ p: 3, mb: 3, backgroundColor: darkMode ? '#1e1e1e' : '#fff' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h4" sx={{ fontWeight: 700, color: darkMode ? '#fff' : '#000' }}>
+              Tenant Management Portal
+            </Typography>
+            <Tooltip title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>
+              <IconButton onClick={toggleDarkMode} color="inherit">
+                {darkMode ? <LightMode /> : <DarkMode />}
+              </IconButton>
+            </Tooltip>
+          </Box>
 
           {/* Search & Filter */}
           <Box sx={{ display: 'flex', gap: 2, my: 3 }}>
@@ -207,11 +187,13 @@ const TenantManagement = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               InputProps={{ startAdornment: <Search /> }}
+              sx={{ backgroundColor: darkMode ? '#333' : '#fff' }}
             />
             <Select
               value={selectedProperty}
               onChange={(e) => setSelectedProperty(e.target.value)}
               displayEmpty
+              sx={{ backgroundColor: darkMode ? '#333' : '#fff' }}
             >
               <MenuItem value="all">All Properties</MenuItem>
               {properties.map((property) => (
@@ -222,70 +204,102 @@ const TenantManagement = () => {
             </Select>
           </Box>
 
-          {/* Data Table */}
-          <Box sx={{ height: 600, width: '100%' }}>
-            <DataGrid
-              rows={filteredTenants}
-              columns={columns}
-              pageSize={10}
-              rowsPerPageOptions={[10]}
-              disableSelectionOnClick
-            />
-          </Box>
-
-          {/* Recent Notifications */}
-          <Card sx={{ p: 3, mt: 3 }}>
-            <Typography variant="h5">
-              <Notifications color="primary" /> Recently Sent Notifications
-            </Typography>
-            <List>
-              {recentNotifications.map((note) => (
-                <React.Fragment key={note.id}>
-                  <ListItem>
-                    <ListItemIcon>
-                      {note.isRead ? <MarkEmailRead color="success" /> : <CheckCircle />}
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={note.message}
-                      secondary={`Sent to ${note.tenantName} on ${note.createdAt.toLocaleString()}`}
+          {/* Tenant Profile Cards */}
+          <Grid container spacing={3}>
+            {filteredTenants.map((tenant) => (
+              <Grid item xs={12} sm={6} md={4} key={tenant.id}>
+                <Card sx={{ p: 2, backgroundColor: darkMode ? '#333' : '#fff' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Avatar src={`https://i.pravatar.cc/80?u=${tenant.id}`}>
+                      {tenant.name[0]}
+                    </Avatar>
+                    <Box>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600, color: darkMode ? '#fff' : '#000' }}>
+                        {tenant.name}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {tenant.email}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Box sx={{ mt: 2 }}>
+                    <Chip
+                      label={tenant.paymentStatus}
+                      color={
+                        tenant.paymentStatus === 'Paid'
+                          ? 'success'
+                          : tenant.paymentStatus === 'Pending'
+                          ? 'warning'
+                          : 'error'
+                      }
+                      size="small"
                     />
-                  </ListItem>
-                  <Divider />
-                </React.Fragment>
-              ))}
-            </List>
-          </Card>
+                  </Box>
+                  <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      onClick={() => handleViewTenant(tenant.id)}
+                    >
+                      View More
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      onClick={() => handleConfirmDelete(tenant.id)}
+                    >
+                      Delete
+                    </Button>
+                  </Box>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+
+          {/* Confirm Delete Dialog */}
+          <Dialog open={Boolean(confirmDelete)} onClose={() => setConfirmDelete(null)}>
+            <DialogTitle>Confirm Delete</DialogTitle>
+            <DialogContent>
+              <Typography>Are you sure you want to delete this tenant?</Typography>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setConfirmDelete(null)}>Cancel</Button>
+              <Button onClick={() => handleDeleteTenant(confirmDelete)} color="error">
+                Delete
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+          {/* Tenant Details Dialog */}
+          {viewTenant && (
+            <Dialog open={Boolean(viewTenant)} onClose={handleCloseViewDialog}>
+              <DialogTitle>Tenant Details</DialogTitle>
+              <DialogContent>
+                <Typography>Name: {viewTenant.name}</Typography>
+                <Typography>Email: {viewTenant.email}</Typography>
+                <Typography>Phone: {viewTenant.phone}</Typography>
+                <Typography>Property ID: {viewTenant.propertyId}</Typography>
+                <Typography>Rent Amount: {viewTenant.rentAmount}</Typography>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={handleCloseViewDialog}>Close</Button>
+              </DialogActions>
+            </Dialog>
+          )}
+
+          {/* Snackbar for Notifications */}
+          <Snackbar
+            open={snackbarOpen}
+            autoHideDuration={6000}
+            onClose={() => setSnackbarOpen(false)}
+          >
+            <Alert severity="success" onClose={() => setSnackbarOpen(false)}>
+              {snackbarMessage}
+            </Alert>
+          </Snackbar>
         </Card>
       </Container>
-
-      {/* Tenant Details Dialog */}
-      {viewTenant && (
-        <Dialog open={Boolean(viewTenant)} onClose={handleCloseViewDialog}>
-          <DialogTitle>Tenant Details</DialogTitle>
-          <DialogContent>
-            <Typography>Name: {viewTenant.name}</Typography>
-            <Typography>Email: {viewTenant.email}</Typography>
-            <Typography>Phone: {viewTenant.phone}</Typography>
-            <Typography>Property ID: {viewTenant.propertyId}</Typography>
-            <Typography>Rent Amount: {viewTenant.rentAmount}</Typography>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseViewDialog}>Close</Button>
-          </DialogActions>
-        </Dialog>
-      )}
-
-      {/* Snackbar for Notifications */}
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={6000}
-        onClose={() => setSnackbarOpen(false)}
-      >
-        <Alert severity="success" onClose={() => setSnackbarOpen(false)}>
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
-    </>
+    </Box>
   );
 };
 
