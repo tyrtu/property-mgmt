@@ -39,6 +39,7 @@ import {
   query,
   where,
 } from 'firebase/firestore';
+import { PieChart, Pie, Cell, Legend, Tooltip } from 'recharts';
 
 const PropertyManagement = () => {
   const [properties, setProperties] = useState([]);
@@ -60,8 +61,7 @@ const PropertyManagement = () => {
   });
 
   // State for viewing full property details
-  const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
-  const [selectedPropertyDetails, setSelectedPropertyDetails] = useState(null);
+  const [selectedProperty, setSelectedProperty] = useState(null);
 
   // Enable auto-logout after 15 minutes of inactivity
   useAutoLogout();
@@ -195,7 +195,6 @@ const PropertyManagement = () => {
   };
 
   // Handle viewing full property details (including units)
-  // This function will try to fetch property details using property id; if not found, it falls back to using propertyNo.
   const handleViewDetails = async (property) => {
     try {
       let propertyId = property.id;
@@ -219,17 +218,19 @@ const PropertyManagement = () => {
         await updateDoc(doc(db, 'properties', propertyId), { occupiedUnits: occupiedCount });
         property.occupiedUnits = occupiedCount;
       }
-      setSelectedPropertyDetails({ ...property, id: propertyId, units: unitsData });
-      setOpenDetailsDialog(true);
+      setSelectedProperty({ ...property, id: propertyId, units: unitsData });
     } catch (error) {
       console.error('Error fetching property units:', error);
     }
   };
 
-  const handleCloseDetailsDialog = () => {
-    setOpenDetailsDialog(false);
-    setSelectedPropertyDetails(null);
-  };
+  // Data for the occupancy pie chart
+  const occupancyData = [
+    { name: 'Occupied', value: selectedProperty ? selectedProperty.occupiedUnits : 0 },
+    { name: 'Vacant', value: selectedProperty ? selectedProperty.totalUnits - selectedProperty.occupiedUnits : 0 },
+  ];
+
+  const COLORS = ['#0088FE', '#00C49F'];
 
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: 'background.default' }}>
@@ -328,15 +329,112 @@ const PropertyManagement = () => {
                     >
                       Delete
                     </Button>
-                    <Button variant="outlined" onClick={() => handleViewDetails(property)}>
-                      View Details
-                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </TableContainer>
+
+        {/* New Section: Property Details */}
+        <Box sx={{ mt: 4 }}>
+          <Typography variant="h5" sx={{ mb: 2 }}>Property Details</Typography>
+          <FormControl fullWidth sx={{ mb: 3 }}>
+            <InputLabel>Select Property</InputLabel>
+            <Select
+              value={selectedProperty ? selectedProperty.id : ''}
+              onChange={(e) => {
+                const property = properties.find((p) => p.id === e.target.value);
+                if (property) {
+                  handleViewDetails(property);
+                }
+              }}
+            >
+              {properties.map((property) => (
+                <MenuItem key={property.id} value={property.id}>
+                  {property.name} (No. {property.propertyNo})
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          {selectedProperty && (
+            <Card sx={{ p: 3 }}>
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="h6">
+                    {selectedProperty.name} (No. {selectedProperty.propertyNo})
+                  </Typography>
+                  <Typography variant="body1">
+                    Address: {selectedProperty.address}
+                  </Typography>
+                  <Typography variant="body1">
+                    Occupancy: {selectedProperty.occupiedUnits}/{selectedProperty.totalUnits} (
+                    {selectedProperty.totalUnits > 0
+                      ? ((selectedProperty.occupiedUnits / selectedProperty.totalUnits) * 100).toFixed(1)
+                      : 0}
+                    %)
+                  </Typography>
+                  <Typography variant="body1">
+                    Rent: ${selectedProperty.rentAmount.toLocaleString()}
+                  </Typography>
+                  <Typography variant="body1">
+                    Status: {selectedProperty.status}
+                  </Typography>
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="subtitle1">Units:</Typography>
+                    {selectedProperty.units && selectedProperty.units.length > 0 ? (
+                      <TableContainer component={Paper}>
+                        <Table size="small">
+                          <TableHead>
+                            <TableRow>
+                              <TableCell>Unit Number</TableCell>
+                              <TableCell>Occupied</TableCell>
+                              <TableCell>Tenant ID</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {selectedProperty.units.map((unit) => (
+                              <TableRow key={unit.id}>
+                                <TableCell>{unit.number}</TableCell>
+                                <TableCell>{unit.occupied ? 'Yes' : 'No'}</TableCell>
+                                <TableCell>
+                                  {unit.occupied ? unit.tenantId || 'N/A' : 'N/A'}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    ) : (
+                      <Typography variant="body2">No units available.</Typography>
+                    )}
+                  </Box>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="h6" sx={{ mb: 2 }}>Occupancy Chart</Typography>
+                  <PieChart width={400} height={400}>
+                    <Pie
+                      data={occupancyData}
+                      cx={200}
+                      cy={200}
+                      labelLine={false}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {occupancyData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </Grid>
+              </Grid>
+            </Card>
+          )}
+        </Box>
 
         {/* Dialog for adding/editing property */}
         <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
@@ -434,68 +532,6 @@ const PropertyManagement = () => {
             <Button variant="contained" onClick={handleSubmit}>
               {editMode ? 'Update Property' : 'Add Property'}
             </Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Dialog for viewing full property details */}
-        <Dialog open={openDetailsDialog} onClose={handleCloseDetailsDialog} maxWidth="md" fullWidth>
-          <DialogTitle>Property Details</DialogTitle>
-          <DialogContent>
-            {selectedPropertyDetails && (
-              <Box>
-                <Typography variant="h6">
-                  {selectedPropertyDetails.name} (No. {selectedPropertyDetails.propertyNo})
-                </Typography>
-                <Typography variant="body1">
-                  Address: {selectedPropertyDetails.address}
-                </Typography>
-                <Typography variant="body1">
-                  Occupancy: {selectedPropertyDetails.occupiedUnits}/{selectedPropertyDetails.totalUnits} (
-                  {selectedPropertyDetails.totalUnits > 0
-                    ? ((selectedPropertyDetails.occupiedUnits / selectedPropertyDetails.totalUnits) * 100).toFixed(1)
-                    : 0}
-                  %)
-                </Typography>
-                <Typography variant="body1">
-                  Rent: ${selectedPropertyDetails.rentAmount.toLocaleString()}
-                </Typography>
-                <Typography variant="body1">
-                  Status: {selectedPropertyDetails.status}
-                </Typography>
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="subtitle1">Units:</Typography>
-                  {selectedPropertyDetails.units && selectedPropertyDetails.units.length > 0 ? (
-                    <TableContainer component={Paper}>
-                      <Table size="small">
-                        <TableHead>
-                          <TableRow>
-                            <TableCell>Unit Number</TableCell>
-                            <TableCell>Occupied</TableCell>
-                            <TableCell>Tenant ID</TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {selectedPropertyDetails.units.map((unit) => (
-                            <TableRow key={unit.id}>
-                              <TableCell>{unit.number}</TableCell>
-                              <TableCell>{unit.occupied ? 'Yes' : 'No'}</TableCell>
-                              <TableCell>
-                                {unit.occupied ? unit.tenantId || 'N/A' : 'N/A'}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
-                  ) : (
-                    <Typography variant="body2">No units available.</Typography>
-                  )}
-                </Box>
-              </Box>
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseDetailsDialog}>Close</Button>
           </DialogActions>
         </Dialog>
       </Box>
