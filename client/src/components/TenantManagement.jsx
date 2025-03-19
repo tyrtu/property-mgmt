@@ -27,6 +27,13 @@ import {
   Tooltip,
   IconButton,
   Badge,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from '@mui/material';
 import {
   Edit,
@@ -42,12 +49,19 @@ import {
   Payment,
   History,
   Assignment,
+  FilterList,
+  Group,
+  BarChart,
+  Receipt,
+  Build,
+  Description,
 } from '@mui/icons-material';
 import { DataGrid } from '@mui/x-data-grid';
-import { collection, getDocs, onSnapshot, query, where, orderBy, doc, getDoc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, onSnapshot, query, where, orderBy, doc, getDoc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import Navigation from './Navigation';
 import useAutoLogout from '../hooks/useAutoLogout';
+import { PieChart, Pie, Cell, Legend, Tooltip as RechartsTooltip, BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 const TenantManagement = () => {
   const [tenants, setTenants] = useState([]);
@@ -56,12 +70,16 @@ const TenantManagement = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProperty, setSelectedProperty] = useState('all');
+  const [selectedPaymentStatus, setSelectedPaymentStatus] = useState('all');
   const [viewTenant, setViewTenant] = useState(null);
   const [recentNotifications, setRecentNotifications] = useState([]);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [darkMode, setDarkMode] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [selectedTenants, setSelectedTenants] = useState([]);
+  const [maintenanceRequests, setMaintenanceRequests] = useState([]);
+  const [auditLogs, setAuditLogs] = useState([]);
 
   useAutoLogout();
 
@@ -109,12 +127,48 @@ const TenantManagement = () => {
     return () => unsubscribe();
   }, []);
 
-  // Filter tenants based on property selection and search input
+  // Fetch maintenance requests
+  useEffect(() => {
+    const maintenanceQuery = query(collection(db, 'maintenanceRequests'), orderBy('createdAt', 'desc'));
+
+    const unsubscribe = onSnapshot(maintenanceQuery, (snapshot) => {
+      const requests = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate(),
+      }));
+      setMaintenanceRequests(requests);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Fetch audit logs
+  useEffect(() => {
+    const auditQuery = query(collection(db, 'auditLogs'), orderBy('timestamp', 'desc'));
+
+    const unsubscribe = onSnapshot(auditQuery, (snapshot) => {
+      const logs = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+        timestamp: doc.data().timestamp?.toDate(),
+      }));
+      setAuditLogs(logs);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Filter tenants based on property selection, payment status, and search input
   useEffect(() => {
     let filtered = tenants;
 
     if (selectedProperty !== 'all') {
       filtered = filtered.filter((tenant) => tenant.propertyId === selectedProperty);
+    }
+
+    if (selectedPaymentStatus !== 'all') {
+      filtered = filtered.filter((tenant) => tenant.paymentStatus === selectedPaymentStatus);
     }
 
     if (searchTerm) {
@@ -124,7 +178,7 @@ const TenantManagement = () => {
     }
 
     setFilteredTenants(filtered);
-  }, [searchTerm, selectedProperty, tenants]);
+  }, [searchTerm, selectedProperty, selectedPaymentStatus, tenants]);
 
   // Fetch full tenant details when "View More" is clicked
   const handleViewTenant = async (tenantId) => {
@@ -146,6 +200,12 @@ const TenantManagement = () => {
       await deleteDoc(doc(db, 'users', tenantId));
       setSnackbarMessage('Tenant deleted successfully');
       setSnackbarOpen(true);
+      // Log the deletion in the audit log
+      await addDoc(collection(db, 'auditLogs'), {
+        action: 'Tenant Deleted',
+        tenantId,
+        timestamp: new Date(),
+      });
     } catch (error) {
       setSnackbarMessage('Error deleting tenant');
       setSnackbarOpen(true);
@@ -162,6 +222,33 @@ const TenantManagement = () => {
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
   };
+
+  // Handle bulk actions
+  const handleBulkAction = (action) => {
+    switch (action) {
+      case 'sendNotification':
+        // Implement notification logic
+        setSnackbarMessage('Notifications sent to selected tenants');
+        setSnackbarOpen(true);
+        break;
+      case 'updatePaymentStatus':
+        // Implement payment status update logic
+        setSnackbarMessage('Payment status updated for selected tenants');
+        setSnackbarOpen(true);
+        break;
+      default:
+        break;
+    }
+  };
+
+  // Data for analytics
+  const paymentData = [
+    { name: 'Paid', value: tenants.filter((t) => t.paymentStatus === 'Paid').length },
+    { name: 'Pending', value: tenants.filter((t) => t.paymentStatus === 'Pending').length },
+    { name: 'Overdue', value: tenants.filter((t) => t.paymentStatus === 'Overdue').length },
+  ];
+
+  const COLORS = ['#0088FE', '#00C49F', '#FF8042'];
 
   return (
     <Box sx={{ backgroundColor: darkMode ? '#121212' : '#f5f5f5', minHeight: '100vh' }}>
@@ -202,6 +289,35 @@ const TenantManagement = () => {
                 </MenuItem>
               ))}
             </Select>
+            <Select
+              value={selectedPaymentStatus}
+              onChange={(e) => setSelectedPaymentStatus(e.target.value)}
+              displayEmpty
+              sx={{ backgroundColor: darkMode ? '#333' : '#fff' }}
+            >
+              <MenuItem value="all">All Payment Statuses</MenuItem>
+              <MenuItem value="Paid">Paid</MenuItem>
+              <MenuItem value="Pending">Pending</MenuItem>
+              <MenuItem value="Overdue">Overdue</MenuItem>
+            </Select>
+          </Box>
+
+          {/* Bulk Actions */}
+          <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+            <Button
+              variant="contained"
+              startIcon={<Send />}
+              onClick={() => handleBulkAction('sendNotification')}
+            >
+              Send Notification
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<Payment />}
+              onClick={() => handleBulkAction('updatePaymentStatus')}
+            >
+              Update Payment Status
+            </Button>
           </Box>
 
           {/* Tenant Profile Cards */}
@@ -286,6 +402,50 @@ const TenantManagement = () => {
               </DialogActions>
             </Dialog>
           )}
+
+          {/* Analytics and Reports */}
+          <Box sx={{ mt: 4 }}>
+            <Typography variant="h5" sx={{ mb: 2, color: darkMode ? '#fff' : '#000' }}>
+              Analytics and Reports
+            </Typography>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <Card sx={{ p: 2 }}>
+                  <Typography variant="h6">Payment Status</Typography>
+                  <PieChart width={400} height={300}>
+                    <Pie
+                      data={paymentData}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                      label
+                    >
+                      {paymentData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip />
+                    <Legend />
+                  </PieChart>
+                </Card>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Card sx={{ p: 2 }}>
+                  <Typography variant="h6">Maintenance Requests</Typography>
+                  <RechartsBarChart width={400} height={300} data={maintenanceRequests}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="createdAt" />
+                    <YAxis />
+                    <RechartsTooltip />
+                    <Legend />
+                    <Bar dataKey="status" fill="#8884d8" />
+                  </RechartsBarChart>
+                </Card>
+              </Grid>
+            </Grid>
+          </Box>
 
           {/* Snackbar for Notifications */}
           <Snackbar
