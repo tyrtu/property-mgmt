@@ -3,6 +3,8 @@ import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 import Navigation from './Navigation';
 import {
   Box,
+  Container,
+  Card,
   Typography,
   Chip,
   TextField,
