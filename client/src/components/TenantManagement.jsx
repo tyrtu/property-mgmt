@@ -34,6 +34,8 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import {
   Edit,
@@ -61,7 +63,7 @@ import { collection, getDocs, onSnapshot, query, where, orderBy, doc, getDoc, de
 import { db } from '../firebase';
 import Navigation from './Navigation';
 import useAutoLogout from '../hooks/useAutoLogout';
-import { PieChart, Pie, Cell, Legend, Tooltip as RechartsTooltip, BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { PieChart, Pie, Cell, Legend, Tooltip as RechartsTooltip, BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 
 const TenantManagement = () => {
   const [tenants, setTenants] = useState([]);
@@ -80,6 +82,9 @@ const TenantManagement = () => {
   const [selectedTenants, setSelectedTenants] = useState([]);
   const [maintenanceRequests, setMaintenanceRequests] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
+
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
   useAutoLogout();
 
@@ -103,6 +108,7 @@ const TenantManagement = () => {
       const propertyList = propertiesSnapshot.docs.map((doc) => ({
         id: doc.id,
         name: doc.data().name,
+        propertyNo: doc.data().propertyNo, // Ensure propertyNo is fetched
       }));
       setProperties(propertyList);
     };
@@ -110,61 +116,15 @@ const TenantManagement = () => {
     fetchProperties();
   }, []);
 
-  // Fetch recent notifications
-  useEffect(() => {
-    const notificationsQuery = query(collection(db, 'notifications'), orderBy('createdAt', 'desc'));
-
-    const unsubscribe = onSnapshot(notificationsQuery, (snapshot) => {
-      const notifications = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        isRead: doc.data().isRead || false,
-        createdAt: doc.data().createdAt?.toDate(),
-      }));
-      setRecentNotifications(notifications);
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  // Fetch maintenance requests
-  useEffect(() => {
-    const maintenanceQuery = query(collection(db, 'maintenanceRequests'), orderBy('createdAt', 'desc'));
-
-    const unsubscribe = onSnapshot(maintenanceQuery, (snapshot) => {
-      const requests = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate(),
-      }));
-      setMaintenanceRequests(requests);
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  // Fetch audit logs
-  useEffect(() => {
-    const auditQuery = query(collection(db, 'auditLogs'), orderBy('timestamp', 'desc'));
-
-    const unsubscribe = onSnapshot(auditQuery, (snapshot) => {
-      const logs = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        timestamp: doc.data().timestamp?.toDate(),
-      }));
-      setAuditLogs(logs);
-    });
-
-    return () => unsubscribe();
-  }, []);
-
   // Filter tenants based on property selection, payment status, and search input
   useEffect(() => {
     let filtered = tenants;
 
     if (selectedProperty !== 'all') {
-      filtered = filtered.filter((tenant) => tenant.propertyId === selectedProperty);
+      filtered = filtered.filter(
+        (tenant) =>
+          tenant.propertyId === selectedProperty || tenant.propertyNo === selectedProperty
+      );
     }
 
     if (selectedPaymentStatus !== 'all') {
@@ -267,7 +227,7 @@ const TenantManagement = () => {
           </Box>
 
           {/* Search & Filter */}
-          <Box sx={{ display: 'flex', gap: 2, my: 3 }}>
+          <Box sx={{ display: 'flex', gap: 2, my: 3, flexDirection: isSmallScreen ? 'column' : 'row' }}>
             <TextField
               fullWidth
               placeholder="Search tenants..."
@@ -280,12 +240,12 @@ const TenantManagement = () => {
               value={selectedProperty}
               onChange={(e) => setSelectedProperty(e.target.value)}
               displayEmpty
-              sx={{ backgroundColor: darkMode ? '#333' : '#fff' }}
+              sx={{ backgroundColor: darkMode ? '#333' : '#fff', minWidth: isSmallScreen ? '100%' : 200 }}
             >
               <MenuItem value="all">All Properties</MenuItem>
               {properties.map((property) => (
                 <MenuItem key={property.id} value={property.id}>
-                  {property.name}
+                  {property.name} (No. {property.propertyNo})
                 </MenuItem>
               ))}
             </Select>
@@ -293,7 +253,7 @@ const TenantManagement = () => {
               value={selectedPaymentStatus}
               onChange={(e) => setSelectedPaymentStatus(e.target.value)}
               displayEmpty
-              sx={{ backgroundColor: darkMode ? '#333' : '#fff' }}
+              sx={{ backgroundColor: darkMode ? '#333' : '#fff', minWidth: isSmallScreen ? '100%' : 200 }}
             >
               <MenuItem value="all">All Payment Statuses</MenuItem>
               <MenuItem value="Paid">Paid</MenuItem>
@@ -303,11 +263,12 @@ const TenantManagement = () => {
           </Box>
 
           {/* Bulk Actions */}
-          <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+          <Box sx={{ display: 'flex', gap: 2, mb: 3, flexDirection: isSmallScreen ? 'column' : 'row' }}>
             <Button
               variant="contained"
               startIcon={<Send />}
               onClick={() => handleBulkAction('sendNotification')}
+              sx={{ height: isSmallScreen ? 'auto' : 40 }}
             >
               Send Notification
             </Button>
@@ -315,6 +276,7 @@ const TenantManagement = () => {
               variant="contained"
               startIcon={<Payment />}
               onClick={() => handleBulkAction('updatePaymentStatus')}
+              sx={{ height: isSmallScreen ? 'auto' : 40 }}
             >
               Update Payment Status
             </Button>
@@ -412,36 +374,40 @@ const TenantManagement = () => {
               <Grid item xs={12} md={6}>
                 <Card sx={{ p: 2 }}>
                   <Typography variant="h6">Payment Status</Typography>
-                  <PieChart width={400} height={300}>
-                    <Pie
-                      data={paymentData}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                      label
-                    >
-                      {paymentData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <RechartsTooltip />
-                    <Legend />
-                  </PieChart>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={paymentData}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                        label
+                      >
+                        {paymentData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
                 </Card>
               </Grid>
               <Grid item xs={12} md={6}>
                 <Card sx={{ p: 2 }}>
                   <Typography variant="h6">Maintenance Requests</Typography>
-                  <RechartsBarChart width={400} height={300} data={maintenanceRequests}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="createdAt" />
-                    <YAxis />
-                    <RechartsTooltip />
-                    <Legend />
-                    <Bar dataKey="status" fill="#8884d8" />
-                  </RechartsBarChart>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <RechartsBarChart data={maintenanceRequests}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="createdAt" />
+                      <YAxis />
+                      <RechartsTooltip />
+                      <Legend />
+                      <Bar dataKey="status" fill="#8884d8" />
+                    </RechartsBarChart>
+                  </ResponsiveContainer>
                 </Card>
               </Grid>
             </Grid>
