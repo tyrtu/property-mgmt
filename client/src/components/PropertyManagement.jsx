@@ -116,7 +116,9 @@ const PropertyManagement = () => {
       } else {
         // Assign a sequential property number (current count + 1)
         const propertyNo = properties.length + 1;
-        const newPropertyData = { ...propertyDetails, propertyNo, occupiedUnits: 0 };
+        // Remove the id field from propertyDetails before adding new property
+        const { id, ...detailsWithoutId } = propertyDetails;
+        const newPropertyData = { ...detailsWithoutId, propertyNo, occupiedUnits: 0 };
 
         // Add new property to Firestore (Firestore auto-generates an ID)
         const docRef = await addDoc(collection(db, 'properties'), newPropertyData);
