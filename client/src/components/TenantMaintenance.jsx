@@ -1,4 +1,3 @@
-// src/components/TenantMaintenance.jsx
 import React, { useState, useEffect } from "react";
 import {
   Box,
@@ -18,15 +17,40 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  IconButton,
+  Badge,
+  Grid,
+  CircularProgress,
+  Alert,
+  Avatar,
+  Tooltip,
+  Fade,
+  Backdrop,
+  Pagination,
 } from "@mui/material";
-import ConstructionIcon from "@mui/icons-material/Construction";
-
-// Firebase Firestore imports
-import { collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp, doc, getDoc } from "firebase/firestore";
+import {
+  Construction as ConstructionIcon,
+  Add as AddIcon,
+  CheckCircle as CheckCircleIcon,
+  Warning as WarningIcon,
+  Error as ErrorIcon,
+  Comment as CommentIcon,
+  AttachFile as AttachFileIcon,
+  FilterList as FilterIcon,
+  Sort as SortIcon,
+} from "@mui/icons-material";
+import {
+  collection,
+  addDoc,
+  query,
+  where,
+  orderBy,
+  onSnapshot,
+  serverTimestamp,
+  doc,
+  getDoc,
+} from "firebase/firestore";
 import { auth, db } from "../firebase";
-
-// Supabase client import
-import { supabase } from "../utils/supabaseClient";
 
 const TenantMaintenance = () => {
   const [requests, setRequests] = useState([]);
@@ -37,6 +61,12 @@ const TenantMaintenance = () => {
   const [propertyDetails, setPropertyDetails] = useState({ property: "", unit: "" });
   const [selectedProperty, setSelectedProperty] = useState("All Properties");
   const [properties, setProperties] = useState([]);
+  const [filterStatus, setFilterStatus] = useState("All");
+  const [sortOrder, setSortOrder] = useState("desc");
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const [requestsPerPage] = useState(5);
 
   // Fetch available properties for selection
   useEffect(() => {
@@ -85,10 +115,14 @@ const TenantMaintenance = () => {
     if (!user) return;
 
     let maintenanceRef = collection(db, "maintenanceRequests");
-    let q = query(maintenanceRef, where("userId", "==", user.uid), orderBy("createdAt", "desc"));
+    let q = query(maintenanceRef, where("userId", "==", user.uid), orderBy("createdAt", sortOrder));
 
     if (selectedProperty !== "All Properties") {
-      q = query(maintenanceRef, where("property", "==", selectedProperty), where("userId", "==", user.uid), orderBy("createdAt", "desc"));
+      q = query(maintenanceRef, where("property", "==", selectedProperty), where("userId", "==", user.uid), orderBy("createdAt", sortOrder));
+    }
+
+    if (filterStatus !== "All") {
+      q = query(maintenanceRef, where("status", "==", filterStatus), where("userId", "==", user.uid), orderBy("createdAt", sortOrder));
     }
 
     const unsubscribe = onSnapshot(
@@ -112,7 +146,7 @@ const TenantMaintenance = () => {
       }
     );
     return () => unsubscribe();
-  }, [selectedProperty]);
+  }, [selectedProperty, filterStatus, sortOrder]);
 
   // Open modal
   const handleOpenDialog = () => {
@@ -152,10 +186,24 @@ const TenantMaintenance = () => {
     }
   };
 
+  // Open request details modal
+  const handleOpenRequestModal = (request) => {
+    setSelectedRequest(request);
+    setModalOpen(true);
+  };
+
+  // Pagination
+  const indexOfLastRequest = page * requestsPerPage;
+  const indexOfFirstRequest = indexOfLastRequest - requestsPerPage;
+  const currentRequests = requests.slice(indexOfFirstRequest, indexOfLastRequest);
+
   return (
     <Box sx={{ backgroundColor: "background.default", minHeight: "100vh", p: 3 }}>
+      {/* Header */}
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-        <Typography variant="h4">Maintenance Requests</Typography>
+        <Typography variant="h4" sx={{ color: "primary.main" }}>
+          <ConstructionIcon sx={{ fontSize: 35, mr: 1, color: "primary.main" }} /> Maintenance Requests
+        </Typography>
 
         {/* Property selection dropdown */}
         <FormControl sx={{ minWidth: 200 }}>
@@ -174,8 +222,85 @@ const TenantMaintenance = () => {
         </FormControl>
       </Box>
 
+      {/* Analytics Section */}
+      <Grid container spacing={3} mb={4}>
+        <Grid item xs={12} md={4}>
+          <Paper
+            sx={{
+              p: 2,
+              textAlign: "center",
+              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+              color: "white",
+            }}
+          >
+            <ConstructionIcon sx={{ fontSize: 40, mb: 1 }} />
+            <Typography variant="h6">Total Requests</Typography>
+            <Typography variant="h4">{requests.length}</Typography>
+          </Paper>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <Paper
+            sx={{
+              p: 2,
+              textAlign: "center",
+              background: "linear-gradient(45deg, #FF9800 30%, #FFC107 90%)",
+              color: "white",
+            }}
+          >
+            <WarningIcon sx={{ fontSize: 40, mb: 1 }} />
+            <Typography variant="h6">Pending Requests</Typography>
+            <Typography variant="h4">
+              {requests.filter((req) => req.status === "Pending").length}
+            </Typography>
+          </Paper>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <Paper
+            sx={{
+              p: 2,
+              textAlign: "center",
+              background: "linear-gradient(45deg, #4CAF50 30%, #81C784 90%)",
+              color: "white",
+            }}
+          >
+            <CheckCircleIcon sx={{ fontSize: 40, mb: 1 }} />
+            <Typography variant="h6">Resolved Requests</Typography>
+            <Typography variant="h4">
+              {requests.filter((req) => req.status === "Resolved").length}
+            </Typography>
+          </Paper>
+        </Grid>
+      </Grid>
+
+      {/* Filter and Sort Options */}
+      <Box display="flex" gap={2} mb={3}>
+        <FormControl sx={{ minWidth: 150 }}>
+          <InputLabel>Filter by Status</InputLabel>
+          <Select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+          >
+            <MenuItem value="All">All</MenuItem>
+            <MenuItem value="Pending">Pending</MenuItem>
+            <MenuItem value="In Progress">In Progress</MenuItem>
+            <MenuItem value="Resolved">Resolved</MenuItem>
+          </Select>
+        </FormControl>
+        <FormControl sx={{ minWidth: 150 }}>
+          <InputLabel>Sort by Date</InputLabel>
+          <Select
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value)}
+          >
+            <MenuItem value="desc">Newest First</MenuItem>
+            <MenuItem value="asc">Oldest First</MenuItem>
+          </Select>
+        </FormControl>
+      </Box>
+
+      {/* Submit Request Button */}
       <Button variant="contained" onClick={handleOpenDialog} sx={{ mb: 2 }}>
-        Request Maintenance
+        <AddIcon sx={{ mr: 1 }} /> Request Maintenance
       </Button>
 
       {successMessage && (
@@ -184,6 +309,7 @@ const TenantMaintenance = () => {
         </Typography>
       )}
 
+      {/* Requests List */}
       <Paper sx={{ p: 3 }}>
         <Typography variant="h6">Your Requests</Typography>
         {requests.length === 0 ? (
@@ -199,11 +325,24 @@ const TenantMaintenance = () => {
           </Box>
         ) : (
           <List>
-            {requests.map((req) => (
-              <ListItem key={req.id} sx={{ mb: 2, borderBottom: "1px solid #ddd" }}>
+            {currentRequests.map((req) => (
+              <ListItem
+                key={req.id}
+                sx={{
+                  mb: 2,
+                  borderBottom: "1px solid #ddd",
+                  cursor: "pointer",
+                  transition: "transform 0.2s, box-shadow 0.2s",
+                  "&:hover": {
+                    transform: "scale(1.02)",
+                    boxShadow: 3,
+                  },
+                }}
+                onClick={() => handleOpenRequestModal(req)}
+              >
                 <ListItemText
                   primary={req.issue}
-                  secondary={`Property: ${req.property} | Unit: ${req.unit} | Submitted: ${req.submittedAt} | Status: ${req.status}`}
+                  secondary={`Property: ${req.property} | Unit: ${req.unit} | Submitted: ${req.submittedAt}`}
                 />
                 <Chip
                   label={req.status}
@@ -219,6 +358,16 @@ const TenantMaintenance = () => {
             ))}
           </List>
         )}
+
+        {/* Pagination */}
+        <Box display="flex" justifyContent="center" mt={3}>
+          <Pagination
+            count={Math.ceil(requests.length / requestsPerPage)}
+            page={page}
+            onChange={(e, value) => setPage(value)}
+            color="primary"
+          />
+        </Box>
       </Paper>
 
       {/* Maintenance Request Modal */}
@@ -242,6 +391,35 @@ const TenantMaintenance = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Request Details Modal */}
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} closeAfterTransition BackdropComponent={Backdrop}>
+        <Fade in={modalOpen}>
+          <Box
+            sx={{
+              p: 4,
+              backgroundColor: "white",
+              mx: "auto",
+              my: "20%",
+              width: 400,
+              borderRadius: 2,
+              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+              color: "white",
+            }}
+          >
+            <Typography variant="h6">{selectedRequest?.issue}</Typography>
+            <Typography variant="body2">
+              Property: {selectedRequest?.property} | Unit: {selectedRequest?.unit}
+            </Typography>
+            <Typography variant="body2">
+              Submitted: {selectedRequest?.submittedAt}
+            </Typography>
+            <Typography variant="body2">
+              Status: {selectedRequest?.status}
+            </Typography>
+          </Box>
+        </Fade>
+      </Modal>
     </Box>
   );
 };
