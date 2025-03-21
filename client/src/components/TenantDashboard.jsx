@@ -265,7 +265,7 @@ const TenantDashboard = () => {
                 p: 2,
                 boxShadow: 3,
                 borderRadius: 2,
-                height: { xs: "100%", md: "400px", lg: "350px" },
+                height: { xs: "100%", md: "450px", lg: "450px" },
               }}
             >
               <CardContent sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
@@ -280,10 +280,7 @@ const TenantDashboard = () => {
                     alignItems: "center",
                   }}
                 >
-                  {/* Scale down the calendar component so it fully displays within the card */}
-                  <Box sx={{ transform: "scale(0.9)", transformOrigin: "top" }}>
-                    <CalendarComponent />
-                  </Box>
+                  <CalendarComponent />
                 </Box>
               </CardContent>
             </Card>
@@ -295,7 +292,7 @@ const TenantDashboard = () => {
                 p: 2,
                 boxShadow: 3,
                 borderRadius: 2,
-                height: { xs: "100%", md: "400px", lg: "350px" },
+                height: { xs: "100%", md: "450px", lg: "450px" },
               }}
             >
               <CardContent>
