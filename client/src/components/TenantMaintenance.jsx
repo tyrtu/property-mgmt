@@ -5,7 +5,6 @@ import {
   Paper,
   Button,
   List,
-  Modal,
   ListItem,
   ListItemText,
   Chip,
@@ -28,6 +27,7 @@ import {
   Fade,
   Backdrop,
   Pagination,
+  Modal,
 } from "@mui/material";
 import {
   Construction as ConstructionIcon,
@@ -230,11 +230,10 @@ const TenantMaintenance = () => {
             sx={{
               p: 2,
               textAlign: "center",
-              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
-              color: "white",
+              backgroundColor: "#f0f4f8", // Light and dull background
             }}
           >
-            <ConstructionIcon sx={{ fontSize: 40, mb: 1 }} />
+            <ConstructionIcon sx={{ fontSize: 40, mb: 1, color: "primary.main" }} />
             <Typography variant="h6">Total Requests</Typography>
             <Typography variant="h4">{requests.length}</Typography>
           </Paper>
@@ -244,11 +243,10 @@ const TenantMaintenance = () => {
             sx={{
               p: 2,
               textAlign: "center",
-              background: "linear-gradient(45deg, #FF9800 30%, #FFC107 90%)",
-              color: "white",
+              backgroundColor: "#f0f4f8", // Light and dull background
             }}
           >
-            <WarningIcon sx={{ fontSize: 40, mb: 1 }} />
+            <WarningIcon sx={{ fontSize: 40, mb: 1, color: "warning.main" }} />
             <Typography variant="h6">Pending Requests</Typography>
             <Typography variant="h4">
               {requests.filter((req) => req.status === "Pending").length}
@@ -260,11 +258,10 @@ const TenantMaintenance = () => {
             sx={{
               p: 2,
               textAlign: "center",
-              background: "linear-gradient(45deg, #4CAF50 30%, #81C784 90%)",
-              color: "white",
+              backgroundColor: "#f0f4f8", // Light and dull background
             }}
           >
-            <CheckCircleIcon sx={{ fontSize: 40, mb: 1 }} />
+            <CheckCircleIcon sx={{ fontSize: 40, mb: 1, color: "success.main" }} />
             <Typography variant="h6">Resolved Requests</Typography>
             <Typography variant="h4">
               {requests.filter((req) => req.status === "Resolved").length}
@@ -311,7 +308,7 @@ const TenantMaintenance = () => {
       )}
 
       {/* Requests List */}
-      <Paper sx={{ p: 3 }}>
+      <Paper sx={{ p: 3, backgroundColor: "#f0f4f8" }}>
         <Typography variant="h6">Your Requests</Typography>
         {requests.length === 0 ? (
           <Box sx={{ textAlign: "center", p: 4 }}>
@@ -399,13 +396,11 @@ const TenantMaintenance = () => {
           <Box
             sx={{
               p: 4,
-              backgroundColor: "white",
+              backgroundColor: "#f0f4f8", // Light and dull background
               mx: "auto",
               my: "20%",
               width: 400,
               borderRadius: 2,
-              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
-              color: "white",
             }}
           >
             <Typography variant="h6">{selectedRequest?.issue}</Typography>
