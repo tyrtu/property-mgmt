@@ -265,7 +265,7 @@ const TenantDashboard = () => {
                 p: 2,
                 boxShadow: 3,
                 borderRadius: 2,
-                height: { xs: "100%", md: "400px", lg: "350px" },
+                height: { xs: "100%", md: "300px", lg: "250px" },
               }}
             >
               <CardContent>
