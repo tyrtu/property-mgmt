@@ -18,12 +18,12 @@ import {
   Fade,
   Backdrop,
   TextField,
-  Badge,
   Paper,
   Grid,
   FormControlLabel,
   Switch,
   Pagination,
+  Badge,
 } from "@mui/material";
 import {
   Warning as WarningIcon,
@@ -34,6 +34,9 @@ import {
   FilterList as FilterIcon,
   Search as SearchIcon,
   Settings as SettingsIcon,
+  Email as EmailIcon,
+  Notifications as NotificationsIcon,
+  Error as ErrorIcon,
 } from "@mui/icons-material";
 import {
   collection,
@@ -194,8 +197,8 @@ const TenantNotifications = () => {
     <Box sx={{ p: 3, maxWidth: 1200, mx: "auto" }}>
       {/* Header */}
       <Box display="flex" alignItems="center" justifyContent="space-between" mb={3}>
-        <Typography variant="h4">
-          <BellIcon sx={{ fontSize: 35, mr: 1 }} /> Notifications
+        <Typography variant="h4" sx={{ color: "primary.main" }}>
+          <BellIcon sx={{ fontSize: 35, mr: 1, color: "primary.main" }} /> Notifications
         </Typography>
         <Box display="flex" gap={2}>
           <TextField
@@ -224,13 +227,29 @@ const TenantNotifications = () => {
       {/* Analytics Section */}
       <Grid container spacing={3} mb={4}>
         <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 2, textAlign: "center" }}>
+          <Paper
+            sx={{
+              p: 2,
+              textAlign: "center",
+              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+              color: "white",
+            }}
+          >
+            <NotificationsIcon sx={{ fontSize: 40, mb: 1 }} />
             <Typography variant="h6">Total Notifications</Typography>
             <Typography variant="h4">{notifications.length}</Typography>
           </Paper>
         </Grid>
         <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 2, textAlign: "center" }}>
+          <Paper
+            sx={{
+              p: 2,
+              textAlign: "center",
+              background: "linear-gradient(45deg, #FF9800 30%, #FFC107 90%)",
+              color: "white",
+            }}
+          >
+            <ErrorIcon sx={{ fontSize: 40, mb: 1 }} />
             <Typography variant="h6">Unread Notifications</Typography>
             <Typography variant="h4">
               {notifications.filter((note) => !note.isRead).length}
@@ -238,7 +257,15 @@ const TenantNotifications = () => {
           </Paper>
         </Grid>
         <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 2, textAlign: "center" }}>
+          <Paper
+            sx={{
+              p: 2,
+              textAlign: "center",
+              background: "linear-gradient(45deg, #F44336 30%, #E91E63 90%)",
+              color: "white",
+            }}
+          >
+            <WarningIcon sx={{ fontSize: 40, mb: 1 }} />
             <Typography variant="h6">Alerts</Typography>
             <Typography variant="h4">
               {notifications.filter((note) => note.type === "alert").length}
@@ -249,10 +276,21 @@ const TenantNotifications = () => {
 
       {/* Bulk Actions */}
       <Box display="flex" gap={2} mb={3}>
-        <Button variant="contained" onClick={handleMarkAllRead}>
+        <Button
+          variant="contained"
+          onClick={handleMarkAllRead}
+          startIcon={<DoneIcon />}
+          sx={{ background: "linear-gradient(45deg, #4CAF50 30%, #81C784 90%)" }}
+        >
           Mark All as Read
         </Button>
-        <Button variant="outlined" color="error" onClick={handleDeleteAll}>
+        <Button
+          variant="contained"
+          color="error"
+          onClick={handleDeleteAll}
+          startIcon={<DeleteIcon />}
+          sx={{ background: "linear-gradient(45deg, #F44336 30%, #E57373 90%)" }}
+        >
           Delete All
         </Button>
       </Box>
@@ -277,11 +315,24 @@ const TenantNotifications = () => {
         {currentNotifications.map((note) => (
           <React.Fragment key={note.id}>
             <ListItem
-              sx={{ background: note.isRead ? "#f5f5f5" : "#fff", cursor: "pointer" }}
+              sx={{
+                background: note.isRead ? "#f5f5f5" : "#fff",
+                cursor: "pointer",
+                transition: "transform 0.2s, box-shadow 0.2s",
+                "&:hover": {
+                  transform: "scale(1.02)",
+                  boxShadow: 3,
+                },
+              }}
               onClick={() => handleModalOpen(note)}
             >
               <ListItemIcon>
-                {note.type === "alert" ? <WarningIcon color="error" /> : <InfoIcon color="info" />}
+                <Badge
+                  color={note.type === "alert" ? "error" : "info"}
+                  badgeContent={note.type === "alert" ? "!" : "i"}
+                >
+                  {note.type === "alert" ? <WarningIcon /> : <InfoIcon />}
+                </Badge>
               </ListItemIcon>
               <ListItemText
                 primary={
@@ -292,12 +343,23 @@ const TenantNotifications = () => {
                 secondary={new Date(note.createdAt).toLocaleString()}
               />
               <Tooltip title="Mark as Read">
-                <IconButton onClick={(e) => { e.stopPropagation(); handleMarkRead(note.id); }} disabled={note.isRead}>
+                <IconButton
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleMarkRead(note.id);
+                  }}
+                  disabled={note.isRead}
+                >
                   <DoneIcon color={note.isRead ? "disabled" : "primary"} />
                 </IconButton>
               </Tooltip>
               <Tooltip title="Delete">
-                <IconButton onClick={(e) => { e.stopPropagation(); handleDelete(note.id); }}>
+                <IconButton
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(note.id);
+                  }}
+                >
                   <DeleteIcon color="error" />
                 </IconButton>
               </Tooltip>
@@ -319,10 +381,10 @@ const TenantNotifications = () => {
 
       {/* Notification Preferences */}
       <Box mt={4}>
-        <Typography variant="h6" mb={2}>
-          <SettingsIcon sx={{ mr: 1 }} /> Notification Preferences
+        <Typography variant="h6" mb={2} sx={{ color: "primary.main" }}>
+          <SettingsIcon sx={{ mr: 1, color: "primary.main" }} /> Notification Preferences
         </Typography>
-        <Paper sx={{ p: 2 }}>
+        <Paper sx={{ p: 2, background: "#f5f5f5" }}>
           <FormControlLabel
             control={
               <Switch
@@ -357,9 +419,20 @@ const TenantNotifications = () => {
       {/* Notification Details Modal */}
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} closeAfterTransition BackdropComponent={Backdrop}>
         <Fade in={modalOpen}>
-          <Box sx={{ p: 4, backgroundColor: "white", mx: "auto", my: "20%", width: 400, borderRadius: 2 }}>
+          <Box
+            sx={{
+              p: 4,
+              backgroundColor: "white",
+              mx: "auto",
+              my: "20%",
+              width: 400,
+              borderRadius: 2,
+              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+              color: "white",
+            }}
+          >
             <Typography variant="h6">{selectedNotification?.message}</Typography>
-            <Typography variant="body2" color="textSecondary">
+            <Typography variant="body2">
               {selectedNotification?.createdAt?.toLocaleString()}
             </Typography>
           </Box>
