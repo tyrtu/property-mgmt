@@ -231,11 +231,10 @@ const TenantNotifications = () => {
             sx={{
               p: 2,
               textAlign: "center",
-              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
-              color: "white",
+              backgroundColor: "#f0f4f8", // Light and dull background
             }}
           >
-            <NotificationsIcon sx={{ fontSize: 40, mb: 1 }} />
+            <NotificationsIcon sx={{ fontSize: 40, mb: 1, color: "primary.main" }} />
             <Typography variant="h6">Total Notifications</Typography>
             <Typography variant="h4">{notifications.length}</Typography>
           </Paper>
@@ -245,11 +244,10 @@ const TenantNotifications = () => {
             sx={{
               p: 2,
               textAlign: "center",
-              background: "linear-gradient(45deg, #FF9800 30%, #FFC107 90%)",
-              color: "white",
+              backgroundColor: "#f0f4f8", // Light and dull background
             }}
           >
-            <ErrorIcon sx={{ fontSize: 40, mb: 1 }} />
+            <ErrorIcon sx={{ fontSize: 40, mb: 1, color: "warning.main" }} />
             <Typography variant="h6">Unread Notifications</Typography>
             <Typography variant="h4">
               {notifications.filter((note) => !note.isRead).length}
@@ -261,11 +259,10 @@ const TenantNotifications = () => {
             sx={{
               p: 2,
               textAlign: "center",
-              background: "linear-gradient(45deg, #F44336 30%, #E91E63 90%)",
-              color: "white",
+              backgroundColor: "#f0f4f8", // Light and dull background
             }}
           >
-            <WarningIcon sx={{ fontSize: 40, mb: 1 }} />
+            <WarningIcon sx={{ fontSize: 40, mb: 1, color: "error.main" }} />
             <Typography variant="h6">Alerts</Typography>
             <Typography variant="h4">
               {notifications.filter((note) => note.type === "alert").length}
@@ -280,7 +277,7 @@ const TenantNotifications = () => {
           variant="contained"
           onClick={handleMarkAllRead}
           startIcon={<DoneIcon />}
-          sx={{ background: "linear-gradient(45deg, #4CAF50 30%, #81C784 90%)" }}
+          sx={{ backgroundColor: "#4CAF50", color: "white" }}
         >
           Mark All as Read
         </Button>
@@ -289,7 +286,7 @@ const TenantNotifications = () => {
           color="error"
           onClick={handleDeleteAll}
           startIcon={<DeleteIcon />}
-          sx={{ background: "linear-gradient(45deg, #F44336 30%, #E57373 90%)" }}
+          sx={{ backgroundColor: "#F44336", color: "white" }}
         >
           Delete All
         </Button>
@@ -384,7 +381,7 @@ const TenantNotifications = () => {
         <Typography variant="h6" mb={2} sx={{ color: "primary.main" }}>
           <SettingsIcon sx={{ mr: 1, color: "primary.main" }} /> Notification Preferences
         </Typography>
-        <Paper sx={{ p: 2, background: "#f5f5f5" }}>
+        <Paper sx={{ p: 2, backgroundColor: "#f0f4f8" }}>
           <FormControlLabel
             control={
               <Switch
@@ -422,13 +419,11 @@ const TenantNotifications = () => {
           <Box
             sx={{
               p: 4,
-              backgroundColor: "white",
+              backgroundColor: "#f0f4f8",
               mx: "auto",
               my: "20%",
               width: 400,
               borderRadius: 2,
-              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
-              color: "white",
             }}
           >
             <Typography variant="h6">{selectedNotification?.message}</Typography>
