@@ -14,57 +14,110 @@ const Chatbot = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const getTenantData = async () => {
-    const user = auth.currentUser;
-    if (!user) return null;
-    
+  // Fetch all relevant Firestore data for the logged-in user
+  const fetchFirestoreData = async (userId) => {
     try {
-      const docRef = doc(db, "users", user.uid);
-      const docSnap = await getDoc(docRef);
-      return docSnap.exists() ? docSnap.data() : null;
+      // Fetch tenant data
+      const tenantRef = doc(db, "users", userId);
+      const tenantSnap = await getDoc(tenantRef);
+      const tenantData = tenantSnap.exists() ? tenantSnap.data() : null;
+
+      if (!tenantData) return null;
+
+      // Fetch property data
+      const propertyRef = doc(db, "properties", tenantData.propertyId);
+      const propertySnap = await getDoc(propertyRef);
+      const propertyData = propertySnap.exists() ? propertySnap.data() : null;
+
+      // Fetch notifications
+      const notificationsRef = collection(db, "notifications");
+      const notificationsQuery = query(notificationsRef, where("userId", "==", userId));
+      const notificationsSnapshot = await getDocs(notificationsQuery);
+      const notifications = notificationsSnapshot.docs.map((doc) => doc.data());
+
+      // Fetch maintenance requests
+      const maintenanceRef = collection(db, "maintenanceRequests");
+      const maintenanceQuery = query(maintenanceRef, where("userId", "==", userId));
+      const maintenanceSnapshot = await getDocs(maintenanceQuery);
+      const maintenanceRequests = maintenanceSnapshot.docs.map((doc) => doc.data());
+
+      // Fetch units data
+      const unitsRef = collection(db, "properties", tenantData.propertyId, "units");
+      const unitsSnapshot = await getDocs(unitsRef);
+      const units = unitsSnapshot.docs.map((doc) => doc.data());
+
+      return {
+        tenantData,
+        propertyData,
+        notifications,
+        maintenanceRequests,
+        units,
+      };
     } catch (error) {
-      console.error("Error fetching tenant data:", error);
+      console.error("Error fetching Firestore data:", error);
       return null;
     }
   };
 
+  // Send message handler
   const sendMessage = async () => {
     const trimmedInput = input.trim();
     if (!trimmedInput || loading) return;
 
     const userMessage = { role: "user", content: trimmedInput };
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setLoading(true);
 
     try {
-      const tenantData = await getTenantData();
-      if (!tenantData) {
-        setMessages(prev => [...prev, { 
-          role: "assistant", 
-          content: "Please log in to access your information." 
-        }]);
+      const firestoreData = await fetchFirestoreData(auth.currentUser.uid);
+      if (!firestoreData) {
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: "Please log in to access your information." },
+        ]);
         return;
       }
 
       // Add empty assistant message placeholder
-      setMessages(prev => [...prev, { role: "assistant", content: "" }]);
+      setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
 
       const API_KEY = import.meta.env.VITE_GROQ_API_KEY;
       if (!API_KEY) throw new Error("GROQ_API_KEY is missing!");
 
-      // Construct detailed prompt with Firebase data
+      // Construct detailed prompt with all Firestore data
       const prompt = `
-        You are a property management assistant. Use this tenant data to answer questions:
-        - Name: ${tenantData.name}
-        - Email: ${tenantData.email}
-        - Phone: ${tenantData.phone}
-        - Property ID: ${tenantData.propertyId}
-        - Unit ID: ${tenantData.unitId}
+        You are a property management assistant. Use this data to answer questions:
         
-        Current query: "${trimmedInput}"
+        Tenant Data:
+        - Name: ${firestoreData.tenantData.name}
+        - Email: ${firestoreData.tenantData.email}
+        - Phone: ${firestoreData.tenantData.phone}
+        - Property ID: ${firestoreData.tenantData.propertyId}
+        - Unit ID: ${firestoreData.tenantData.unitId}
+
+        Property Data:
+        - Name: ${firestoreData.propertyData.name}
+        - Address: ${firestoreData.propertyData.address}
+        - Amenities: ${firestoreData.propertyData.amenities.join(", ")}
+        - Total Units: ${firestoreData.propertyData.totalUnits}
+        - Occupied Units: ${firestoreData.propertyData.occupiedUnits}
+
+        Notifications:
+        ${firestoreData.notifications.map((n) => `- ${n.message} (${new Date(n.createdAt).toLocaleString()})`).join("\n")}
+
+        Maintenance Requests:
+        ${firestoreData.maintenanceRequests.map((r) => `- ${r.issue} (Status: ${r.status})`).join("\n")}
+
+        Units:
+        ${firestoreData.units.map((u) => `- Unit ${u.number} (Occupied: ${u.occupied})`).join("\n")}
+
+        Current Query: "${trimmedInput}"
         
-        Respond concisely and hide all reasoning. Never show <think> tags.
+        Instructions:
+        1. Respond concisely and hide all reasoning.
+        2. Never show <think> tags.
+        3. Use the data above to answer the query.
       `;
 
       const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -92,7 +145,7 @@ const Chatbot = () => {
         if (done) break;
 
         const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split("\n").filter(line => line.trim() !== "");
+        const lines = chunk.split("\n").filter((line) => line.trim() !== "");
 
         for (const line of lines) {
           if (line === "data: [DONE]") break;
@@ -101,16 +154,16 @@ const Chatbot = () => {
             try {
               const json = JSON.parse(line.replace("data: ", "").trim());
               const delta = json.choices?.[0]?.delta?.content || "";
-              
+
               // Remove ALL <think> tags and their content
               const cleanedDelta = delta.replace(/<think>[\s\S]*?<\/think>/g, "");
               assistantReply += cleanedDelta;
 
-              setMessages(prev => {
+              setMessages((prev) => {
                 const newMessages = [...prev];
-                newMessages[newMessages.length - 1] = { 
-                  role: "assistant", 
-                  content: assistantReply 
+                newMessages[newMessages.length - 1] = {
+                  role: "assistant",
+                  content: assistantReply,
                 };
                 return newMessages;
               });
@@ -122,7 +175,7 @@ const Chatbot = () => {
       }
     } catch (error) {
       console.error("Error:", error);
-      setMessages(prev => [
+      setMessages((prev) => [
         ...prev,
         { role: "assistant", content: "Something went wrong. Try again later." },
       ]);
