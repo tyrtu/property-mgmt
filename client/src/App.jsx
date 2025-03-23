@@ -79,7 +79,15 @@ function App() {
             <Route path="/tenant/reset-password" element={<TenantResetPassword />} />
 
             {/* Tenant Portal (Protected Routes) */}
-            <Route path="/tenant/*" element={<TenantPortal />} />
+            <Route
+              path="/tenant/*"
+              element={
+                <>
+                  <TenantPortal />
+                  {isAuthenticated && <Chatbot />} {/* Render chatbot only if authenticated */}
+                </>
+              }
+            />
 
             {/* Admin Pages (Protected by AdminRoute) */}
             <Route
@@ -87,6 +95,7 @@ function App() {
               element={
                 <AdminRoute userRole={userRole}>
                   <Dashboard />
+                  {isAuthenticated && <Chatbot />} {/* Render chatbot only if authenticated */}
                 </AdminRoute>
               }
             />
@@ -95,6 +104,7 @@ function App() {
               element={
                 <AdminRoute userRole={userRole}>
                   <PropertyManagement />
+                  {isAuthenticated && <Chatbot />} {/* Render chatbot only if authenticated */}
                 </AdminRoute>
               }
             />
@@ -103,6 +113,7 @@ function App() {
               element={
                 <AdminRoute userRole={userRole}>
                   <TenantManagement />
+                  {isAuthenticated && <Chatbot />} {/* Render chatbot only if authenticated */}
                 </AdminRoute>
               }
             />
@@ -111,6 +122,7 @@ function App() {
               element={
                 <AdminRoute userRole={userRole}>
                   <RentPayment />
+                  {isAuthenticated && <Chatbot />} {/* Render chatbot only if authenticated */}
                 </AdminRoute>
               }
             />
@@ -119,6 +131,7 @@ function App() {
               element={
                 <AdminRoute userRole={userRole}>
                   <MaintenanceRequests />
+                  {isAuthenticated && <Chatbot />} {/* Render chatbot only if authenticated */}
                 </AdminRoute>
               }
             />
@@ -127,12 +140,11 @@ function App() {
               element={
                 <AdminRoute userRole={userRole}>
                   <ReportsAnalytics />
+                  {isAuthenticated && <Chatbot />} {/* Render chatbot only if authenticated */}
                 </AdminRoute>
               }
             />
           </Routes>
-          {/* Chatbot floating at bottom right */}
-          <Chatbot />
         </ErrorBoundary>
       </Router>
     </ThemeProvider>
