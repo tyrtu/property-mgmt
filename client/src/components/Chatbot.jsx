@@ -29,6 +29,11 @@ const Chatbot = () => {
       const propertySnap = await getDoc(propertyRef);
       const propertyData = propertySnap.exists() ? propertySnap.data() : null;
 
+      // Fetch units under the property
+      const unitsRef = collection(db, "properties", tenantData.propertyId, "units");
+      const unitsSnapshot = await getDocs(unitsRef);
+      const units = unitsSnapshot.docs.map((doc) => doc.data());
+
       // Fetch notifications
       const notificationsRef = collection(db, "notifications");
       const notificationsQuery = query(notificationsRef, where("userId", "==", userId));
@@ -41,17 +46,12 @@ const Chatbot = () => {
       const maintenanceSnapshot = await getDocs(maintenanceQuery);
       const maintenanceRequests = maintenanceSnapshot.docs.map((doc) => doc.data());
 
-      // Fetch units data
-      const unitsRef = collection(db, "properties", tenantData.propertyId, "units");
-      const unitsSnapshot = await getDocs(unitsRef);
-      const units = unitsSnapshot.docs.map((doc) => doc.data());
-
       return {
         tenantData,
         propertyData,
+        units,
         notifications,
         maintenanceRequests,
-        units,
       };
     } catch (error) {
       console.error("Error fetching Firestore data:", error);
@@ -70,8 +70,8 @@ const Chatbot = () => {
     setLoading(true);
 
     try {
-      const firestoreData = await fetchFirestoreData(auth.currentUser.uid);
-      if (!firestoreData) {
+      const userId = auth.currentUser?.uid;
+      if (!userId) {
         setMessages((prev) => [
           ...prev,
           { role: "assistant", content: "Please log in to access your information." },
@@ -79,46 +79,49 @@ const Chatbot = () => {
         return;
       }
 
-      // Add empty assistant message placeholder
-      setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+      // Fetch Firestore data
+      const firestoreData = await fetchFirestoreData(userId);
+      if (!firestoreData) {
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: "Failed to fetch your data. Please try again." },
+        ]);
+        return;
+      }
+
+      // Construct dynamic prompt with Firestore data
+      const prompt = `
+        You are a helpful assistant for a property management system. Below is the user's query and relevant data from Firestore. Generate a precise response based on the data.
+
+        User Query: "${trimmedInput}"
+
+        Firestore Data:
+        - Tenant Name: ${firestoreData.tenantData.name}
+        - Tenant Email: ${firestoreData.tenantData.email}
+        - Tenant Phone: ${firestoreData.tenantData.phone}
+        - Property Name: ${firestoreData.propertyData.name}
+        - Property Address: ${firestoreData.propertyData.address}
+        - Unit Number: ${firestoreData.tenantData.unitId}
+        - Units: ${firestoreData.units.map((unit) => unit.number).join(", ")}
+        - Notifications: ${firestoreData.notifications.map((n) => n.message).join(", ")}
+        - Maintenance Requests: ${firestoreData.maintenanceRequests.map((r) => r.issue).join(", ")}
+
+        Instructions:
+        1. Respond only to the specific query. Do not list all data unless asked.
+        2. If the user asks about their property, respond with the property name and address.
+        3. If the user asks about their unit, respond with the unit number.
+        4. If the user asks about units, list all available units.
+        5. If the user asks about notifications, list their recent notifications.
+        6. If the user asks about maintenance requests, provide the status of their requests.
+        7. If the query is unclear, ask for clarification.
+        8. Remove any <think> tags from the response.
+      `;
 
       const API_KEY = import.meta.env.VITE_GROQ_API_KEY;
       if (!API_KEY) throw new Error("GROQ_API_KEY is missing!");
 
-      // Construct detailed prompt with all Firestore data
-      const prompt = `
-        You are a property management assistant. Use this data to answer questions:
-        
-        Tenant Data:
-        - Name: ${firestoreData.tenantData.name}
-        - Email: ${firestoreData.tenantData.email}
-        - Phone: ${firestoreData.tenantData.phone}
-        - Property ID: ${firestoreData.tenantData.propertyId}
-        - Unit ID: ${firestoreData.tenantData.unitId}
-
-        Property Data:
-        - Name: ${firestoreData.propertyData.name}
-        - Address: ${firestoreData.propertyData.address}
-        - Amenities: ${firestoreData.propertyData.amenities.join(", ")}
-        - Total Units: ${firestoreData.propertyData.totalUnits}
-        - Occupied Units: ${firestoreData.propertyData.occupiedUnits}
-
-        Notifications:
-        ${firestoreData.notifications.map((n) => `- ${n.message} (${new Date(n.createdAt).toLocaleString()})`).join("\n")}
-
-        Maintenance Requests:
-        ${firestoreData.maintenanceRequests.map((r) => `- ${r.issue} (Status: ${r.status})`).join("\n")}
-
-        Units:
-        ${firestoreData.units.map((u) => `- Unit ${u.number} (Occupied: ${u.occupied})`).join("\n")}
-
-        Current Query: "${trimmedInput}"
-        
-        Instructions:
-        1. Respond concisely and hide all reasoning.
-        2. Never show <think> tags.
-        3. Use the data above to answer the query.
-      `;
+      // Add empty assistant message placeholder
+      setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
 
       const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
@@ -155,8 +158,8 @@ const Chatbot = () => {
               const json = JSON.parse(line.replace("data: ", "").trim());
               const delta = json.choices?.[0]?.delta?.content || "";
 
-              // Remove ALL <think> tags and their content
-              const cleanedDelta = delta.replace(/<think>[\s\S]*?<\/think>/g, "");
+              // Remove <think> tags before adding to response
+              const cleanedDelta = delta.replace(/<think>.*?<\/think>/gs, "");
               assistantReply += cleanedDelta;
 
               setMessages((prev) => {
