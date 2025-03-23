@@ -72,16 +72,14 @@ const Chatbot = () => {
           if (line.startsWith("data:")) {
             try {
               const jsonString = line.replace("data: ", "").trim();
-
               if (!jsonString) continue;
 
               const json = JSON.parse(jsonString);
               const delta = json.choices?.[0]?.delta?.content || "";
 
-              // Filter out <think> text from the response
-              const filteredDelta = delta.replace(/<think>.*?<\/think>/g, "");
-
-              assistantReply += filteredDelta;
+              // Accumulate response while filtering <think> text
+              assistantReply += delta;
+              assistantReply = assistantReply.replace(/<think>.*?<\/think>/gs, ""); // Remove all think messages
 
               setMessages((prevMessages) => [
                 ...prevMessages.slice(0, -1),
