@@ -78,7 +78,10 @@ const Chatbot = () => {
               const json = JSON.parse(jsonString);
               const delta = json.choices?.[0]?.delta?.content || "";
 
-              assistantReply += delta;
+              // Filter out <think> text from the response
+              const filteredDelta = delta.replace(/<think>.*?<\/think>/g, "");
+
+              assistantReply += filteredDelta;
 
               setMessages((prevMessages) => [
                 ...prevMessages.slice(0, -1),
