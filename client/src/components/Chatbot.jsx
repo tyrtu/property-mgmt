@@ -18,25 +18,21 @@ const Chatbot = () => {
   // Fetch all relevant Firestore data for the logged-in user
   const fetchFirestoreData = async (userId) => {
     try {
-      // Fetch tenant data
       const tenantRef = doc(db, "users", userId);
       const tenantSnap = await getDoc(tenantRef);
       const tenantData = tenantSnap.exists() ? tenantSnap.data() : null;
 
       if (!tenantData) return null;
 
-      // Fetch property data
       const propertyRef = doc(db, "properties", tenantData.propertyId);
       const propertySnap = await getDoc(propertyRef);
       const propertyData = propertySnap.exists() ? propertySnap.data() : null;
 
-      // Fetch notifications
       const notificationsRef = collection(db, "notifications");
       const notificationsQuery = query(notificationsRef, where("userId", "==", userId));
       const notificationsSnapshot = await getDocs(notificationsQuery);
       const notifications = notificationsSnapshot.docs.map((doc) => doc.data());
 
-      // Fetch maintenance requests
       const maintenanceRef = collection(db, "maintenanceRequests");
       const maintenanceQuery = query(maintenanceRef, where("userId", "==", userId));
       const maintenanceSnapshot = await getDocs(maintenanceQuery);
@@ -95,11 +91,12 @@ const Chatbot = () => {
           if (line.startsWith("data:")) {
             try {
               const json = JSON.parse(line.replace("data: ", "").trim());
-              const delta = json.choices?.[0]?.delta?.content || "";
+              let delta = json.choices?.[0]?.delta?.content || "";
 
-              // Remove <think> tags before adding to response
-              const cleanedDelta = delta.replace(/<think>.*?<\/think>/g, "");
-              assistantReply += cleanedDelta;
+              // Completely remove any "<think>...</think>" segments
+              delta = delta.replace(/<think>.*?<\/think>/gs, "").trim();
+
+              assistantReply += delta;
 
               setMessages((prev) => [...prev.slice(0, -1), { role: "assistant", content: assistantReply }]);
             } catch (error) {
