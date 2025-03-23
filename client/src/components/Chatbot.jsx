@@ -54,43 +54,36 @@ const Chatbot = () => {
     }
   };
 
-  // Construct a dynamic prompt for Groq
-  const constructPrompt = (query, firestoreData) => {
-    const { tenantData, propertyData, notifications, maintenanceRequests } = firestoreData;
-
-    return `
-      You are a helpful assistant for a property management system. Below is the user's query. Use the following Firestore data to generate a precise and concise response. Do not include unnecessary details unless explicitly asked.
-
-      User Query: "${query}"
-
-      Firestore Data:
-      - Tenant Name: ${tenantData.name}
-      - Tenant Email: ${tenantData.email}
-      - Tenant Phone: ${tenantData.phone}
-      - Property Name: ${propertyData.name}
-      - Property Address: ${propertyData.address}
-      - Unit Number: ${tenantData.unitId}
-      - Notifications: ${notifications.map((n) => n.message).join(", ")}
-      - Maintenance Requests: ${maintenanceRequests.map((r) => r.issue).join(", ")}
-
-      Instructions:
-      1. Respond only to the specific query. Do not list all data unless asked.
-      2. If the user asks about their property, respond with the property name and address.
-      3. If the user asks about their unit, respond with the unit number.
-      4. If the user asks about notifications, list their recent notifications.
-      5. If the user asks about maintenance requests, provide the status of their requests.
-      6. If the query is unclear, ask for clarification.
-      7. Remove any <think> tags from the response.
-    `;
-  };
-
-  // Fetch AI response from Groq
+  // Fetch AI response from Groq (streaming)
   const fetchAIResponse = async (query, userId) => {
     try {
       const firestoreData = await fetchFirestoreData(userId);
       if (!firestoreData) return "Please log in to access your information.";
 
-      const prompt = constructPrompt(query, firestoreData);
+      const prompt = `
+        You are a helpful assistant for a property management system. Below is the user's query. Use the following Firestore data to generate a precise and concise response. Do not include unnecessary details unless explicitly asked.
+
+        User Query: "${query}"
+
+        Firestore Data:
+        - Tenant Name: ${firestoreData.tenantData.name}
+        - Tenant Email: ${firestoreData.tenantData.email}
+        - Tenant Phone: ${firestoreData.tenantData.phone}
+        - Property Name: ${firestoreData.propertyData.name}
+        - Property Address: ${firestoreData.propertyData.address}
+        - Unit Number: ${firestoreData.tenantData.unitId}
+        - Notifications: ${firestoreData.notifications.map((n) => n.message).join(", ")}
+        - Maintenance Requests: ${firestoreData.maintenanceRequests.map((r) => r.issue).join(", ")}
+
+        Instructions:
+        1. Respond only to the specific query. Do not list all data unless asked.
+        2. If the user asks about their property, respond with the property name and address.
+        3. If the user asks about their unit, respond with the unit number.
+        4. If the user asks about notifications, list their recent notifications.
+        5. If the user asks about maintenance requests, provide the status of their requests.
+        6. If the query is unclear, ask for clarification.
+        7. Remove any <think> tags from the response.
+      `;
 
       const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
@@ -102,15 +95,48 @@ const Chatbot = () => {
           model: "qwen-qwq-32b",
           messages: [{ role: "user", content: prompt }],
           temperature: 0.6,
+          stream: true,
         }),
       });
 
-      const data = await response.json();
-      const reply = data.choices[0].message.content;
+      if (!response.body) throw new Error("Response body is empty");
 
-      // Remove <think> tags from the response
-      const cleanedReply = reply.replace(/<think>.*?<\/think>/g, "");
-      return cleanedReply;
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let assistantReply = "";
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split("\n").filter((line) => line.trim() !== "");
+
+        for (const line of lines) {
+          if (line === "data: [DONE]") break;
+
+          if (line.startsWith("data:")) {
+            try {
+              const jsonString = line.replace("data: ", "").trim();
+              if (!jsonString) continue;
+
+              const json = JSON.parse(jsonString);
+              const delta = json.choices?.[0]?.delta?.content || "";
+              const filteredDelta = delta.replace(/<think>.*?<\/think>/g, ""); // Remove <think> tags
+
+              assistantReply += filteredDelta;
+
+              setMessages((prevMessages) => [
+                ...prevMessages.slice(0, -1),
+                { role: "assistant", content: assistantReply },
+              ]);
+            } catch (error) {
+              console.error("Error parsing stream chunk:", error);
+            }
+          }
+        }
+      }
+      return assistantReply;
     } catch (error) {
       console.error("Error fetching AI response:", error);
       return "Sorry, something went wrong. Please try again.";
