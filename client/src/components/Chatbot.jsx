@@ -14,31 +14,16 @@ const Chatbot = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const fetchFirestoreData = async (userId) => {
+  const getTenantData = async () => {
+    const user = auth.currentUser;
+    if (!user) return null;
+    
     try {
-      const tenantRef = doc(db, "users", userId);
-      const tenantSnap = await getDoc(tenantRef);
-      const tenantData = tenantSnap.exists() ? tenantSnap.data() : null;
-      if (!tenantData) return null;
-
-      const propertyRef = doc(db, "properties", tenantData.propertyId);
-      const propertySnap = await getDoc(propertyRef);
-      const propertyData = propertySnap.exists() ? propertySnap.data() : null;
-
-      const notificationsRef = collection(db, "notifications");
-      const notifications = await getDocs(query(notificationsRef, where("userId", "==", userId)));
-      
-      const maintenanceRef = collection(db, "maintenanceRequests");
-      const maintenanceRequests = await getDocs(query(maintenanceRef, where("userId", "==", userId)));
-
-      return {
-        tenantData,
-        propertyData,
-        notifications: notifications.docs.map(doc => doc.data()),
-        maintenanceRequests: maintenanceRequests.docs.map(doc => doc.data()),
-      };
+      const docRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(docRef);
+      return docSnap.exists() ? docSnap.data() : null;
     } catch (error) {
-      console.error("Error fetching Firestore data:", error);
+      console.error("Error fetching tenant data:", error);
       return null;
     }
   };
@@ -53,11 +38,34 @@ const Chatbot = () => {
     setLoading(true);
 
     try {
-      const API_KEY = import.meta.env.VITE_GROQ_API_KEY;
-      if (!API_KEY) throw new Error("GROQ_API_KEY is missing!");
+      const tenantData = await getTenantData();
+      if (!tenantData) {
+        setMessages(prev => [...prev, { 
+          role: "assistant", 
+          content: "Please log in to access your information." 
+        }]);
+        return;
+      }
 
       // Add empty assistant message placeholder
       setMessages(prev => [...prev, { role: "assistant", content: "" }]);
+
+      const API_KEY = import.meta.env.VITE_GROQ_API_KEY;
+      if (!API_KEY) throw new Error("GROQ_API_KEY is missing!");
+
+      // Construct detailed prompt with Firebase data
+      const prompt = `
+        You are a property management assistant. Use this tenant data to answer questions:
+        - Name: ${tenantData.name}
+        - Email: ${tenantData.email}
+        - Phone: ${tenantData.phone}
+        - Property ID: ${tenantData.propertyId}
+        - Unit ID: ${tenantData.unitId}
+        
+        Current query: "${trimmedInput}"
+        
+        Respond concisely and hide all reasoning. Never show <think> tags.
+      `;
 
       const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
@@ -67,7 +75,7 @@ const Chatbot = () => {
         },
         body: JSON.stringify({
           model: "qwen-qwq-32b",
-          messages: [...messages, userMessage],
+          messages: [{ role: "user", content: prompt }],
           temperature: 0.6,
           stream: true,
         }),
@@ -94,8 +102,8 @@ const Chatbot = () => {
               const json = JSON.parse(line.replace("data: ", "").trim());
               const delta = json.choices?.[0]?.delta?.content || "";
               
-              // Remove <think> tags and update message
-              const cleanedDelta = delta.replace(/<think>.*?<\/think>/gs, "");
+              // Remove ALL <think> tags and their content
+              const cleanedDelta = delta.replace(/<think>[\s\S]*?<\/think>/g, "");
               assistantReply += cleanedDelta;
 
               setMessages(prev => {
