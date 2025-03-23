@@ -17,6 +17,7 @@ import TenantResetPassword from './components/TenantResetPassword';
 import AdminRoute from './components/AdminRoute';
 import { auth } from './firebase';
 import { setPersistence, browserLocalPersistence } from 'firebase/auth';
+import Chatbot from './components/Chatbot'; // Import chatbot
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -130,6 +131,8 @@ function App() {
               }
             />
           </Routes>
+          {/* Chatbot floating at bottom right */}
+          <Chatbot />
         </ErrorBoundary>
       </Router>
     </ThemeProvider>
