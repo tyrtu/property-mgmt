@@ -7,9 +7,6 @@ const Chatbot = () => {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const API_URL = "https://api.groq.com/openai/v1/chat/completions";
-  const API_KEY = import.meta.env.VITE_GROQ_API_KEY; // Ensure it's set in .env or Vercel
-
   const sendMessage = async () => {
     if (!input.trim()) return;
 
@@ -19,13 +16,22 @@ const Chatbot = () => {
     setLoading(true);
 
     try {
+      const API_URL = "https://api.groq.com/openai/v1/chat/completions";
+      const API_KEY = import.meta.env.VITE_GROQ_API_KEY; // Ensure this is set in your environment variables
+
+      if (!API_KEY) {
+        console.error("GROQ_API_KEY is missing!");
+        setMessages([...newMessages, { role: "assistant", content: "API key missing!" }]);
+        return;
+      }
+
       const requestBody = {
-        messages: newMessages.map((msg) => ({
-          role: msg.role,
-          content: msg.content,
-        })),
-        model: "mixtral-8x7b-32768",
-        temperature: 0.7,
+        model: "qwen-qwq-32b", // Ensure the correct model
+        messages: newMessages,
+        temperature: 0.6,
+        max_completion_tokens: 32768,
+        top_p: 0.95,
+        stream: true, // ✅ Enable streaming
       };
 
       const response = await fetch(API_URL, {
@@ -37,16 +43,40 @@ const Chatbot = () => {
         body: JSON.stringify(requestBody),
       });
 
-      const data = await response.json();
+      if (!response.body) throw new Error("Response body is empty");
 
-      if (response.ok && data.choices?.[0]?.message?.content) {
-        setMessages([...newMessages, { role: "assistant", content: data.choices[0].message.content }]);
-      } else {
-        setMessages([...newMessages, { role: "assistant", content: "AI could not respond. Try again." }]);
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let assistantReply = "";
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split("\n").filter(line => line.trim() !== "");
+
+        for (const line of lines) {
+          if (line.startsWith("data:")) {
+            try {
+              const json = JSON.parse(line.replace("data: ", ""));
+              const delta = json.choices?.[0]?.delta?.content || "";
+
+              assistantReply += delta;
+
+              setMessages(prevMessages => [
+                ...prevMessages.slice(0, -1),
+                { role: "assistant", content: assistantReply }
+              ]);
+            } catch (error) {
+              console.error("Error parsing stream chunk:", error);
+            }
+          }
+        }
       }
     } catch (error) {
       console.error("Error fetching response:", error);
-      setMessages([...newMessages, { role: "assistant", content: "Error fetching response. Please try again." }]);
+      setMessages([...newMessages, { role: "assistant", content: "Error fetching response." }]);
     } finally {
       setLoading(false);
     }
@@ -56,9 +86,9 @@ const Chatbot = () => {
     <div style={{ width: "400px", border: "1px solid #ddd", padding: "10px", borderRadius: "5px" }}>
       <div style={{ height: "300px", overflowY: "auto", padding: "10px", background: "#f9f9f9" }}>
         {messages.map((msg, index) => (
-          <div key={index} style={{
-            textAlign: msg.role === "user" ? "right" : "left",
-            padding: "5px",
+          <div key={index} style={{ 
+            textAlign: msg.role === "user" ? "right" : "left", 
+            padding: "5px", 
             marginBottom: "5px",
             background: msg.role === "user" ? "#dcf8c6" : "#e0e0e0",
             borderRadius: "5px"
