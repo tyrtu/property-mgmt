@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { fetchGroqResponse } from "../services/groqService"; // Import service
-
+import Navigation from "./Navigation";
 const Chatbot = () => {
   const [messages, setMessages] = useState([
     { role: "system", content: "Hello! How can I assist you today?" },

@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API_URL = "https://api.groq.com/openai/v1/chat/completions";
-const API_KEY = process.env.GROQ_API_KEY; // Use process.env directly
+const API_KEY = import.meta.env.VITE_GROQ_API_KEY; // Use process.env directly
 
 export const fetchGroqResponse = async (messages) => {
   try {
