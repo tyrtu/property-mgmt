@@ -59,7 +59,7 @@ const Chatbot = () => {
     const { tenantData, propertyData, notifications, maintenanceRequests } = firestoreData;
 
     return `
-      You are a helpful assistant for a property management system. Below is the user's query and relevant data from Firestore. Generate a precise response based on the data.
+      You are a helpful assistant for a property management system. Below is the user's query. Use the following Firestore data to generate a precise and concise response. Do not include unnecessary details unless explicitly asked.
 
       User Query: "${query}"
 
@@ -74,11 +74,13 @@ const Chatbot = () => {
       - Maintenance Requests: ${maintenanceRequests.map((r) => r.issue).join(", ")}
 
       Instructions:
-      1. If the user asks about their property, respond with the property name and address.
-      2. If the user asks about their unit, respond with the unit number.
-      3. If the user asks about notifications, list their recent notifications.
-      4. If the user asks about maintenance requests, provide the status of their requests.
-      5. If the query is unclear, ask for clarification.
+      1. Respond only to the specific query. Do not list all data unless asked.
+      2. If the user asks about their property, respond with the property name and address.
+      3. If the user asks about their unit, respond with the unit number.
+      4. If the user asks about notifications, list their recent notifications.
+      5. If the user asks about maintenance requests, provide the status of their requests.
+      6. If the query is unclear, ask for clarification.
+      7. Remove any <think> tags from the response.
     `;
   };
 
@@ -104,7 +106,11 @@ const Chatbot = () => {
       });
 
       const data = await response.json();
-      return data.choices[0].message.content;
+      const reply = data.choices[0].message.content;
+
+      // Remove <think> tags from the response
+      const cleanedReply = reply.replace(/<think>.*?<\/think>/g, "");
+      return cleanedReply;
     } catch (error) {
       console.error("Error fetching AI response:", error);
       return "Sorry, something went wrong. Please try again.";
