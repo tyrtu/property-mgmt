@@ -10,18 +10,15 @@ const Chatbot = () => {
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // Auto-scroll to the bottom when messages update
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Fetch all relevant Firestore data for the logged-in user
   const fetchFirestoreData = async (userId) => {
     try {
       const tenantRef = doc(db, "users", userId);
       const tenantSnap = await getDoc(tenantRef);
       const tenantData = tenantSnap.exists() ? tenantSnap.data() : null;
-
       if (!tenantData) return null;
 
       const propertyRef = doc(db, "properties", tenantData.propertyId);
@@ -29,20 +26,16 @@ const Chatbot = () => {
       const propertyData = propertySnap.exists() ? propertySnap.data() : null;
 
       const notificationsRef = collection(db, "notifications");
-      const notificationsQuery = query(notificationsRef, where("userId", "==", userId));
-      const notificationsSnapshot = await getDocs(notificationsQuery);
-      const notifications = notificationsSnapshot.docs.map((doc) => doc.data());
-
+      const notifications = await getDocs(query(notificationsRef, where("userId", "==", userId)));
+      
       const maintenanceRef = collection(db, "maintenanceRequests");
-      const maintenanceQuery = query(maintenanceRef, where("userId", "==", userId));
-      const maintenanceSnapshot = await getDocs(maintenanceQuery);
-      const maintenanceRequests = maintenanceSnapshot.docs.map((doc) => doc.data());
+      const maintenanceRequests = await getDocs(query(maintenanceRef, where("userId", "==", userId)));
 
       return {
         tenantData,
         propertyData,
-        notifications,
-        maintenanceRequests,
+        notifications: notifications.docs.map(doc => doc.data()),
+        maintenanceRequests: maintenanceRequests.docs.map(doc => doc.data()),
       };
     } catch (error) {
       console.error("Error fetching Firestore data:", error);
@@ -50,11 +43,21 @@ const Chatbot = () => {
     }
   };
 
-  // Fetch AI response from Groq (streaming)
-  const fetchAIResponse = async (chatHistory) => {
+  const sendMessage = async () => {
+    const trimmedInput = input.trim();
+    if (!trimmedInput || loading) return;
+
+    const userMessage = { role: "user", content: trimmedInput };
+    setMessages(prev => [...prev, userMessage]);
+    setInput("");
+    setLoading(true);
+
     try {
       const API_KEY = import.meta.env.VITE_GROQ_API_KEY;
       if (!API_KEY) throw new Error("GROQ_API_KEY is missing!");
+
+      // Add empty assistant message placeholder
+      setMessages(prev => [...prev, { role: "assistant", content: "" }]);
 
       const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
@@ -64,10 +67,8 @@ const Chatbot = () => {
         },
         body: JSON.stringify({
           model: "qwen-qwq-32b",
-          messages: chatHistory,
+          messages: [...messages, userMessage],
           temperature: 0.6,
-          max_completion_tokens: 32768,
-          top_p: 0.95,
           stream: true,
         }),
       });
@@ -83,7 +84,7 @@ const Chatbot = () => {
         if (done) break;
 
         const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split("\n").filter((line) => line.trim() !== "");
+        const lines = chunk.split("\n").filter(line => line.trim() !== "");
 
         for (const line of lines) {
           if (line === "data: [DONE]") break;
@@ -91,46 +92,29 @@ const Chatbot = () => {
           if (line.startsWith("data:")) {
             try {
               const json = JSON.parse(line.replace("data: ", "").trim());
-              let delta = json.choices?.[0]?.delta?.content || "";
+              const delta = json.choices?.[0]?.delta?.content || "";
+              
+              // Remove <think> tags and update message
+              const cleanedDelta = delta.replace(/<think>.*?<\/think>/gs, "");
+              assistantReply += cleanedDelta;
 
-              // Completely remove any "<think>...</think>" segments
-              delta = delta.replace(/<think>.*?<\/think>/gs, "").trim();
-
-              assistantReply += delta;
-
-              setMessages((prev) => [...prev.slice(0, -1), { role: "assistant", content: assistantReply }]);
+              setMessages(prev => {
+                const newMessages = [...prev];
+                newMessages[newMessages.length - 1] = { 
+                  role: "assistant", 
+                  content: assistantReply 
+                };
+                return newMessages;
+              });
             } catch (error) {
               console.error("Error parsing stream chunk:", error);
             }
           }
         }
       }
-      return assistantReply;
-    } catch (error) {
-      console.error("Error fetching AI response:", error);
-      return "Sorry, something went wrong. Please try again.";
-    }
-  };
-
-  // Send message handler
-  const sendMessage = async () => {
-    const trimmedInput = input.trim();
-    if (!trimmedInput || loading) return;
-
-    const userMessage = { role: "user", content: trimmedInput };
-    setMessages((prev) => [...prev, userMessage]);
-    setInput("");
-    setLoading(true);
-
-    try {
-      const firestoreData = await fetchFirestoreData(auth.currentUser.uid);
-      if (!firestoreData) return "Please log in to access your information.";
-
-      const reply = await fetchAIResponse([...messages, userMessage]);
-      setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
     } catch (error) {
       console.error("Error:", error);
-      setMessages((prev) => [
+      setMessages(prev => [
         ...prev,
         { role: "assistant", content: "Something went wrong. Try again later." },
       ]);
