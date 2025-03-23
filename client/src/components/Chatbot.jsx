@@ -348,35 +348,87 @@ const Chatbot = () => {
   };
 
   return (
-    <div style={{ position: "fixed", bottom: "20px", right: "20px" }}>
+    <div style={{ position: "fixed", bottom: "20px", right: "20px", zIndex: 1000 }}>
       {!isChatVisible && (
         <button
           onClick={toggleChat}
           style={{
-            padding: "10px",
+            padding: "15px",
             background: "#007bff",
             color: "white",
             border: "none",
             borderRadius: "50%",
             cursor: "pointer",
             boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "20px",
           }}
         >
           💬
         </button>
       )}
       {isChatVisible && (
-        <div style={{ width: "400px", border: "1px solid #ddd", padding: "10px", borderRadius: "5px", background: "white", boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)" }}>
-          <div style={{ height: "300px", overflowY: "auto", padding: "10px", background: "#f9f9f9" }}>
+        <div
+          style={{
+            width: "90%",
+            maxWidth: "400px",
+            border: "1px solid #ddd",
+            padding: "10px",
+            borderRadius: "10px",
+            background: "white",
+            boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+            display: "flex",
+            flexDirection: "column",
+            maxHeight: "80vh",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "10px",
+            }}
+          >
+            <h3 style={{ margin: 0, fontSize: "18px", color: "#007bff" }}>Chat Support</h3>
+            <button
+              onClick={toggleChat}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "18px",
+                color: "#666",
+              }}
+            >
+              ✕
+            </button>
+          </div>
+          <div
+            style={{
+              flex: 1,
+              overflowY: "auto",
+              padding: "10px",
+              background: "#f9f9f9",
+              borderRadius: "5px",
+              marginBottom: "10px",
+            }}
+          >
             {messages.map((msg, index) => (
               <div
                 key={index}
                 style={{
                   textAlign: msg.role === "user" ? "right" : "left",
-                  padding: "5px",
-                  marginBottom: "5px",
-                  background: msg.role === "user" ? "#dcf8c6" : "#e0e0e0",
-                  borderRadius: "5px",
+                  padding: "8px",
+                  marginBottom: "8px",
+                  background: msg.role === "user" ? "#007bff" : "#e0e0e0",
+                  color: msg.role === "user" ? "white" : "black",
+                  borderRadius: "10px",
+                  maxWidth: "80%",
+                  marginLeft: msg.role === "user" ? "auto" : "0",
+                  wordWrap: "break-word",
                 }}
               >
                 {msg.content}
@@ -399,13 +451,19 @@ const Chatbot = () => {
             )}
             <div ref={messagesEndRef} />
           </div>
-          <div style={{ display: "flex", marginTop: "10px" }}>
+          <div style={{ display: "flex", gap: "10px" }}>
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Type a message..."
-              style={{ flex: 1, padding: "8px", borderRadius: "3px", border: "1px solid #ccc" }}
+              style={{
+                flex: 1,
+                padding: "8px",
+                borderRadius: "5px",
+                border: "1px solid #ddd",
+                outline: "none",
+              }}
               disabled={loading}
               onKeyDown={(e) => e.key === "Enter" && !loading && sendMessage()}
             />
@@ -413,28 +471,33 @@ const Chatbot = () => {
               onClick={sendMessage}
               disabled={loading || !input.trim()}
               style={{
-                marginLeft: "5px",
-                padding: "8px",
+                padding: "8px 15px",
                 background: loading ? "#ccc" : "#007bff",
                 color: "white",
                 border: "none",
-                borderRadius: "3px",
+                borderRadius: "5px",
                 cursor: loading ? "not-allowed" : "pointer",
               }}
             >
               Send
             </button>
           </div>
-          <style>
-            {
-              `@keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-              }`
-            }
-          </style>
         </div>
       )}
+      <style>
+        {`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+          @media (max-width: 480px) {
+            div {
+              right: 10px;
+              bottom: 10px;
+            }
+          }
+        `}
+      </style>
     </div>
   );
 };
