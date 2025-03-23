@@ -8,7 +8,6 @@ const Chatbot = () => {
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // Auto-scroll to the bottom when messages update
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -24,7 +23,7 @@ const Chatbot = () => {
 
     try {
       const API_URL = "https://api.groq.com/openai/v1/chat/completions";
-      const API_KEY = import.meta.env.VITE_GROQ_API_KEY; // Ensure this is set in your environment variables
+      const API_KEY = import.meta.env.VITE_GROQ_API_KEY;
 
       if (!API_KEY) {
         console.error("GROQ_API_KEY is missing!");
@@ -33,7 +32,7 @@ const Chatbot = () => {
       }
 
       const requestBody = {
-        model: "qwen-qwq-32b", // Ensure the correct model
+        model: "qwen-qwq-32b",
         messages: newMessages,
         temperature: 0.6,
         max_completion_tokens: 32768,
@@ -64,9 +63,18 @@ const Chatbot = () => {
         const lines = chunk.split("\n").filter((line) => line.trim() !== "");
 
         for (const line of lines) {
+          if (line === "data: [DONE]") {
+            console.log("Stream finished.");
+            break;
+          }
+
           if (line.startsWith("data:")) {
             try {
-              const json = JSON.parse(line.replace("data: ", ""));
+              const jsonString = line.replace("data: ", "").trim();
+
+              if (!jsonString) continue;
+
+              const json = JSON.parse(jsonString);
               const delta = json.choices?.[0]?.delta?.content || "";
 
               assistantReply += delta;
@@ -158,6 +166,14 @@ const Chatbot = () => {
           @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+          }
+
+          /* Hide or fade <think> text */
+          think {
+            display: none; /* Completely hide */
+            /* OR */
+            /* opacity: 0.3; Fade out */
+            /* color: #999; Make it less noticeable */
           }
         `}
       </style>
