@@ -5,7 +5,7 @@ const Chatbot = () => {
     { role: "system", content: "Hello! How can I assist you today?" },
   ]);
   const [input, setInput] = useState("");
-  const [loading, setLoading] = false;
+  const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
   // Auto-scroll to the bottom when messages update
