@@ -112,7 +112,7 @@ const Chatbot = () => {
     }
 
     // Fetch notifications
-    if (lowerQuery.includes("notification") || lowerQuery.includes("alert"))) {
+    if (lowerQuery.includes("notification") || lowerQuery.includes("alert")) {
       const notifications = await getNotifications(tenantData.uid);
       if (notifications.length === 0) return "You have no notifications.";
       return `Your notifications:\n${notifications
@@ -121,7 +121,7 @@ const Chatbot = () => {
     }
 
     // Fetch maintenance requests
-    if (lowerQuery.includes("maintenance") || lowerQuery.includes("request"))) {
+    if (lowerQuery.includes("maintenance") || lowerQuery.includes("request")) {
       const requests = await getMaintenanceRequests(tenantData.uid);
       if (requests.length === 0) return "You have no maintenance requests.";
       return `Your maintenance requests:\n${requests
@@ -130,7 +130,7 @@ const Chatbot = () => {
     }
 
     // Fetch property amenities
-    if (lowerQuery.includes("amenities") || lowerQuery.includes("facilities"))) {
+    if (lowerQuery.includes("amenities") || lowerQuery.includes("facilities")) {
       const amenities = await getPropertyAmenities(tenantData.propertyId);
       if (amenities.length === 0) return "Your property has no amenities listed.";
       return `Your property amenities:\n- ${amenities.join("\n- ")}`;
