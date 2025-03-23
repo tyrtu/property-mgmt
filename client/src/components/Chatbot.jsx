@@ -8,28 +8,30 @@ const Chatbot = () => {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isChatVisible, setIsChatVisible] = useState(false);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const toggleChat = () => {
+    setIsChatVisible(!isChatVisible);
+  };
+
   // Fetch tenant-specific Firestore data
   const fetchTenantData = async (userId) => {
     try {
-      // Fetch tenant data
       const tenantRef = doc(db, "users", userId);
       const tenantSnap = await getDoc(tenantRef);
       const tenantData = tenantSnap.exists() ? tenantSnap.data() : null;
 
       if (!tenantData) return null;
 
-      // Fetch property data
       const propertyRef = doc(db, "properties", tenantData.propertyId);
       const propertySnap = await getDoc(propertyRef);
       const propertyData = propertySnap.exists() ? propertySnap.data() : null;
 
-      // Fetch units under the property
       const unitsRef = collection(db, "properties", tenantData.propertyId, "units");
       const unitsSnapshot = await getDocs(unitsRef);
       const units = unitsSnapshot.docs.map((doc) => ({
@@ -38,13 +40,11 @@ const Chatbot = () => {
         occupied: doc.data().occupied,
       }));
 
-      // Fetch notifications
       const notificationsRef = collection(db, "notifications");
       const notificationsQuery = query(notificationsRef, where("userId", "==", userId));
       const notificationsSnapshot = await getDocs(notificationsQuery);
       const notifications = notificationsSnapshot.docs.map((doc) => doc.data());
 
-      // Fetch maintenance requests
       const maintenanceRef = collection(db, "maintenanceRequests");
       const maintenanceQuery = query(maintenanceRef, where("userId", "==", userId));
       const maintenanceSnapshot = await getDocs(maintenanceQuery);
@@ -66,7 +66,6 @@ const Chatbot = () => {
   // Fetch admin-specific Firestore data (aggregated statistics)
   const fetchAdminData = async () => {
     try {
-      // Get count and list of all properties
       const propertiesRef = collection(db, "properties");
       const propertiesSnapshot = await getDocs(propertiesRef);
       const propertiesCount = propertiesSnapshot.size;
@@ -76,11 +75,9 @@ const Chatbot = () => {
         address: doc.data().address
       }));
       
-      // Total unit count and occupancy data
       let totalUnits = 0;
       let occupiedUnits = 0;
       
-      // Process each property to get its units
       for (const property of propertiesList) {
         const unitsRef = collection(db, "properties", property.id, "units");
         const unitsSnapshot = await getDocs(unitsRef);
@@ -95,7 +92,6 @@ const Chatbot = () => {
         occupiedUnits += propertyUnits.filter(unit => unit.occupied).length;
       }
       
-      // Get tenant count
       const tenantsQuery = query(collection(db, "users"), where("role", "==", "tenant"));
       const tenantsSnapshot = await getDocs(tenantsQuery);
       const tenantsCount = tenantsSnapshot.size;
@@ -107,7 +103,6 @@ const Chatbot = () => {
         unitId: doc.data().unitId
       }));
       
-      // Get maintenance requests summary
       const maintenanceRef = collection(db, "maintenanceRequests");
       const maintenanceSnapshot = await getDocs(maintenanceRef);
       const maintenanceRequests = maintenanceSnapshot.docs.map(doc => ({
@@ -123,7 +118,6 @@ const Chatbot = () => {
       const inProgressMaintenance = maintenanceRequests.filter(req => req.status === "in-progress").length;
       const completedMaintenance = maintenanceRequests.filter(req => req.status === "completed").length;
       
-      // Calculate vacancy rate
       const vacancyRate = totalUnits > 0 ? ((totalUnits - occupiedUnits) / totalUnits * 100).toFixed(1) : "0.0";
       
       return {
@@ -152,12 +146,12 @@ const Chatbot = () => {
       const userRef = doc(db, "users", userId);
       const userSnap = await getDoc(userRef);
       if (userSnap.exists()) {
-        return userSnap.data().role || "tenant"; // Default to tenant if role field doesn't exist
+        return userSnap.data().role || "tenant";
       }
-      return "tenant"; // Default if user doc doesn't exist
+      return "tenant";
     } catch (error) {
       console.error("Error checking user role:", error);
-      return "tenant"; // Default on error
+      return "tenant";
     }
   };
 
@@ -182,10 +176,8 @@ const Chatbot = () => {
         return;
       }
 
-      // Determine user role
       const userRole = await checkUserRole(userId);
       
-      // Fetch appropriate data based on role
       let prompt;
       if (userRole === "admin") {
         const adminData = await fetchAdminData();
@@ -198,7 +190,6 @@ const Chatbot = () => {
           return;
         }
         
-        // Construct admin-specific prompt
         prompt = `
           You are a helpful assistant for property management administrators. Below is the admin's query and relevant data:
 
@@ -222,7 +213,6 @@ const Chatbot = () => {
           6. **Never include <think> tags or internal reasoning in the response.**
         `;
       } else {
-        // Tenant role - use existing tenant data fetching
         const tenantData = await fetchTenantData(userId);
         if (!tenantData) {
           setMessages((prev) => [
@@ -233,7 +223,6 @@ const Chatbot = () => {
           return;
         }
         
-        // Use existing tenant prompt structure
         prompt = `
           You are a helpful assistant for a property management system. Below is the user's query and relevant data from Firestore. Generate a precise response based on the data.
 
@@ -265,7 +254,6 @@ const Chatbot = () => {
       const API_KEY = import.meta.env.VITE_GROQ_API_KEY;
       if (!API_KEY) throw new Error("GROQ_API_KEY is missing!");
 
-      // Add empty assistant message placeholder
       setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
 
       const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -304,13 +292,9 @@ const Chatbot = () => {
               const json = JSON.parse(line.replace("data: ", "").trim());
               const delta = json.choices?.[0]?.delta?.content || "";
               
-              // Add to full response first
               fullResponse += delta;
               
-              // Only update the UI when we have a complete response or periodically
-              // This allows us to process the entire <think> tags before displaying
               if (done || lines.length === 1) {
-                // Remove all think tags and their content from the full response
                 const cleanedResponse = fullResponse.replace(/<think>[\s\S]*?<\/think>/g, "");
                 assistantReply = cleanedResponse;
                 
@@ -323,7 +307,6 @@ const Chatbot = () => {
                   return newMessages;
                 });
               } else {
-                // For streaming updates, we still need to clean each chunk
                 const cleanedDelta = delta.replace(/<think>[\s\S]*?<\/think>/g, "");
                 assistantReply += cleanedDelta;
                 
@@ -343,7 +326,6 @@ const Chatbot = () => {
         }
       }
       
-      // Final cleanup to ensure all think tags are removed
       const finalCleanedResponse = fullResponse.replace(/<think>[\s\S]*?<\/think>/g, "");
       setMessages((prev) => {
         const newMessages = [...prev];
@@ -366,73 +348,93 @@ const Chatbot = () => {
   };
 
   return (
-    <div style={{ width: "400px", border: "1px solid #ddd", padding: "10px", borderRadius: "5px" }}>
-      <div style={{ height: "300px", overflowY: "auto", padding: "10px", background: "#f9f9f9" }}>
-        {messages.map((msg, index) => (
-          <div
-            key={index}
-            style={{
-              textAlign: msg.role === "user" ? "right" : "left",
-              padding: "5px",
-              marginBottom: "5px",
-              background: msg.role === "user" ? "#dcf8c6" : "#e0e0e0",
-              borderRadius: "5px",
-            }}
-          >
-            {msg.content}
-          </div>
-        ))}
-        {loading && (
-          <div style={{ textAlign: "center", margin: "10px 0" }}>
-            <div
-              style={{
-                display: "inline-block",
-                width: "20px",
-                height: "20px",
-                border: "3px solid #f3f3f3",
-                borderTop: "3px solid #007bff",
-                borderRadius: "50%",
-                animation: "spin 1s linear infinite",
-              }}
-            ></div>
-          </div>
-        )}
-        <div ref={messagesEndRef} />
-      </div>
-      <div style={{ display: "flex", marginTop: "10px" }}>
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Type a message..."
-          style={{ flex: 1, padding: "8px", borderRadius: "3px", border: "1px solid #ccc" }}
-          disabled={loading}
-          onKeyDown={(e) => e.key === "Enter" && !loading && sendMessage()}
-        />
+    <div style={{ position: "fixed", bottom: "20px", right: "20px" }}>
+      {!isChatVisible && (
         <button
-          onClick={sendMessage}
-          disabled={loading || !input.trim()}
+          onClick={toggleChat}
           style={{
-            marginLeft: "5px",
-            padding: "8px",
-            background: loading ? "#ccc" : "#007bff",
+            padding: "10px",
+            background: "#007bff",
             color: "white",
             border: "none",
-            borderRadius: "3px",
-            cursor: loading ? "not-allowed" : "pointer",
+            borderRadius: "50%",
+            cursor: "pointer",
+            boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
           }}
         >
-          Send
+          💬
         </button>
-      </div>
-      <style>
-        {
-          `@keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }`
-        }
-      </style>
+      )}
+      {isChatVisible && (
+        <div style={{ width: "400px", border: "1px solid #ddd", padding: "10px", borderRadius: "5px", background: "white", boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)" }}>
+          <div style={{ height: "300px", overflowY: "auto", padding: "10px", background: "#f9f9f9" }}>
+            {messages.map((msg, index) => (
+              <div
+                key={index}
+                style={{
+                  textAlign: msg.role === "user" ? "right" : "left",
+                  padding: "5px",
+                  marginBottom: "5px",
+                  background: msg.role === "user" ? "#dcf8c6" : "#e0e0e0",
+                  borderRadius: "5px",
+                }}
+              >
+                {msg.content}
+              </div>
+            ))}
+            {loading && (
+              <div style={{ textAlign: "center", margin: "10px 0" }}>
+                <div
+                  style={{
+                    display: "inline-block",
+                    width: "20px",
+                    height: "20px",
+                    border: "3px solid #f3f3f3",
+                    borderTop: "3px solid #007bff",
+                    borderRadius: "50%",
+                    animation: "spin 1s linear infinite",
+                  }}
+                ></div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+          <div style={{ display: "flex", marginTop: "10px" }}>
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Type a message..."
+              style={{ flex: 1, padding: "8px", borderRadius: "3px", border: "1px solid #ccc" }}
+              disabled={loading}
+              onKeyDown={(e) => e.key === "Enter" && !loading && sendMessage()}
+            />
+            <button
+              onClick={sendMessage}
+              disabled={loading || !input.trim()}
+              style={{
+                marginLeft: "5px",
+                padding: "8px",
+                background: loading ? "#ccc" : "#007bff",
+                color: "white",
+                border: "none",
+                borderRadius: "3px",
+                cursor: loading ? "not-allowed" : "pointer",
+              }}
+            >
+              Send
+            </button>
+          </div>
+          <style>
+            {
+              `@keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+              }`
+            }
+          </style>
+        </div>
+      )}
     </div>
   );
 };
