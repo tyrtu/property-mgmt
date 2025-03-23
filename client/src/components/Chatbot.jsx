@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { fetchGroqResponse } from "../services/groqService"; // Import service
 
 const Chatbot = () => {
   const [messages, setMessages] = useState([
@@ -6,37 +7,6 @@ const Chatbot = () => {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-
-  const fetchGroqResponse = async (messages) => {
-    const API_URL = "https://api.groq.com/openai/v1/chat/completions";
-    const API_KEY = process.env.GROQ_API_KEY; // Store in .env
-
-    const requestBody = {
-      messages: messages.map((msg) => ({
-        role: msg.role,
-        content: msg.content,
-      })),
-      model: "mixtral-8x7b-32768",
-      temperature: 0.7,
-    };
-
-    try {
-      const response = await fetch(API_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${API_KEY}`,
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      const data = await response.json();
-      return data.choices?.[0]?.message?.content || "No response from AI";
-    } catch (error) {
-      console.error("Error fetching response:", error);
-      return "Error connecting to AI";
-    }
-  };
 
   const sendMessage = async () => {
     if (!input.trim()) return;

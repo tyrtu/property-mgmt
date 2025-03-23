@@ -1,14 +1,14 @@
 import axios from "axios";
 
 const API_URL = "https://api.groq.com/openai/v1/chat/completions";
-const API_KEY = "GROQ_API_KEY"; // Store this securely, e.g., in an environment variable
+const API_KEY = process.env.GROQ_API_KEY; // Use process.env directly
 
 export const fetchGroqResponse = async (messages) => {
   try {
     const response = await axios.post(
       API_URL,
       {
-        model: "qwen-qwq-32b",
+        model: "mixtral-8x7b-32768", // Ensure model consistency
         messages: messages,
         temperature: 0.6,
         max_completion_tokens: 1000,
@@ -21,7 +21,7 @@ export const fetchGroqResponse = async (messages) => {
         },
       }
     );
-    return response.data.choices[0].message.content;
+    return response.data.choices?.[0]?.message?.content || "No response from AI.";
   } catch (error) {
     console.error("Error fetching Groq response:", error);
     return "Error fetching response. Please try again.";
