@@ -14,8 +14,8 @@ const Chatbot = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Fetch all relevant Firestore data for the logged-in user
-  const fetchFirestoreData = async (userId) => {
+  // Fetch tenant-specific Firestore data
+  const fetchTenantData = async (userId) => {
     try {
       // Fetch tenant data
       const tenantRef = doc(db, "users", userId);
@@ -34,7 +34,7 @@ const Chatbot = () => {
       const unitsSnapshot = await getDocs(unitsRef);
       const units = unitsSnapshot.docs.map((doc) => ({
         id: doc.id,
-        number: doc.data().number, // Fetch unit number (not ID)
+        number: doc.data().number,
         occupied: doc.data().occupied,
       }));
 
@@ -58,8 +58,106 @@ const Chatbot = () => {
         maintenanceRequests,
       };
     } catch (error) {
-      console.error("Error fetching Firestore data:", error);
+      console.error("Error fetching tenant data:", error);
       return null;
+    }
+  };
+
+  // Fetch admin-specific Firestore data (aggregated statistics)
+  const fetchAdminData = async () => {
+    try {
+      // Get count and list of all properties
+      const propertiesRef = collection(db, "properties");
+      const propertiesSnapshot = await getDocs(propertiesRef);
+      const propertiesCount = propertiesSnapshot.size;
+      const propertiesList = propertiesSnapshot.docs.map(doc => ({
+        id: doc.id,
+        name: doc.data().name,
+        address: doc.data().address
+      }));
+      
+      // Total unit count and occupancy data
+      let totalUnits = 0;
+      let occupiedUnits = 0;
+      
+      // Process each property to get its units
+      for (const property of propertiesList) {
+        const unitsRef = collection(db, "properties", property.id, "units");
+        const unitsSnapshot = await getDocs(unitsRef);
+        
+        const propertyUnits = unitsSnapshot.docs.map(doc => ({
+          id: doc.id,
+          number: doc.data().number,
+          occupied: doc.data().occupied
+        }));
+        
+        totalUnits += propertyUnits.length;
+        occupiedUnits += propertyUnits.filter(unit => unit.occupied).length;
+      }
+      
+      // Get tenant count
+      const tenantsQuery = query(collection(db, "users"), where("role", "==", "tenant"));
+      const tenantsSnapshot = await getDocs(tenantsQuery);
+      const tenantsCount = tenantsSnapshot.size;
+      const tenantsList = tenantsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        name: doc.data().name,
+        email: doc.data().email,
+        propertyId: doc.data().propertyId,
+        unitId: doc.data().unitId
+      }));
+      
+      // Get maintenance requests summary
+      const maintenanceRef = collection(db, "maintenanceRequests");
+      const maintenanceSnapshot = await getDocs(maintenanceRef);
+      const maintenanceRequests = maintenanceSnapshot.docs.map(doc => ({
+        id: doc.id,
+        issue: doc.data().issue,
+        status: doc.data().status,
+        userId: doc.data().userId,
+        propertyId: doc.data().propertyId,
+        createdAt: doc.data().createdAt
+      }));
+      
+      const pendingMaintenance = maintenanceRequests.filter(req => req.status === "pending").length;
+      const inProgressMaintenance = maintenanceRequests.filter(req => req.status === "in-progress").length;
+      const completedMaintenance = maintenanceRequests.filter(req => req.status === "completed").length;
+      
+      // Calculate vacancy rate
+      const vacancyRate = totalUnits > 0 ? ((totalUnits - occupiedUnits) / totalUnits * 100).toFixed(1) : "0.0";
+      
+      return {
+        propertiesCount,
+        propertiesList,
+        totalUnits,
+        occupiedUnits,
+        vacancyRate,
+        tenantsCount,
+        tenantsList,
+        pendingMaintenance,
+        inProgressMaintenance,
+        completedMaintenance,
+        totalMaintenance: maintenanceRequests.length,
+        maintenanceRequests
+      };
+    } catch (error) {
+      console.error("Error fetching admin data:", error);
+      return null;
+    }
+  };
+
+  // Check user role
+  const checkUserRole = async (userId) => {
+    try {
+      const userRef = doc(db, "users", userId);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        return userSnap.data().role || "tenant"; // Default to tenant if role field doesn't exist
+      }
+      return "tenant"; // Default if user doc doesn't exist
+    } catch (error) {
+      console.error("Error checking user role:", error);
+      return "tenant"; // Default on error
     }
   };
 
@@ -80,46 +178,89 @@ const Chatbot = () => {
           ...prev,
           { role: "assistant", content: "Please log in to access your information." },
         ]);
+        setLoading(false);
         return;
       }
 
-      // Fetch Firestore data
-      const firestoreData = await fetchFirestoreData(userId);
-      if (!firestoreData) {
-        setMessages((prev) => [
-          ...prev,
-          { role: "assistant", content: "Failed to fetch your data. Please try again." },
-        ]);
-        return;
+      // Determine user role
+      const userRole = await checkUserRole(userId);
+      
+      // Fetch appropriate data based on role
+      let prompt;
+      if (userRole === "admin") {
+        const adminData = await fetchAdminData();
+        if (!adminData) {
+          setMessages((prev) => [
+            ...prev,
+            { role: "assistant", content: "Failed to fetch administrative data. Please try again." },
+          ]);
+          setLoading(false);
+          return;
+        }
+        
+        // Construct admin-specific prompt
+        prompt = `
+          You are a helpful assistant for property management administrators. Below is the admin's query and relevant data:
+
+          Admin Query: "${trimmedInput}"
+
+          System Data:
+          - Total Properties: ${adminData.propertiesCount}
+          - Property Names: ${adminData.propertiesList.map(p => p.name).join(", ")}
+          - Total Units: ${adminData.totalUnits}
+          - Occupied Units: ${adminData.occupiedUnits}
+          - Vacancy Rate: ${adminData.vacancyRate}%
+          - Total Tenants: ${adminData.tenantsCount}
+          - Maintenance Requests: ${adminData.totalMaintenance} (${adminData.pendingMaintenance} pending, ${adminData.inProgressMaintenance} in progress, ${adminData.completedMaintenance} completed)
+
+          Instructions:
+          1. If asked about property counts, units, or vacancies, provide the exact statistics.
+          2. If asked about specific properties, provide details from the property list.
+          3. If asked to calculate metrics like occupancy rates, perform the calculation.
+          4. If asked about maintenance requests, provide summaries by status.
+          5. Always provide concise, data-driven responses suitable for management decisions.
+          6. **Never include <think> tags or internal reasoning in the response.**
+        `;
+      } else {
+        // Tenant role - use existing tenant data fetching
+        const tenantData = await fetchTenantData(userId);
+        if (!tenantData) {
+          setMessages((prev) => [
+            ...prev,
+            { role: "assistant", content: "Failed to fetch your tenant data. Please try again." },
+          ]);
+          setLoading(false);
+          return;
+        }
+        
+        // Use existing tenant prompt structure
+        prompt = `
+          You are a helpful assistant for a property management system. Below is the user's query and relevant data from Firestore. Generate a precise response based on the data.
+
+          User Query: "${trimmedInput}"
+
+          Firestore Data:
+          - Tenant Name: ${tenantData.tenantData.name}
+          - Tenant Email: ${tenantData.tenantData.email}
+          - Tenant Phone: ${tenantData.tenantData.phone}
+          - Property Name: ${tenantData.propertyData.name}
+          - Property Address: ${tenantData.propertyData.address}
+          - Unit Number: ${tenantData.tenantData.unitId}
+          - Units: ${tenantData.units.map((unit) => unit.number).join(", ")}
+          - Notifications: ${tenantData.notifications.map((n) => n.message).join(", ")}
+          - Maintenance Requests: ${tenantData.maintenanceRequests.map((r) => r.issue).join(", ")}
+
+          Instructions:
+          1. Respond only to the specific query. Do not list all data unless asked.
+          2. If the user asks about their property, respond with the property name and address.
+          3. If the user asks about their unit, respond with the unit number (not the unit ID).
+          4. If the user asks about units, list all available units by their numbers.
+          5. If the user asks about notifications, list their recent notifications.
+          6. If the user asks about maintenance requests, provide the status of their requests.
+          7. If the query is unclear, ask for clarification.
+          8. **Never include <think> tags or internal reasoning in the response.**
+        `;
       }
-
-      // Construct dynamic prompt with Firestore data
-      const prompt = `
-        You are a helpful assistant for a property management system. Below is the user's query and relevant data from Firestore. Generate a precise response based on the data.
-
-        User Query: "${trimmedInput}"
-
-        Firestore Data:
-        - Tenant Name: ${firestoreData.tenantData.name}
-        - Tenant Email: ${firestoreData.tenantData.email}
-        - Tenant Phone: ${firestoreData.tenantData.phone}
-        - Property Name: ${firestoreData.propertyData.name}
-        - Property Address: ${firestoreData.propertyData.address}
-        - Unit Number: ${firestoreData.tenantData.unitId}
-        - Units: ${firestoreData.units.map((unit) => unit.number).join(", ")}
-        - Notifications: ${firestoreData.notifications.map((n) => n.message).join(", ")}
-        - Maintenance Requests: ${firestoreData.maintenanceRequests.map((r) => r.issue).join(", ")}
-
-        Instructions:
-        1. Respond only to the specific query. Do not list all data unless asked.
-        2. If the user asks about their property, respond with the property name and address.
-        3. If the user asks about their unit, respond with the unit number (not the unit ID).
-        4. If the user asks about units, list all available units by their numbers.
-        5. If the user asks about notifications, list their recent notifications.
-        6. If the user asks about maintenance requests, provide the status of their requests.
-        7. If the query is unclear, ask for clarification.
-        8. **Never include <think> tags or internal reasoning in the response.**
-      `;
 
       const API_KEY = import.meta.env.VITE_GROQ_API_KEY;
       if (!API_KEY) throw new Error("GROQ_API_KEY is missing!");
