@@ -8,7 +8,6 @@ const Chatbot = () => {
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // Auto-scroll to the bottom when messages update
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -17,8 +16,9 @@ const Chatbot = () => {
     const trimmedInput = input.trim();
     if (!trimmedInput) return;
 
-    const newMessages = [...messages, { role: "user", content: trimmedInput }];
-    setMessages(newMessages);
+    const userMessage = { role: "user", content: trimmedInput };
+    setMessages((prevMessages) => [...prevMessages, userMessage]); // Ensure user message is added
+
     setInput("");
     setLoading(true);
 
@@ -28,17 +28,20 @@ const Chatbot = () => {
 
       if (!API_KEY) {
         console.error("GROQ_API_KEY is missing!");
-        setMessages([...newMessages, { role: "assistant", content: "API key missing!" }]);
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { role: "assistant", content: "API key missing!" },
+        ]);
         return;
       }
 
       const requestBody = {
         model: "qwen-qwq-32b",
-        messages: newMessages,
+        messages: [...messages, userMessage], // Include new user message
         temperature: 0.6,
         max_completion_tokens: 32768,
         top_p: 0.95,
-        stream: true, // Enable streaming
+        stream: true,
       };
 
       const response = await fetch(API_URL, {
@@ -55,6 +58,9 @@ const Chatbot = () => {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let assistantReply = "";
+      let newAssistantMessage = { role: "assistant", content: "" };
+
+      setMessages((prevMessages) => [...prevMessages, newAssistantMessage]); // Add placeholder
 
       while (true) {
         const { value, done } = await reader.read();
@@ -77,14 +83,17 @@ const Chatbot = () => {
               const json = JSON.parse(jsonString);
               const delta = json.choices?.[0]?.delta?.content || "";
 
-              // Accumulate response while filtering <think> text
               assistantReply += delta;
-              assistantReply = assistantReply.replace(/<think>.*?<\/think>/gs, ""); // Remove all think messages
+              assistantReply = assistantReply.replace(/<think>.*?<\/think>/gs, ""); // Remove <think> messages
 
-              setMessages((prevMessages) => [
-                ...prevMessages.slice(0, -1),
-                { role: "assistant", content: assistantReply },
-              ]);
+              setMessages((prevMessages) => {
+                const updatedMessages = [...prevMessages];
+                updatedMessages[updatedMessages.length - 1] = {
+                  role: "assistant",
+                  content: assistantReply,
+                };
+                return updatedMessages;
+              });
             } catch (error) {
               console.error("Error parsing stream chunk:", error);
             }
@@ -93,7 +102,10 @@ const Chatbot = () => {
       }
     } catch (error) {
       console.error("Error fetching response:", error);
-      setMessages([...newMessages, { role: "assistant", content: "Sorry, something went wrong. Please try again." }]);
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { role: "assistant", content: "Sorry, something went wrong. Please try again." },
+      ]);
     } finally {
       setLoading(false);
     }
