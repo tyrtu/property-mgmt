@@ -8,6 +8,7 @@ const Chatbot = () => {
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
+  // Auto-scroll to the bottom when messages update
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -166,14 +167,6 @@ const Chatbot = () => {
           @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
-          }
-
-          /* Hide or fade <think> text */
-          think {
-            display: none; /* Completely hide */
-            /* OR */
-            /* opacity: 0.3; Fade out */
-            /* color: #999; Make it less noticeable */
           }
         `}
       </style>
