@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { db, auth } from "../firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 
 const Chatbot = () => {
   const [messages, setMessages] = useState([
@@ -30,23 +30,114 @@ const Chatbot = () => {
     }
   };
 
-  // Handle user queries based on Firestore data
-  const handleUserQuery = async (query) => {
+  // Fetch property name by propertyId
+  const getPropertyName = async (propertyId) => {
+    try {
+      const propertyRef = doc(db, "properties", propertyId);
+      const propertySnap = await getDoc(propertyRef);
+      return propertySnap.exists() ? propertySnap.data().name : "Unknown";
+    } catch (error) {
+      console.error("Error fetching property name:", error);
+      return "Unknown";
+    }
+  };
+
+  // Fetch unit number by propertyId and unitId
+  const getUnitNumber = async (propertyId, unitId) => {
+    try {
+      const unitRef = doc(db, "properties", propertyId, "units", unitId);
+      const unitSnap = await getDoc(unitRef);
+      return unitSnap.exists() ? unitSnap.data().number : "Unknown";
+    } catch (error) {
+      console.error("Error fetching unit number:", error);
+      return "Unknown";
+    }
+  };
+
+  // Fetch notifications for the logged-in user
+  const getNotifications = async (userId) => {
+    try {
+      const notificationsRef = collection(db, "notifications");
+      const q = query(notificationsRef, where("userId", "==", userId));
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map((doc) => doc.data());
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      return [];
+    }
+  };
+
+  // Fetch maintenance requests for the logged-in user
+  const getMaintenanceRequests = async (userId) => {
+    try {
+      const maintenanceRef = collection(db, "maintenanceRequests");
+      const q = query(maintenanceRef, where("userId", "==", userId));
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map((doc) => doc.data());
+    } catch (error) {
+      console.error("Error fetching maintenance requests:", error);
+      return [];
+    }
+  };
+
+  // Fetch property amenities by propertyId
+  const getPropertyAmenities = async (propertyId) => {
+    try {
+      const propertyRef = doc(db, "properties", propertyId);
+      const propertySnap = await getDoc(propertyRef);
+      return propertySnap.exists() ? propertySnap.data().amenities : [];
+    } catch (error) {
+      console.error("Error fetching property amenities:", error);
+      return [];
+    }
+  };
+
+  // Handle user queries dynamically
+  const handleUserQuery = async (queryText) => {
     const tenantData = await getTenantData();
     if (!tenantData) return "Please log in to access your information.";
 
-    const lowerQuery = query.toLowerCase();
+    const lowerQuery = queryText.toLowerCase();
 
-    // Match queries to actual fields from registration
-    if (lowerQuery.includes("name")) return `Your name: ${tenantData.name}`;
-    if (lowerQuery.includes("email")) return `Registered email: ${tenantData.email}`;
-    if (lowerQuery.includes("phone")) return `Contact number: ${tenantData.phone}`;
-    if (lowerQuery.includes("unit")) return `Your unit ID: ${tenantData.unitId}`;
-    if (lowerQuery.includes("property")) return `Your property ID: ${tenantData.propertyId}`;
-    if (lowerQuery.includes("created") || lowerQuery.includes("registered"))
-      return `Account created: ${new Date(tenantData.createdAt).toLocaleDateString()}`;
+    // Fetch property name
+    if (lowerQuery.includes("property") && lowerQuery.includes("name")) {
+      const propertyName = await getPropertyName(tenantData.propertyId);
+      return `Your property name: ${propertyName}`;
+    }
 
-    return "I can help with: name, email, phone, unit, property, or account creation date.";
+    // Fetch unit number
+    if (lowerQuery.includes("unit") && (lowerQuery.includes("number") || lowerQuery.includes("id"))) {
+      const unitNumber = await getUnitNumber(tenantData.propertyId, tenantData.unitId);
+      return `Your unit number: ${unitNumber}`;
+    }
+
+    // Fetch notifications
+    if (lowerQuery.includes("notification") || lowerQuery.includes("alert"))) {
+      const notifications = await getNotifications(tenantData.uid);
+      if (notifications.length === 0) return "You have no notifications.";
+      return `Your notifications:\n${notifications
+        .map((notif) => `- ${notif.message} (${new Date(notif.createdAt).toLocaleString()})`)
+        .join("\n")}`;
+    }
+
+    // Fetch maintenance requests
+    if (lowerQuery.includes("maintenance") || lowerQuery.includes("request"))) {
+      const requests = await getMaintenanceRequests(tenantData.uid);
+      if (requests.length === 0) return "You have no maintenance requests.";
+      return `Your maintenance requests:\n${requests
+        .map((req) => `- ${req.issue} (Status: ${req.status})`)
+        .join("\n")}`;
+    }
+
+    // Fetch property amenities
+    if (lowerQuery.includes("amenities") || lowerQuery.includes("facilities"))) {
+      const amenities = await getPropertyAmenities(tenantData.propertyId);
+      if (amenities.length === 0) return "Your property has no amenities listed.";
+      return `Your property amenities:\n- ${amenities.join("\n- ")}`;
+    }
+
+    // Default response for unrecognized queries
+    return "I can help with: property name, unit number, notifications, maintenance requests, or property amenities.";
   };
 
   // Send message handler
