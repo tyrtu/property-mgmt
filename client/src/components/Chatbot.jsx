@@ -146,6 +146,7 @@ const Chatbot = () => {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let assistantReply = "";
+      let fullResponse = "";
 
       while (true) {
         const { value, done } = await reader.read();
@@ -161,25 +162,57 @@ const Chatbot = () => {
             try {
               const json = JSON.parse(line.replace("data: ", "").trim());
               const delta = json.choices?.[0]?.delta?.content || "";
-
-              // Remove <think> tags before adding to response
-              const cleanedDelta = delta.replace(/<think>[\s\S]*?<\/think>/g, "");
-              assistantReply += cleanedDelta;
-
-              setMessages((prev) => {
-                const newMessages = [...prev];
-                newMessages[newMessages.length - 1] = {
-                  role: "assistant",
-                  content: assistantReply,
-                };
-                return newMessages;
-              });
+              
+              // Add to full response first
+              fullResponse += delta;
+              
+              // Only update the UI when we have a complete response or periodically
+              // This allows us to process the entire <think> tags before displaying
+              if (done || lines.length === 1) {
+                // Remove all think tags and their content from the full response
+                const cleanedResponse = fullResponse.replace(/<think>[\s\S]*?<\/think>/g, "");
+                assistantReply = cleanedResponse;
+                
+                setMessages((prev) => {
+                  const newMessages = [...prev];
+                  newMessages[newMessages.length - 1] = {
+                    role: "assistant",
+                    content: assistantReply,
+                  };
+                  return newMessages;
+                });
+              } else {
+                // For streaming updates, we still need to clean each chunk
+                const cleanedDelta = delta.replace(/<think>[\s\S]*?<\/think>/g, "");
+                assistantReply += cleanedDelta;
+                
+                setMessages((prev) => {
+                  const newMessages = [...prev];
+                  newMessages[newMessages.length - 1] = {
+                    role: "assistant",
+                    content: assistantReply,
+                  };
+                  return newMessages;
+                });
+              }
             } catch (error) {
               console.error("Error parsing stream chunk:", error);
             }
           }
         }
       }
+      
+      // Final cleanup to ensure all think tags are removed
+      const finalCleanedResponse = fullResponse.replace(/<think>[\s\S]*?<\/think>/g, "");
+      setMessages((prev) => {
+        const newMessages = [...prev];
+        newMessages[newMessages.length - 1] = {
+          role: "assistant",
+          content: finalCleanedResponse,
+        };
+        return newMessages;
+      });
+      
     } catch (error) {
       console.error("Error:", error);
       setMessages((prev) => [
