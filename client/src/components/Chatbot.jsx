@@ -55,46 +55,23 @@ const Chatbot = () => {
   };
 
   // Fetch AI response from Groq (streaming)
-  const fetchAIResponse = async (query, userId) => {
+  const fetchAIResponse = async (chatHistory) => {
     try {
-      const firestoreData = await fetchFirestoreData(userId);
-      if (!firestoreData) return "Please log in to access your information.";
-
-      const prompt = `
-        You are a helpful assistant for a property management system. Below is the user's query. Use the following Firestore data to generate a precise and concise response. Do not include unnecessary details unless explicitly asked.
-
-        User Query: "${query}"
-
-        Firestore Data:
-        - Tenant Name: ${firestoreData.tenantData.name}
-        - Tenant Email: ${firestoreData.tenantData.email}
-        - Tenant Phone: ${firestoreData.tenantData.phone}
-        - Property Name: ${firestoreData.propertyData.name}
-        - Property Address: ${firestoreData.propertyData.address}
-        - Unit Number: ${firestoreData.tenantData.unitId}
-        - Notifications: ${firestoreData.notifications.map((n) => n.message).join(", ")}
-        - Maintenance Requests: ${firestoreData.maintenanceRequests.map((r) => r.issue).join(", ")}
-
-        Instructions:
-        1. Respond only to the specific query. Do not list all data unless asked.
-        2. If the user asks about their property, respond with the property name and address.
-        3. If the user asks about their unit, respond with the unit number.
-        4. If the user asks about notifications, list their recent notifications.
-        5. If the user asks about maintenance requests, provide the status of their requests.
-        6. If the query is unclear, ask for clarification.
-        7. Remove any <think> tags from the response.
-      `;
+      const API_KEY = import.meta.env.VITE_GROQ_API_KEY;
+      if (!API_KEY) throw new Error("GROQ_API_KEY is missing!");
 
       const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`,
+          Authorization: `Bearer ${API_KEY}`,
         },
         body: JSON.stringify({
           model: "qwen-qwq-32b",
-          messages: [{ role: "user", content: prompt }],
+          messages: chatHistory,
           temperature: 0.6,
+          max_completion_tokens: 32768,
+          top_p: 0.95,
           stream: true,
         }),
       });
@@ -117,19 +94,14 @@ const Chatbot = () => {
 
           if (line.startsWith("data:")) {
             try {
-              const jsonString = line.replace("data: ", "").trim();
-              if (!jsonString) continue;
-
-              const json = JSON.parse(jsonString);
+              const json = JSON.parse(line.replace("data: ", "").trim());
               const delta = json.choices?.[0]?.delta?.content || "";
-              const filteredDelta = delta.replace(/<think>.*?<\/think>/g, ""); // Remove <think> tags
 
-              assistantReply += filteredDelta;
+              // Remove <think> tags before adding to response
+              const cleanedDelta = delta.replace(/<think>.*?<\/think>/g, "");
+              assistantReply += cleanedDelta;
 
-              setMessages((prevMessages) => [
-                ...prevMessages.slice(0, -1),
-                { role: "assistant", content: assistantReply },
-              ]);
+              setMessages((prev) => [...prev.slice(0, -1), { role: "assistant", content: assistantReply }]);
             } catch (error) {
               console.error("Error parsing stream chunk:", error);
             }
@@ -154,7 +126,10 @@ const Chatbot = () => {
     setLoading(true);
 
     try {
-      const reply = await fetchAIResponse(trimmedInput, auth.currentUser.uid);
+      const firestoreData = await fetchFirestoreData(auth.currentUser.uid);
+      if (!firestoreData) return "Please log in to access your information.";
+
+      const reply = await fetchAIResponse([...messages, userMessage]);
       setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
     } catch (error) {
       console.error("Error:", error);
@@ -168,79 +143,69 @@ const Chatbot = () => {
   };
 
   return (
-    <div style={{ width: "400px", border: "1px solid #ddd", padding: "10px", borderRadius: "5px" }}>
-      <div style={{ height: "300px", overflowY: "auto", padding: "10px", background: "#f9f9f9" }}>
+    <div style={styles.container}>
+      <div style={styles.chatWindow}>
         {messages.map((msg, index) => (
           <div
             key={index}
             style={{
-              textAlign: msg.role === "user" ? "right" : "left",
-              padding: "5px",
-              marginBottom: "5px",
+              ...styles.message,
               background: msg.role === "user" ? "#dcf8c6" : "#e0e0e0",
-              borderRadius: "5px",
+              textAlign: msg.role === "user" ? "right" : "left",
             }}
           >
             {msg.content}
           </div>
         ))}
-        {loading && (
-          <div style={{ textAlign: "center", margin: "10px 0" }}>
-            <div
-              style={{
-                display: "inline-block",
-                width: "20px",
-                height: "20px",
-                border: "3px solid #f3f3f3",
-                borderTop: "3px solid #007bff",
-                borderRadius: "50%",
-                animation: "spin 1s linear infinite",
-              }}
-            ></div>
-          </div>
-        )}
+        {loading && <div style={styles.loader}></div>}
         <div ref={messagesEndRef} />
       </div>
-      <div style={{ display: "flex", marginTop: "10px" }}>
+      <div style={styles.inputContainer}>
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Type a message..."
-          style={{ flex: 1, padding: "8px", borderRadius: "3px", border: "1px solid #ccc" }}
+          style={styles.input}
           disabled={loading}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !loading) {
-              sendMessage();
-            }
-          }}
+          onKeyDown={(e) => e.key === "Enter" && !loading && sendMessage()}
         />
         <button
           onClick={sendMessage}
           disabled={loading || !input.trim()}
           style={{
-            marginLeft: "5px",
-            padding: "8px",
+            ...styles.sendButton,
             background: loading ? "#ccc" : "#007bff",
-            color: "white",
-            border: "none",
-            borderRadius: "3px",
             cursor: loading ? "not-allowed" : "pointer",
           }}
         >
           Send
         </button>
       </div>
-      <style>
-        {
-          `@keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }`
-        }
-      </style>
+      <style>{styles.keyframes}</style>
     </div>
   );
+};
+
+const styles = {
+  container: { width: "400px", border: "1px solid #ddd", padding: "10px", borderRadius: "5px" },
+  chatWindow: { height: "300px", overflowY: "auto", padding: "10px", background: "#f9f9f9" },
+  message: { padding: "5px", marginBottom: "5px", borderRadius: "5px" },
+  loader: {
+    textAlign: "center",
+    margin: "10px 0",
+    display: "inline-block",
+    width: "20px",
+    height: "20px",
+    border: "3px solid #f3f3f3",
+    borderTop: "3px solid #007bff",
+    borderRadius: "50%",
+    animation: "spin 1s linear infinite",
+  },
+  inputContainer: { display: "flex", marginTop: "10px" },
+  input: { flex: 1, padding: "8px", borderRadius: "3px", border: "1px solid #ccc" },
+  sendButton: { marginLeft: "5px", padding: "8px", color: "white", border: "none", borderRadius: "3px" },
+  keyframes: `@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`,
 };
 
 export default Chatbot;
