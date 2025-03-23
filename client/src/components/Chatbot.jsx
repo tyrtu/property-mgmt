@@ -114,7 +114,7 @@ const Chatbot = () => {
         5. If the user asks about notifications, list their recent notifications.
         6. If the user asks about maintenance requests, provide the status of their requests.
         7. If the query is unclear, ask for clarification.
-        8. Remove any <think> tags from the response.
+        8. **Never include <think> tags or internal reasoning in the response.**
       `;
 
       const API_KEY = import.meta.env.VITE_GROQ_API_KEY;
@@ -159,7 +159,7 @@ const Chatbot = () => {
               const delta = json.choices?.[0]?.delta?.content || "";
 
               // Remove <think> tags before adding to response
-              const cleanedDelta = delta.replace(/<think>.*?<\/think>/gs, "");
+              const cleanedDelta = delta.replace(/<think>[\s\S]*?<\/think>/g, "");
               assistantReply += cleanedDelta;
 
               setMessages((prev) => {
@@ -188,30 +188,46 @@ const Chatbot = () => {
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.chatWindow}>
+    <div style={{ width: "400px", border: "1px solid #ddd", padding: "10px", borderRadius: "5px" }}>
+      <div style={{ height: "300px", overflowY: "auto", padding: "10px", background: "#f9f9f9" }}>
         {messages.map((msg, index) => (
           <div
             key={index}
             style={{
-              ...styles.message,
-              background: msg.role === "user" ? "#dcf8c6" : "#e0e0e0",
               textAlign: msg.role === "user" ? "right" : "left",
+              padding: "5px",
+              marginBottom: "5px",
+              background: msg.role === "user" ? "#dcf8c6" : "#e0e0e0",
+              borderRadius: "5px",
             }}
           >
             {msg.content}
           </div>
         ))}
-        {loading && <div style={styles.loader}></div>}
+        {loading && (
+          <div style={{ textAlign: "center", margin: "10px 0" }}>
+            <div
+              style={{
+                display: "inline-block",
+                width: "20px",
+                height: "20px",
+                border: "3px solid #f3f3f3",
+                borderTop: "3px solid #007bff",
+                borderRadius: "50%",
+                animation: "spin 1s linear infinite",
+              }}
+            ></div>
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
-      <div style={styles.inputContainer}>
+      <div style={{ display: "flex", marginTop: "10px" }}>
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Type a message..."
-          style={styles.input}
+          style={{ flex: 1, padding: "8px", borderRadius: "3px", border: "1px solid #ccc" }}
           disabled={loading}
           onKeyDown={(e) => e.key === "Enter" && !loading && sendMessage()}
         />
@@ -219,38 +235,28 @@ const Chatbot = () => {
           onClick={sendMessage}
           disabled={loading || !input.trim()}
           style={{
-            ...styles.sendButton,
+            marginLeft: "5px",
+            padding: "8px",
             background: loading ? "#ccc" : "#007bff",
+            color: "white",
+            border: "none",
+            borderRadius: "3px",
             cursor: loading ? "not-allowed" : "pointer",
           }}
         >
           Send
         </button>
       </div>
-      <style>{styles.keyframes}</style>
+      <style>
+        {
+          `@keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }`
+        }
+      </style>
     </div>
   );
-};
-
-const styles = {
-  container: { width: "400px", border: "1px solid #ddd", padding: "10px", borderRadius: "5px" },
-  chatWindow: { height: "300px", overflowY: "auto", padding: "10px", background: "#f9f9f9" },
-  message: { padding: "5px", marginBottom: "5px", borderRadius: "5px" },
-  loader: {
-    textAlign: "center",
-    margin: "10px 0",
-    display: "inline-block",
-    width: "20px",
-    height: "20px",
-    border: "3px solid #f3f3f3",
-    borderTop: "3px solid #007bff",
-    borderRadius: "50%",
-    animation: "spin 1s linear infinite",
-  },
-  inputContainer: { display: "flex", marginTop: "10px" },
-  input: { flex: 1, padding: "8px", borderRadius: "3px", border: "1px solid #ccc" },
-  sendButton: { marginLeft: "5px", padding: "8px", color: "white", border: "none", borderRadius: "3px" },
-  keyframes: `@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`,
 };
 
 export default Chatbot;
