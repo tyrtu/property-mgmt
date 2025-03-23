@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import { db, auth } from "../firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 const Chatbot = () => {
   const [messages, setMessages] = useState([
@@ -8,36 +10,87 @@ const Chatbot = () => {
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
+  // Auto-scroll to the bottom when messages update
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Fetch tenant data based on logged-in user
+  const getTenantData = async () => {
+    const user = auth.currentUser;
+    if (!user) return null;
+
+    try {
+      const docRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(docRef);
+      return docSnap.exists() ? docSnap.data() : null;
+    } catch (error) {
+      console.error("Error fetching tenant data:", error);
+      return null;
+    }
+  };
+
+  // Handle user queries based on Firestore data
+  const handleUserQuery = async (query) => {
+    const tenantData = await getTenantData();
+    if (!tenantData) return "Please log in to access your information.";
+
+    const lowerQuery = query.toLowerCase();
+
+    // Match queries to actual fields from registration
+    if (lowerQuery.includes("name")) return `Your name: ${tenantData.name}`;
+    if (lowerQuery.includes("email")) return `Registered email: ${tenantData.email}`;
+    if (lowerQuery.includes("phone")) return `Contact number: ${tenantData.phone}`;
+    if (lowerQuery.includes("unit")) return `Your unit ID: ${tenantData.unitId}`;
+    if (lowerQuery.includes("property")) return `Your property ID: ${tenantData.propertyId}`;
+    if (lowerQuery.includes("created") || lowerQuery.includes("registered"))
+      return `Account created: ${new Date(tenantData.createdAt).toLocaleDateString()}`;
+
+    return "I can help with: name, email, phone, unit, property, or account creation date.";
+  };
+
+  // Send message handler
   const sendMessage = async () => {
     const trimmedInput = input.trim();
-    if (!trimmedInput) return;
+    if (!trimmedInput || loading) return;
 
     const userMessage = { role: "user", content: trimmedInput };
-    setMessages((prevMessages) => [...prevMessages, userMessage]); // Ensure user message is added
-
+    setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setLoading(true);
 
+    try {
+      let reply = await handleUserQuery(trimmedInput); // Fetch tenant data first
+      if (!reply) {
+        reply = await fetchAIResponse([...messages, userMessage]); // Fallback to AI
+      }
+
+      setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
+    } catch (error) {
+      console.error("Error:", error);
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: "Something went wrong. Try again later." },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch AI response (streaming)
+  const fetchAIResponse = async (newMessages) => {
     try {
       const API_URL = "https://api.groq.com/openai/v1/chat/completions";
       const API_KEY = import.meta.env.VITE_GROQ_API_KEY;
 
       if (!API_KEY) {
         console.error("GROQ_API_KEY is missing!");
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          { role: "assistant", content: "API key missing!" },
-        ]);
-        return;
+        return "API key missing!";
       }
 
       const requestBody = {
         model: "qwen-qwq-32b",
-        messages: [...messages, userMessage], // Include new user message
+        messages: newMessages,
         temperature: 0.6,
         max_completion_tokens: 32768,
         top_p: 0.95,
@@ -58,9 +111,6 @@ const Chatbot = () => {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let assistantReply = "";
-      let newAssistantMessage = { role: "assistant", content: "" };
-
-      setMessages((prevMessages) => [...prevMessages, newAssistantMessage]); // Add placeholder
 
       while (true) {
         const { value, done } = await reader.read();
@@ -70,10 +120,7 @@ const Chatbot = () => {
         const lines = chunk.split("\n").filter((line) => line.trim() !== "");
 
         for (const line of lines) {
-          if (line === "data: [DONE]") {
-            console.log("Stream finished.");
-            break;
-          }
+          if (line === "data: [DONE]") break;
 
           if (line.startsWith("data:")) {
             try {
@@ -82,32 +129,24 @@ const Chatbot = () => {
 
               const json = JSON.parse(jsonString);
               const delta = json.choices?.[0]?.delta?.content || "";
+              const filteredDelta = delta.replace(/<think>.*?<\/think>/g, ""); // Remove <think> tags
 
-              assistantReply += delta;
-              assistantReply = assistantReply.replace(/<think>.*?<\/think>/gs, ""); // Remove <think> messages
+              assistantReply += filteredDelta;
 
-              setMessages((prevMessages) => {
-                const updatedMessages = [...prevMessages];
-                updatedMessages[updatedMessages.length - 1] = {
-                  role: "assistant",
-                  content: assistantReply,
-                };
-                return updatedMessages;
-              });
+              setMessages((prevMessages) => [
+                ...prevMessages.slice(0, -1),
+                { role: "assistant", content: assistantReply },
+              ]);
             } catch (error) {
               console.error("Error parsing stream chunk:", error);
             }
           }
         }
       }
+      return assistantReply;
     } catch (error) {
-      console.error("Error fetching response:", error);
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        { role: "assistant", content: "Sorry, something went wrong. Please try again." },
-      ]);
-    } finally {
-      setLoading(false);
+      console.error("Error fetching AI response:", error);
+      return "Sorry, something went wrong. Please try again.";
     }
   };
 
@@ -176,12 +215,12 @@ const Chatbot = () => {
         </button>
       </div>
       <style>
-        {`
-          @keyframes spin {
+        {
+          `@keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
-          }
-        `}
+          }`
+        }
       </style>
     </div>
   );
