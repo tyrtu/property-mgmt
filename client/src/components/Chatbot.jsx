@@ -32,7 +32,11 @@ const Chatbot = () => {
       // Fetch units under the property
       const unitsRef = collection(db, "properties", tenantData.propertyId, "units");
       const unitsSnapshot = await getDocs(unitsRef);
-      const units = unitsSnapshot.docs.map((doc) => doc.data());
+      const units = unitsSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        number: doc.data().number, // Fetch unit number (not ID)
+        occupied: doc.data().occupied,
+      }));
 
       // Fetch notifications
       const notificationsRef = collection(db, "notifications");
@@ -109,8 +113,8 @@ const Chatbot = () => {
         Instructions:
         1. Respond only to the specific query. Do not list all data unless asked.
         2. If the user asks about their property, respond with the property name and address.
-        3. If the user asks about their unit, respond with the unit number.
-        4. If the user asks about units, list all available units.
+        3. If the user asks about their unit, respond with the unit number (not the unit ID).
+        4. If the user asks about units, list all available units by their numbers.
         5. If the user asks about notifications, list their recent notifications.
         6. If the user asks about maintenance requests, provide the status of their requests.
         7. If the query is unclear, ask for clarification.
