@@ -52,12 +52,12 @@ const Navigation = () => {
   };
 
   const navItems = [
-    { text: "Dashboard", path: "/dashboard", icon: <DashboardIcon fontSize="small" /> },
-    { text: "Properties", path: "/properties", icon: <PropertiesIcon fontSize="small" /> },
-    { text: "Tenants", path: "/tenants", icon: <TenantsIcon fontSize="small" /> },
-    { text: "Payments", path: "/payments", icon: <PaymentsIcon fontSize="small" /> },
-    { text: "Maintenance", path: "/maintenance", icon: <MaintenanceIcon fontSize="small" /> },
-    { text: "Reports", path: "/reports", icon: <ReportsIcon fontSize="small" /> }
+    { text: "Dashboard", path: "/dashboard", icon: <DashboardIcon /> },
+    { text: "Properties", path: "/properties", icon: <PropertiesIcon /> },
+    { text: "Tenants", path: "/tenants", icon: <TenantsIcon /> },
+    { text: "Payments", path: "/payments", icon: <PaymentsIcon /> },
+    { text: "Maintenance", path: "/maintenance", icon: <MaintenanceIcon /> },
+    { text: "Reports", path: "/reports", icon: <ReportsIcon /> }
   ];
 
   return (
@@ -75,16 +75,14 @@ const Navigation = () => {
           display: "flex", 
           justifyContent: "space-between",
           alignItems: "center",
-          padding: { xs: '0 8px', md: '0 16px' },
-          minHeight: '64px',
-          gap: 1
+          padding: { xs: '0 12px', md: '0 24px' },
+          minHeight: '64px'
         }}>
           {/* Left side - Brand and Menu Button */}
           <Box sx={{ 
             display: 'flex', 
             alignItems: 'center',
-            minWidth: 0,
-            flexShrink: 1
+            flexGrow: { xs: 1, md: 0 }
           }}>
             <IconButton
               edge="start"
@@ -93,29 +91,37 @@ const Navigation = () => {
               onClick={handleDrawerToggle}
               sx={{ 
                 display: { xs: 'flex', md: 'none' },
-                mr: 1,
-                padding: '8px'
+                mr: 2,
+                padding: '10px',
+                marginLeft: '4px' // Added margin to prevent touching corner
               }}
             >
-              <MenuIcon />
+              <MenuIcon fontSize="medium" />
             </IconButton>
 
-            <Typography 
-              variant="h6" 
-              noWrap
-              component={Link}
-              to="/dashboard"
+            <Box 
+              component={Link} 
+              to="/dashboard" 
               sx={{ 
-                fontWeight: 700,
-                letterSpacing: 1,
-                color: 'inherit',
+                display: 'flex',
+                alignItems: 'center',
                 textDecoration: 'none',
-                fontSize: { xs: '1.1rem', sm: '1.25rem' },
-                mr: { xs: 1, md: 2 }
+                color: 'inherit',
+                mr: { xs: 0, md: 3 }
               }}
             >
-              PropertyPro
-            </Typography>
+              <Typography 
+                variant="h6" 
+                component="div" 
+                sx={{ 
+                  fontWeight: 700,
+                  letterSpacing: 1,
+                  fontSize: { xs: '1.2rem', sm: '1.25rem' }
+                }}
+              >
+                PropertyPro
+              </Typography>
+            </Box>
           </Box>
 
           {/* Center - Navigation Links (Desktop) */}
@@ -123,37 +129,37 @@ const Navigation = () => {
             display: { xs: 'none', md: 'flex' },
             flexGrow: 1,
             justifyContent: 'center',
-            gap: 0.5,
-            mx: 1
+            mx: 2
           }}>
             {navItems.map((item) => (
               <Button
                 key={item.text}
                 component={Link}
                 to={item.path}
-                startIcon={React.cloneElement(item.icon, { fontSize: 'small' })}
+                startIcon={item.icon}
                 sx={{
                   color: 'white',
-                  px: 1.5,
+                  mx: 0.5,
+                  px: 2,
                   py: 1,
                   borderRadius: 2,
                   textTransform: 'none',
                   fontWeight: location.pathname.startsWith(item.path) ? 600 : 400,
-                  minWidth: 'auto',
-                  fontSize: '0.875rem',
-                  '& .MuiButton-startIcon': {
-                    marginRight: '6px',
-                    '& svg': {
-                      fontSize: '1.1rem'
-                    }
-                  },
-                  '&:hover': {
-                    background: 'rgba(255, 255, 255, 0.25)',
-                  },
                   background: location.pathname.startsWith(item.path) 
                     ? 'rgba(255, 255, 255, 0.15)' 
                     : 'transparent',
-                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    background: 'rgba(255, 255, 255, 0.25)',
+                    transform: 'translateY(-1px)',
+                  },
+                  transition: 'all 0.3s ease',
+                  minWidth: 'auto',
+                  '& .MuiButton-startIcon': {
+                    marginRight: '6px',
+                    '& svg': {
+                      fontSize: '1.2rem'
+                    }
+                  }
                 }}
               >
                 {item.text}
@@ -164,7 +170,8 @@ const Navigation = () => {
           {/* Right side - Logout Button */}
           <Box sx={{ 
             display: 'flex',
-            flexShrink: 0
+            justifyContent: 'flex-end',
+            flexGrow: { xs: 0, md: 0 }
           }}>
             <Button
               color="inherit"
@@ -174,21 +181,20 @@ const Navigation = () => {
                 textTransform: 'none',
                 fontWeight: 600,
                 borderRadius: 2,
-                px: 1.5,
+                px: 2,
                 py: 1,
                 whiteSpace: 'nowrap',
-                fontSize: { xs: '0.875rem', md: '0.875rem' },
-                minWidth: 'auto',
+                '&:hover': {
+                  background: 'rgba(255, 255, 255, 0.25)',
+                  transform: 'translateY(-1px)'
+                },
+                transition: 'all 0.3s ease',
                 '& .MuiButton-startIcon': {
                   marginRight: { xs: '0px', md: '6px' },
                   '& svg': {
-                    fontSize: { xs: '1.3rem', md: '1.1rem' }
+                    fontSize: { xs: '1.4rem', md: '1.2rem' }
                   }
-                },
-                '&:hover': {
-                  background: 'rgba(255, 255, 255, 0.25)',
-                },
-                transition: 'all 0.2s ease'
+                }
               }}
             >
               {!isMobile && 'Logout'}
@@ -204,9 +210,11 @@ const Navigation = () => {
         onClose={handleDrawerToggle}
         sx={{
           '& .MuiDrawer-paper': {
-            width: 260,
+            width: 280,
             background: "linear-gradient(180deg, #1a237e 0%, #283593 100%)",
-            color: 'white'
+            color: 'white',
+            paddingTop: '12px', // Added padding at top
+            paddingBottom: '12px' // Added padding at bottom
           }
         }}
       >
@@ -215,101 +223,104 @@ const Navigation = () => {
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
-            paddingTop: '8px'
+            justifyContent: 'space-between'
           }}
         >
-          <Typography 
-            variant="h6" 
-            sx={{ 
-              fontWeight: 700,
-              letterSpacing: 1,
-              px: 2,
-              py: 1.5,
-              mb: 0.5
-            }}
-          >
-            PropertyPro
-          </Typography>
+          <Box>
+            <Typography 
+              variant="h6" 
+              sx={{ 
+                fontWeight: 700,
+                letterSpacing: 1,
+                px: 3,
+                py: 2,
+                mb: 1
+              }}
+            >
+              PropertyPro
+            </Typography>
 
-          <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.12)', mb: 0.5 }} />
+            <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.12)', mb: 1 }} />
 
-          <List sx={{ flexGrow: 1 }}>
-            {navItems.map((item) => (
-              <ListItem
-                button
-                key={item.text}
-                component={Link}
-                to={item.path}
-                onClick={handleDrawerToggle}
-                sx={{
-                  px: 2,
-                  py: 1.25,
-                  my: 0.25,
-                  mx: 1,
-                  borderRadius: 1,
-                  '&:hover': {
-                    background: 'rgba(255, 255, 255, 0.25)'
-                  },
-                  background: location.pathname.startsWith(item.path) 
-                    ? 'rgba(255, 255, 255, 0.15)' 
-                    : 'transparent',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                <ListItemIcon sx={{ 
-                  color: 'inherit', 
-                  minWidth: '40px',
-                  '& svg': {
-                    fontSize: '1.4rem'
-                  }
-                }}>
-                  {item.icon}
-                </ListItemIcon>
-                <ListItemText 
-                  primary={item.text} 
-                  primaryTypographyProps={{ 
-                    fontWeight: location.pathname.startsWith(item.path) ? 600 : 400,
-                    fontSize: '1rem'
-                  }} 
-                />
-              </ListItem>
-            ))}
-          </List>
+            <List>
+              {navItems.map((item) => (
+                <ListItem
+                  button
+                  key={item.text}
+                  component={Link}
+                  to={item.path}
+                  onClick={handleDrawerToggle}
+                  sx={{
+                    px: 3,
+                    py: 1.5,
+                    my: 0.5,
+                    mx: 1,
+                    borderRadius: 1,
+                    background: location.pathname.startsWith(item.path) 
+                      ? 'rgba(255, 255, 255, 0.15)' 
+                      : 'transparent',
+                    '&:hover': {
+                      background: 'rgba(255, 255, 255, 0.25)'
+                    },
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  <ListItemIcon sx={{ 
+                    color: 'inherit', 
+                    minWidth: '44px', // Increased min-width
+                    '& svg': {
+                      fontSize: '1.5rem' // Larger icons
+                    }
+                  }}>
+                    {item.icon}
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary={item.text} 
+                    primaryTypographyProps={{ 
+                      fontWeight: location.pathname.startsWith(item.path) ? 600 : 400,
+                      fontSize: '1.05rem'
+                    }} 
+                  />
+                </ListItem>
+              ))}
+            </List>
+          </Box>
 
-          <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.12)', mt: 0.5 }} />
-
-          <ListItem
-            button
-            onClick={handleLogout}
-            sx={{
-              px: 2,
-              py: 1.25,
-              my: 0.25,
-              mx: 1,
-              borderRadius: 1,
-              '&:hover': {
-                background: 'rgba(255, 255, 255, 0.25)'
-              },
-              transition: 'all 0.2s ease'
-            }}
-          >
-            <ListItemIcon sx={{ 
-              color: 'inherit', 
-              minWidth: '40px',
-              '& svg': {
-                fontSize: '1.4rem'
-              }
-            }}>
-              <LogoutIcon />
-            </ListItemIcon>
-            <ListItemText 
-              primary="Logout" 
-              primaryTypographyProps={{ 
-                fontWeight: 600,
-                fontSize: '1rem'
-              }} 
-            />
-          </ListItem>
+          <Box>
+            <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.12)', mt: 1 }} />
+            <ListItem
+              button
+              onClick={handleLogout}
+              sx={{
+                px: 3,
+                py: 1.5,
+                my: 1,
+                mx: 1,
+                borderRadius: 1,
+                '&:hover': {
+                  background: 'rgba(255, 255, 255, 0.25)'
+                },
+                transition: 'all 0.3s ease'
+              }}
+            >
+              <ListItemIcon sx={{ 
+                color: 'inherit', 
+                minWidth: '44px',
+                '& svg': {
+                  fontSize: '1.5rem'
+                }
+              }}>
+                <LogoutIcon />
+              </ListItemIcon>
+              <ListItemText 
+                primary="Logout" 
+                primaryTypographyProps={{ 
+                  fontWeight: 600,
+                  fontSize: '1.05rem'
+                }} 
+              />
+            </ListItem>
+          </Box>
         </Box>
       </Drawer>
     </>
