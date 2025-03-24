@@ -88,6 +88,7 @@ const TenantNavigation = () => {
               onClick={handleDrawerToggle}
               sx={{ 
                 display: { xs: 'flex', md: 'none' },
+                marginLeft: '4px',
                 mr: 2
               }}
             >
