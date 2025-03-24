@@ -52,12 +52,12 @@ const Navigation = () => {
   };
 
   const navItems = [
-    { text: "Dashboard", path: "/dashboard", icon: <DashboardIcon /> },
-    { text: "Properties", path: "/properties", icon: <PropertiesIcon /> },
-    { text: "Tenants", path: "/tenants", icon: <TenantsIcon /> },
-    { text: "Payments", path: "/payments", icon: <PaymentsIcon /> },
-    { text: "Maintenance", path: "/maintenance", icon: <MaintenanceIcon /> },
-    { text: "Reports", path: "/reports", icon: <ReportsIcon /> }
+    { text: "Dashboard", path: "/dashboard", icon: <DashboardIcon fontSize="small" /> },
+    { text: "Properties", path: "/properties", icon: <PropertiesIcon fontSize="small" /> },
+    { text: "Tenants", path: "/tenants", icon: <TenantsIcon fontSize="small" /> },
+    { text: "Payments", path: "/payments", icon: <PaymentsIcon fontSize="small" /> },
+    { text: "Maintenance", path: "/maintenance", icon: <MaintenanceIcon fontSize="small" /> },
+    { text: "Reports", path: "/reports", icon: <ReportsIcon fontSize="small" /> }
   ];
 
   return (
@@ -68,26 +68,23 @@ const Navigation = () => {
           background: "linear-gradient(90deg, #1a237e 0%, #283593 100%)",
           boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
           backdropFilter: "blur(10px)",
-          WebkitBackdropFilter: "blur(10px)",
-          overflowX: 'hidden' // Prevent horizontal overflow
+          WebkitBackdropFilter: "blur(10px)"
         }}
       >
         <Toolbar sx={{ 
           display: "flex", 
           justifyContent: "space-between",
           alignItems: "center",
-          padding: { xs: '0 4px', md: '0 12px' }, // Reduced padding
+          padding: { xs: '0 8px', md: '0 16px' },
           minHeight: '64px',
-          width: '100%',
-          maxWidth: '100%',
-          flexWrap: 'nowrap'
+          gap: 1
         }}>
           {/* Left side - Brand and Menu Button */}
           <Box sx={{ 
             display: 'flex', 
             alignItems: 'center',
-            flexShrink: 1,
-            minWidth: 0 // Allow text truncation
+            minWidth: 0,
+            flexShrink: 1
           }}>
             <IconButton
               edge="start"
@@ -96,71 +93,67 @@ const Navigation = () => {
               onClick={handleDrawerToggle}
               sx={{ 
                 display: { xs: 'flex', md: 'none' },
-                mr: 1 // Reduced margin
+                mr: 1,
+                padding: '8px'
               }}
             >
               <MenuIcon />
             </IconButton>
 
-            <Box 
-              component={Link} 
-              to="/dashboard" 
+            <Typography 
+              variant="h6" 
+              noWrap
+              component={Link}
+              to="/dashboard"
               sx={{ 
-                display: 'flex',
-                alignItems: 'center',
-                textDecoration: 'none',
+                fontWeight: 700,
+                letterSpacing: 1,
                 color: 'inherit',
-                mr: { xs: 1, md: 2 }, // Reduced margin
-                flexShrink: 1,
-                minWidth: 0
+                textDecoration: 'none',
+                fontSize: { xs: '1.1rem', sm: '1.25rem' },
+                mr: { xs: 1, md: 2 }
               }}
             >
-              <Typography 
-                variant="h6" 
-                noWrap // Prevent text wrapping
-                sx={{ 
-                  fontWeight: 700,
-                  letterSpacing: 1,
-                  fontSize: { xs: '1rem', sm: '1.25rem' } // Responsive font size
-                }}
-              >
-                PropertyPro
-              </Typography>
-            </Box>
+              PropertyPro
+            </Typography>
           </Box>
 
           {/* Center - Navigation Links (Desktop) */}
           <Box sx={{ 
             display: { xs: 'none', md: 'flex' },
-            flexGrow: 0, // Don't grow
-            mx: 1, // Reduced margin
-            flexShrink: 1,
-            minWidth: 0,
-            overflow: 'hidden'
+            flexGrow: 1,
+            justifyContent: 'center',
+            gap: 0.5,
+            mx: 1
           }}>
             {navItems.map((item) => (
               <Button
                 key={item.text}
                 component={Link}
                 to={item.path}
-                startIcon={null} // Removed icons to save space
+                startIcon={React.cloneElement(item.icon, { fontSize: 'small' })}
                 sx={{
                   color: 'white',
-                  mx: 0.25, // Reduced margin
-                  px: 1, // Reduced padding
+                  px: 1.5,
                   py: 1,
                   borderRadius: 2,
                   textTransform: 'none',
                   fontWeight: location.pathname.startsWith(item.path) ? 600 : 400,
-                  background: location.pathname.startsWith(item.path) 
-                    ? 'rgba(255, 255, 255, 0.15)' 
-                    : 'transparent',
+                  minWidth: 'auto',
+                  fontSize: '0.875rem',
+                  '& .MuiButton-startIcon': {
+                    marginRight: '6px',
+                    '& svg': {
+                      fontSize: '1.1rem'
+                    }
+                  },
                   '&:hover': {
                     background: 'rgba(255, 255, 255, 0.25)',
                   },
-                  transition: 'all 0.3s ease',
-                  minWidth: 'auto',
-                  fontSize: '0.875rem' // Smaller font
+                  background: location.pathname.startsWith(item.path) 
+                    ? 'rgba(255, 255, 255, 0.15)' 
+                    : 'transparent',
+                  transition: 'all 0.2s ease',
                 }}
               >
                 {item.text}
@@ -171,26 +164,31 @@ const Navigation = () => {
           {/* Right side - Logout Button */}
           <Box sx={{ 
             display: 'flex',
-            justifyContent: 'flex-end',
-            flexShrink: 0,
-            ml: 1 // Reduced margin
+            flexShrink: 0
           }}>
             <Button
               color="inherit"
               onClick={handleLogout}
-              startIcon={isMobile ? <LogoutIcon /> : null}
+              startIcon={<LogoutIcon fontSize={isMobile ? "medium" : "small"} />}
               sx={{
                 textTransform: 'none',
                 fontWeight: 600,
                 borderRadius: 2,
-                px: 1, // Reduced padding
+                px: 1.5,
                 py: 1,
                 whiteSpace: 'nowrap',
+                fontSize: { xs: '0.875rem', md: '0.875rem' },
+                minWidth: 'auto',
+                '& .MuiButton-startIcon': {
+                  marginRight: { xs: '0px', md: '6px' },
+                  '& svg': {
+                    fontSize: { xs: '1.3rem', md: '1.1rem' }
+                  }
+                },
                 '&:hover': {
                   background: 'rgba(255, 255, 255, 0.25)',
                 },
-                transition: 'all 0.3s ease',
-                fontSize: '0.875rem' // Smaller font
+                transition: 'all 0.2s ease'
               }}
             >
               {!isMobile && 'Logout'}
@@ -206,7 +204,7 @@ const Navigation = () => {
         onClose={handleDrawerToggle}
         sx={{
           '& .MuiDrawer-paper': {
-            width: 280,
+            width: 260,
             background: "linear-gradient(180deg, #1a237e 0%, #283593 100%)",
             color: 'white'
           }
@@ -216,35 +214,24 @@ const Navigation = () => {
           sx={{ 
             height: '100%',
             display: 'flex',
-            flexDirection: 'column'
+            flexDirection: 'column',
+            paddingTop: '8px'
           }}
         >
-          <Box 
-            component={Link} 
-            to="/dashboard" 
+          <Typography 
+            variant="h6" 
             sx={{ 
-              display: 'flex',
-              alignItems: 'center',
-              textDecoration: 'none',
-              color: 'inherit',
-              p: 2,
-              mb: 1
+              fontWeight: 700,
+              letterSpacing: 1,
+              px: 2,
+              py: 1.5,
+              mb: 0.5
             }}
-            onClick={handleDrawerToggle}
           >
-            <Typography 
-              variant="h6" 
-              component="div" 
-              sx={{ 
-                fontWeight: 700,
-                letterSpacing: 1
-              }}
-            >
-              PropertyPro
-            </Typography>
-          </Box>
+            PropertyPro
+          </Typography>
 
-          <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.12)' }} />
+          <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.12)', mb: 0.5 }} />
 
           <List sx={{ flexGrow: 1 }}>
             {navItems.map((item) => (
@@ -256,53 +243,72 @@ const Navigation = () => {
                 onClick={handleDrawerToggle}
                 sx={{
                   px: 2,
-                  py: 1,
-                  my: 0.5,
+                  py: 1.25,
+                  my: 0.25,
                   mx: 1,
                   borderRadius: 1,
-                  background: location.pathname.startsWith(item.path) 
-                    ? 'rgba(255, 255, 255, 0.15)' 
-                    : 'transparent',
                   '&:hover': {
                     background: 'rgba(255, 255, 255, 0.25)'
                   },
-                  transition: 'all 0.3s ease'
+                  background: location.pathname.startsWith(item.path) 
+                    ? 'rgba(255, 255, 255, 0.15)' 
+                    : 'transparent',
+                  transition: 'all 0.2s ease'
                 }}
               >
-                <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}>
+                <ListItemIcon sx={{ 
+                  color: 'inherit', 
+                  minWidth: '40px',
+                  '& svg': {
+                    fontSize: '1.4rem'
+                  }
+                }}>
                   {item.icon}
                 </ListItemIcon>
                 <ListItemText 
                   primary={item.text} 
                   primaryTypographyProps={{ 
-                    fontWeight: location.pathname.startsWith(item.path) ? 600 : 400 
+                    fontWeight: location.pathname.startsWith(item.path) ? 600 : 400,
+                    fontSize: '1rem'
                   }} 
                 />
               </ListItem>
             ))}
           </List>
 
-          <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.12)' }} />
+          <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.12)', mt: 0.5 }} />
 
           <ListItem
             button
             onClick={handleLogout}
             sx={{
               px: 2,
-              py: 1,
-              my: 0.5,
+              py: 1.25,
+              my: 0.25,
               mx: 1,
               borderRadius: 1,
               '&:hover': {
                 background: 'rgba(255, 255, 255, 0.25)'
               },
-              transition: 'all 0.3s ease'
+              transition: 'all 0.2s ease'
             }}
           >
-            <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}>
+            <ListItemIcon sx={{ 
+              color: 'inherit', 
+              minWidth: '40px',
+              '& svg': {
+                fontSize: '1.4rem'
+              }
+            }}>
               <LogoutIcon />
             </ListItemIcon>
-            <ListItemText primary="Logout" />
+            <ListItemText 
+              primary="Logout" 
+              primaryTypographyProps={{ 
+                fontWeight: 600,
+                fontSize: '1rem'
+              }} 
+            />
           </ListItem>
         </Box>
       </Drawer>
