@@ -119,7 +119,7 @@ const Navigation = () => {
                   fontSize: { xs: '1.2rem', sm: '1.25rem' }
                 }}
               >
-                PropertyPro
+                RentHive
               </Typography>
             </Box>
           </Box>
