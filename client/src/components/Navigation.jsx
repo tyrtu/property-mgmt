@@ -68,21 +68,26 @@ const Navigation = () => {
           background: "linear-gradient(90deg, #1a237e 0%, #283593 100%)",
           boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
           backdropFilter: "blur(10px)",
-          WebkitBackdropFilter: "blur(10px)"
+          WebkitBackdropFilter: "blur(10px)",
+          overflowX: 'hidden' // Prevent horizontal overflow
         }}
       >
         <Toolbar sx={{ 
           display: "flex", 
           justifyContent: "space-between",
           alignItems: "center",
-          padding: { xs: '0 8px', md: '0 24px' },
-          minHeight: '64px'
+          padding: { xs: '0 4px', md: '0 12px' }, // Reduced padding
+          minHeight: '64px',
+          width: '100%',
+          maxWidth: '100%',
+          flexWrap: 'nowrap'
         }}>
           {/* Left side - Brand and Menu Button */}
           <Box sx={{ 
             display: 'flex', 
             alignItems: 'center',
-            flexGrow: { xs: 1, md: 0 }
+            flexShrink: 1,
+            minWidth: 0 // Allow text truncation
           }}>
             <IconButton
               edge="start"
@@ -91,7 +96,7 @@ const Navigation = () => {
               onClick={handleDrawerToggle}
               sx={{ 
                 display: { xs: 'flex', md: 'none' },
-                mr: 2
+                mr: 1 // Reduced margin
               }}
             >
               <MenuIcon />
@@ -105,26 +110,18 @@ const Navigation = () => {
                 alignItems: 'center',
                 textDecoration: 'none',
                 color: 'inherit',
-                mr: { xs: 0, md: 3 }
+                mr: { xs: 1, md: 2 }, // Reduced margin
+                flexShrink: 1,
+                minWidth: 0
               }}
             >
-              <Box 
-                component="img" 
-                src="/logo.png" 
-                alt="Logo" 
-                sx={{ 
-                  height: 40,
-                  mr: 1,
-                  display: { xs: 'none', sm: 'block' }
-                }} 
-              />
               <Typography 
                 variant="h6" 
-                component="div" 
+                noWrap // Prevent text wrapping
                 sx={{ 
                   fontWeight: 700,
                   letterSpacing: 1,
-                  display: { xs: 'none', sm: 'block' }
+                  fontSize: { xs: '1rem', sm: '1.25rem' } // Responsive font size
                 }}
               >
                 PropertyPro
@@ -135,20 +132,22 @@ const Navigation = () => {
           {/* Center - Navigation Links (Desktop) */}
           <Box sx={{ 
             display: { xs: 'none', md: 'flex' },
-            flexGrow: 1,
-            justifyContent: 'center',
-            mx: 2
+            flexGrow: 0, // Don't grow
+            mx: 1, // Reduced margin
+            flexShrink: 1,
+            minWidth: 0,
+            overflow: 'hidden'
           }}>
             {navItems.map((item) => (
               <Button
                 key={item.text}
                 component={Link}
                 to={item.path}
-                startIcon={item.icon}
+                startIcon={null} // Removed icons to save space
                 sx={{
                   color: 'white',
-                  mx: 0.5,
-                  px: 2,
+                  mx: 0.25, // Reduced margin
+                  px: 1, // Reduced padding
                   py: 1,
                   borderRadius: 2,
                   textTransform: 'none',
@@ -158,10 +157,10 @@ const Navigation = () => {
                     : 'transparent',
                   '&:hover': {
                     background: 'rgba(255, 255, 255, 0.25)',
-                    transform: 'translateY(-1px)',
                   },
                   transition: 'all 0.3s ease',
-                  minWidth: 'auto'
+                  minWidth: 'auto',
+                  fontSize: '0.875rem' // Smaller font
                 }}
               >
                 {item.text}
@@ -173,24 +172,25 @@ const Navigation = () => {
           <Box sx={{ 
             display: 'flex',
             justifyContent: 'flex-end',
-            flexGrow: { xs: 0, md: 0 }
+            flexShrink: 0,
+            ml: 1 // Reduced margin
           }}>
             <Button
               color="inherit"
               onClick={handleLogout}
-              startIcon={<LogoutIcon />}
+              startIcon={isMobile ? <LogoutIcon /> : null}
               sx={{
                 textTransform: 'none',
                 fontWeight: 600,
                 borderRadius: 2,
-                px: 2,
+                px: 1, // Reduced padding
                 py: 1,
                 whiteSpace: 'nowrap',
                 '&:hover': {
                   background: 'rgba(255, 255, 255, 0.25)',
-                  transform: 'translateY(-1px)'
                 },
-                transition: 'all 0.3s ease'
+                transition: 'all 0.3s ease',
+                fontSize: '0.875rem' // Smaller font
               }}
             >
               {!isMobile && 'Logout'}
@@ -227,20 +227,11 @@ const Navigation = () => {
               alignItems: 'center',
               textDecoration: 'none',
               color: 'inherit',
-              p: 3,
+              p: 2,
               mb: 1
             }}
             onClick={handleDrawerToggle}
           >
-            <Box 
-              component="img" 
-              src="/logo.png" 
-              alt="Logo" 
-              sx={{ 
-                height: 40,
-                mr: 2
-              }} 
-            />
             <Typography 
               variant="h6" 
               component="div" 
@@ -264,8 +255,8 @@ const Navigation = () => {
                 to={item.path}
                 onClick={handleDrawerToggle}
                 sx={{
-                  px: 3,
-                  py: 1.5,
+                  px: 2,
+                  py: 1,
                   my: 0.5,
                   mx: 1,
                   borderRadius: 1,
@@ -297,8 +288,8 @@ const Navigation = () => {
             button
             onClick={handleLogout}
             sx={{
-              px: 3,
-              py: 1.5,
+              px: 2,
+              py: 1,
               my: 0.5,
               mx: 1,
               borderRadius: 1,
