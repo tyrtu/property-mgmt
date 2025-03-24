@@ -18,7 +18,7 @@ import {
   LightMode as LightModeIcon,
   ArrowDownward as ArrowDownwardIcon
 } from '@mui/icons-material';
-import { LineChart, PieChart, Pie, Cell, Legend, Tooltip as RechartsTooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from '@mui/x-charts';
+import { LineChart, PieChart, Pie, Cell, Legend, Tooltip as RechartsTooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Line } from '@mui/x-charts';
 import { saveAs } from 'file-saver';
 import useAutoLogout from '../hooks/useAutoLogout';
 import Navigation from './Navigation';
@@ -244,7 +244,8 @@ const Dashboard = () => {
   return (
     <Box sx={{ 
       backgroundColor: darkModeBg, 
-      minHeight: '100vh'
+      minHeight: '100vh',
+      width: '100%'
     }}>
       <Navigation />
       <Box sx={{ 
@@ -368,52 +369,53 @@ const Dashboard = () => {
                       </Select>
                     </Box>
                     <Box sx={{ flexGrow: 1 }}>
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart
-                          data={currentFinancialData.labels.map((label, index) => ({
-                            label,
-                            income: currentFinancialData.income[index],
-                            expenses: currentFinancialData.expenses[index]
-                          }))}
-                          margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                          <XAxis 
-                            dataKey="label" 
-                            tick={{ fill: darkModeText }} 
-                            axisLine={{ stroke: darkModeText }}
-                          />
-                          <YAxis 
-                            tick={{ fill: darkModeText }} 
-                            axisLine={{ stroke: darkModeText }}
-                          />
-                          <RechartsTooltip 
-                            contentStyle={{
-                              backgroundColor: darkMode ? '#333' : '#fff',
-                              borderColor: darkMode ? '#555' : '#ddd'
-                            }}
-                          />
-                          <Legend />
-                          <Line
-                            type="monotone"
-                            dataKey="income"
-                            stroke="#4CAF50"
-                            strokeWidth={2}
-                            dot={{ r: 4 }}
-                            activeDot={{ r: 6 }}
-                            name="Income"
-                          />
-                          <Line
-                            type="monotone"
-                            dataKey="expenses"
-                            stroke="#F44336"
-                            strokeWidth={2}
-                            dot={{ r: 4 }}
-                            activeDot={{ r: 6 }}
-                            name="Expenses"
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
+                      <LineChart
+                        xAxis={[{ 
+                          data: currentFinancialData.labels,
+                          scaleType: 'band',
+                          label: timePeriod === 'monthly' ? 'Month' : timePeriod === 'quarterly' ? 'Quarter' : 'Year',
+                          tickLabelStyle: { fill: darkModeText }
+                        }]}
+                        yAxis={[{ 
+                          label: 'Amount ($)',
+                          tickLabelStyle: { fill: darkModeText }
+                        }]}
+                        series={[
+                          { 
+                            data: currentFinancialData.income, 
+                            label: 'Income', 
+                            color: '#4CAF50', 
+                            curve: 'natural',
+                            areaStyle: { 
+                              fill: 'url(#incomeGradient)',
+                              opacity: 0.2 
+                            }
+                          },
+                          { 
+                            data: currentFinancialData.expenses, 
+                            label: 'Expenses', 
+                            color: '#F44336', 
+                            curve: 'natural',
+                            areaStyle: { 
+                              fill: 'url(#expenseGradient)',
+                              opacity: 0.2 
+                            }
+                          },
+                        ]}
+                        margin={{ left: 70, right: 30, top: 30, bottom: 70 }}
+                        grid={{ vertical: true, horizontal: true }}
+                      >
+                        <defs>
+                          <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#4CAF50" stopOpacity={0.8}/>
+                            <stop offset="95%" stopColor="#4CAF50" stopOpacity={0}/>
+                          </linearGradient>
+                          <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#F44336" stopOpacity={0.8}/>
+                            <stop offset="95%" stopColor="#F44336" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                      </LineChart>
                     </Box>
                   </Box>
                 )}
