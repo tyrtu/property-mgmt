@@ -74,12 +74,15 @@ const Navigation = () => {
         <Toolbar sx={{ 
           display: "flex", 
           justifyContent: "space-between",
-          padding: { xs: '0 8px', md: '0 24px' }
+          alignItems: "center",
+          padding: { xs: '0 8px', md: '0 24px' },
+          minHeight: '64px'
         }}>
+          {/* Left side - Brand and Menu Button */}
           <Box sx={{ 
             display: 'flex', 
             alignItems: 'center',
-            flexGrow: 1
+            flexGrow: { xs: 1, md: 0 }
           }}>
             <IconButton
               edge="start"
@@ -102,7 +105,7 @@ const Navigation = () => {
                 alignItems: 'center',
                 textDecoration: 'none',
                 color: 'inherit',
-                mr: 3
+                mr: { xs: 0, md: 3 }
               }}
             >
               <Box 
@@ -127,64 +130,76 @@ const Navigation = () => {
                 PropertyPro
               </Typography>
             </Box>
-
-            <Box sx={{ 
-              display: { xs: 'none', md: 'flex' },
-              ml: 3
-            }}>
-              {navItems.map((item) => (
-                <Button
-                  key={item.text}
-                  component={Link}
-                  to={item.path}
-                  startIcon={item.icon}
-                  sx={{
-                    color: 'white',
-                    mx: 0.5,
-                    px: 2,
-                    py: 1,
-                    borderRadius: 2,
-                    textTransform: 'none',
-                    fontWeight: location.pathname.startsWith(item.path) ? 600 : 400,
-                    background: location.pathname.startsWith(item.path) 
-                      ? 'rgba(255, 255, 255, 0.15)' 
-                      : 'transparent',
-                    '&:hover': {
-                      background: 'rgba(255, 255, 255, 0.25)',
-                      transform: 'translateY(-1px)',
-                    },
-                    transition: 'all 0.3s ease',
-                    minWidth: 'auto'
-                  }}
-                >
-                  {item.text}
-                </Button>
-              ))}
-            </Box>
           </Box>
 
-          <Button
-            color="inherit"
-            onClick={handleLogout}
-            startIcon={<LogoutIcon />}
-            sx={{
-              textTransform: 'none',
-              fontWeight: 600,
-              borderRadius: 2,
-              px: 2,
-              py: 1,
-              '&:hover': {
-                background: 'rgba(255, 255, 255, 0.25)',
-                transform: 'translateY(-1px)'
-              },
-              transition: 'all 0.3s ease'
-            }}
-          >
-            {!isMobile && 'Logout'}
-          </Button>
+          {/* Center - Navigation Links (Desktop) */}
+          <Box sx={{ 
+            display: { xs: 'none', md: 'flex' },
+            flexGrow: 1,
+            justifyContent: 'center',
+            mx: 2
+          }}>
+            {navItems.map((item) => (
+              <Button
+                key={item.text}
+                component={Link}
+                to={item.path}
+                startIcon={item.icon}
+                sx={{
+                  color: 'white',
+                  mx: 0.5,
+                  px: 2,
+                  py: 1,
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: location.pathname.startsWith(item.path) ? 600 : 400,
+                  background: location.pathname.startsWith(item.path) 
+                    ? 'rgba(255, 255, 255, 0.15)' 
+                    : 'transparent',
+                  '&:hover': {
+                    background: 'rgba(255, 255, 255, 0.25)',
+                    transform: 'translateY(-1px)',
+                  },
+                  transition: 'all 0.3s ease',
+                  minWidth: 'auto'
+                }}
+              >
+                {item.text}
+              </Button>
+            ))}
+          </Box>
+
+          {/* Right side - Logout Button */}
+          <Box sx={{ 
+            display: 'flex',
+            justifyContent: 'flex-end',
+            flexGrow: { xs: 0, md: 0 }
+          }}>
+            <Button
+              color="inherit"
+              onClick={handleLogout}
+              startIcon={<LogoutIcon />}
+              sx={{
+                textTransform: 'none',
+                fontWeight: 600,
+                borderRadius: 2,
+                px: 2,
+                py: 1,
+                whiteSpace: 'nowrap',
+                '&:hover': {
+                  background: 'rgba(255, 255, 255, 0.25)',
+                  transform: 'translateY(-1px)'
+                },
+                transition: 'all 0.3s ease'
+              }}
+            >
+              {!isMobile && 'Logout'}
+            </Button>
+          </Box>
         </Toolbar>
       </AppBar>
 
+      {/* Mobile Drawer */}
       <Drawer
         anchor="left"
         open={mobileOpen}
