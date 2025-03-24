@@ -107,7 +107,7 @@ const TenantNavigation = () => {
             >
               <Box 
                 component="img" 
-                src="/logo.png" 
+                src="/assets/home.png" 
                 alt="Logo" 
                 sx={{ 
                   height: 40,
