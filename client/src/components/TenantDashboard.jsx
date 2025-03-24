@@ -9,35 +9,63 @@ import {
   Button,
   Avatar,
   LinearProgress,
+  Divider,
+  IconButton,
+  Badge,
+  Paper,
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemText,
+  Stack,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  TextField
 } from "@mui/material";
-import { AccountBalanceWallet, Home, Build, Notifications } from "@mui/icons-material";
+import { 
+  AccountBalanceWallet, 
+  Home, 
+  Build, 
+  Notifications, 
+  ArrowForward,
+  Payment,
+  Receipt,
+  Event,
+  Warning,
+  CheckCircle,
+  MoreVert,
+  Search,
+  FilterList,
+  Add
+} from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
-// Firebase imports for fetching tenant name and notifications
-import {
-  doc,
-  getDoc,
-  collection,
-  query,
-  where,
-  orderBy,
-  onSnapshot,
-} from "firebase/firestore";
+import { doc, getDoc, collection, query, where, orderBy, onSnapshot } from "firebase/firestore";
 import { auth, db } from "../firebase";
-
-// Import your React Big Calendar component
-import CalendarComponent from "./calendarComponent";
+import { format } from 'date-fns';
 
 const TenantDashboard = () => {
   const navigate = useNavigate();
-
-  // State for fetched tenant name from Firestore
-  const [fetchedName, setFetchedName] = useState("John Doe");
-  // State for notifications fetched from Firebase (only today's)
+  const [tenantData, setTenantData] = useState({
+    name: "Loading...",
+    avatar: "https://i.pravatar.cc/150?img=3",
+    leaseStart: "2024-01-01",
+    leaseEnd: "2024-12-31",
+    rentAmount: 1200,
+    nextPaymentDue: "2024-04-01",
+    totalOutstanding: 0,
+    property: "Sunset Apartments",
+    unit: "3B"
+  });
   const [notifications, setNotifications] = useState([]);
+  const [maintenanceRequests, setMaintenanceRequests] = useState([]);
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
 
-  // Fetch tenant name on mount
+  // Fetch tenant data
   useEffect(() => {
-    const fetchTenantName = async () => {
+    const fetchTenantData = async () => {
       const user = auth.currentUser;
       if (user) {
         try {
@@ -45,48 +73,41 @@ const TenantDashboard = () => {
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
             const data = docSnap.data();
-            setFetchedName(data.name || "John Doe");
+            setTenantData(prev => ({
+              ...prev,
+              name: data.name || "Tenant",
+              property: data.property || "Unknown Property",
+              unit: data.unit || "Unknown Unit"
+            }));
           }
         } catch (error) {
-          console.error("Error fetching tenant name:", error);
+          console.error("Error fetching tenant data:", error);
         }
       }
     };
-    fetchTenantName();
+    fetchTenantData();
   }, []);
 
-  // Fetch notifications for today only
+  // Fetch notifications
   useEffect(() => {
-    let isMounted = true;
-    let unsubscribeNotifications = () => {};
+    let unsubscribe = () => {};
     const fetchNotifications = async () => {
       try {
         const user = auth.currentUser;
         if (user) {
-          const notificationsRef = collection(db, "notifications");
           const q = query(
-            notificationsRef,
+            collection(db, "notifications"),
             where("userId", "==", user.uid),
-            orderBy("createdAt", "desc")
+            orderBy("createdAt", "desc"),
+            where("createdAt", ">", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
           );
-          unsubscribeNotifications = onSnapshot(q, (snapshot) => {
-            const today = new Date();
-            const todayStr = today.toISOString().split("T")[0]; // YYYY-MM-DD
-            const todayNotifications = snapshot.docs
-              .map((doc) => ({
-                id: doc.id,
-                ...doc.data(),
-                createdAt: doc.data().createdAt
-                  ? doc.data().createdAt.toDate()
-                  : null,
-              }))
-              .filter((note) => {
-                if (!note.createdAt) return false;
-                return note.createdAt.toISOString().split("T")[0] === todayStr;
-              });
-            if (isMounted) {
-              setNotifications(todayNotifications);
-            }
+          unsubscribe = onSnapshot(q, (snapshot) => {
+            const notes = snapshot.docs.map(doc => ({
+              id: doc.id,
+              ...doc.data(),
+              createdAt: doc.data().createdAt?.toDate()
+            }));
+            setNotifications(notes);
           });
         }
       } catch (error) {
@@ -94,272 +115,497 @@ const TenantDashboard = () => {
       }
     };
     fetchNotifications();
-    return () => {
-      isMounted = false;
-      unsubscribeNotifications();
-    };
+    return () => unsubscribe();
   }, []);
 
-  // Dummy tenant data (replace with real backend data)
-  const tenant = {
-    name: fetchedName,
-    avatar: "https://i.pravatar.cc/150?img=3",
-    leaseStart: "2024-01-01",
-    leaseEnd: "2024-12-31",
-    rentAmount: 1200,
-    nextPaymentDue: "2024-04-01",
-    maintenanceRequests: [
-      { id: 1, issue: "Leaking sink", status: "In Progress" },
-      { id: 2, issue: "Broken AC", status: "Resolved" },
-    ],
-    totalOutstanding: 1200,
+  // Fetch maintenance requests
+  useEffect(() => {
+    let unsubscribe = () => {};
+    const fetchMaintenanceRequests = async () => {
+      try {
+        const user = auth.currentUser;
+        if (user) {
+          let q = query(
+            collection(db, "maintenanceRequests"),
+            where("userId", "==", user.uid),
+            orderBy("createdAt", "desc")
+          );
+          
+          if (filterStatus !== "all") {
+            q = query(q, where("status", "==", filterStatus));
+          }
+          
+          unsubscribe = onSnapshot(q, (snapshot) => {
+            const requests = snapshot.docs.map(doc => ({
+              id: doc.id,
+              ...doc.data(),
+              createdAt: doc.data().createdAt?.toDate()
+            }));
+            
+            // Apply search filter if needed
+            const filtered = searchTerm 
+              ? requests.filter(req => 
+                  req.issue.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  req.status.toLowerCase().includes(searchTerm.toLowerCase()))
+              : requests;
+            
+            setMaintenanceRequests(filtered);
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching maintenance requests:", error);
+      }
+    };
+    fetchMaintenanceRequests();
+    return () => unsubscribe();
+  }, [filterStatus, searchTerm]);
+
+  const getStatusColor = (status) => {
+    switch (status.toLowerCase()) {
+      case 'pending': return 'warning';
+      case 'in progress': return 'info';
+      case 'resolved': return 'success';
+      case 'overdue': return 'error';
+      default: return 'default';
+    }
   };
 
-  // Placeholder for when there are no notifications
-  const NoNotificationsPlaceholder = () => (
-    <Box
+  const getStatusIcon = (status) => {
+    switch (status.toLowerCase()) {
+      case 'pending': return <Warning color="warning" />;
+      case 'in progress': return <Build color="info" />;
+      case 'resolved': return <CheckCircle color="success" />;
+      case 'overdue': return <Warning color="error" />;
+      default: return <CheckCircle color="disabled" />;
+    }
+  };
+
+  const RecentActivityItem = ({ icon, title, description, time, action }) => (
+    <ListItem
+      secondaryAction={
+        <IconButton edge="end" onClick={action}>
+          <ArrowForward />
+        </IconButton>
+      }
       sx={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        textAlign: "center",
-        p: 4,
-        borderRadius: 2,
-        backgroundColor: "background.paper",
-        boxShadow: 1,
-        maxWidth: 600,
-        margin: "0 auto",
-        mt: 4,
+        '&:hover': {
+          backgroundColor: 'action.hover',
+          cursor: 'pointer'
+        }
       }}
     >
-      <Notifications color="primary" sx={{ fontSize: 60, mb: 2 }} />
-      <Typography variant="h5" component="h2" sx={{ mb: 2 }}>
-        No Notifications Today
-      </Typography>
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-        You're all caught up! When new notifications arrive, they'll appear here.
-      </Typography>
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={() => navigate("/tenant/notifications")}
-      >
-        View All Notifications
-      </Button>
-    </Box>
+      <ListItemAvatar>
+        <Avatar sx={{ bgcolor: 'background.default' }}>
+          {icon}
+        </Avatar>
+      </ListItemAvatar>
+      <ListItemText
+        primary={title}
+        secondary={
+          <>
+            <Typography component="span" variant="body2" color="text.primary">
+              {description}
+            </Typography>
+            {time && ` — ${format(time, 'MMM dd, h:mm a')}`}
+          </>
+        }
+      />
+    </ListItem>
   );
 
   return (
-    <Box
-      sx={{
-        backgroundColor: "#f5f5f5",
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      {/* TenantNavigation is assumed to be rendered in TenantPortal */}
-
-      {/* Main Content */}
-      <Box sx={{ flex: 1, p: 3 }}>
-        {/* Header */}
-        <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-          <Avatar src={tenant.avatar} sx={{ width: 50, height: 50, mr: 2 }} />
-          <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-            Welcome, {tenant.name}
-          </Typography>
+    <Box sx={{ flexGrow: 1, p: 3 }}>
+      {/* Header */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Avatar src={tenantData.avatar} sx={{ width: 56, height: 56, mr: 2 }} />
+          <Box>
+            <Typography variant="h4" fontWeight="bold">
+              Welcome back, {tenantData.name}
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              {tenantData.property} • {tenantData.unit}
+            </Typography>
+          </Box>
         </Box>
+        <Button 
+          variant="contained" 
+          startIcon={<Notifications />}
+          onClick={() => navigate("/tenant/notifications")}
+        >
+          Notifications
+        </Button>
+      </Box>
 
-        {/* Overview Cards */}
-        <Grid container spacing={3}>
-          {/* Rent Summary */}
-          <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ p: 2, boxShadow: 3, borderRadius: 2, minHeight: "180px" }}>
-              <CardContent>
-                <AccountBalanceWallet color="success" sx={{ fontSize: 40 }} />
-                <Typography variant="subtitle2" color="text.secondary">
-                  Rent Summary
+      {/* Stats Cards */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        {/* Rent Card */}
+        <Grid item xs={12} sm={6} md={3}>
+          <Card sx={{ height: '100%' }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                <Typography color="text.secondary" gutterBottom>
+                  Monthly Rent
                 </Typography>
-                <Typography variant="h6">${tenant.rentAmount}</Typography>
-                <LinearProgress
-                  variant="determinate"
-                  value={tenant.totalOutstanding > 0 ? 50 : 100}
-                  sx={{ mt: 1 }}
-                />
-              </CardContent>
-            </Card>
-          </Grid>
+                <AccountBalanceWallet color="primary" />
+              </Box>
+              <Typography variant="h4" component="div">
+                ${tenantData.rentAmount}
+              </Typography>
+              <LinearProgress 
+                variant="determinate" 
+                value={tenantData.totalOutstanding > 0 ? 50 : 100} 
+                sx={{ height: 8, borderRadius: 4, mt: 2 }}
+              />
+              <Button 
+                fullWidth 
+                variant="outlined" 
+                sx={{ mt: 2 }}
+                onClick={() => navigate("/tenant/payments")}
+              >
+                Payment History
+              </Button>
+            </CardContent>
+          </Card>
+        </Grid>
 
-          {/* Next Payment Due */}
-          <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ p: 2, boxShadow: 3, borderRadius: 2, minHeight: "180px" }}>
-              <CardContent>
-                <AccountBalanceWallet color="warning" sx={{ fontSize: 40 }} />
-                <Typography variant="subtitle2" color="text.secondary">
+        {/* Next Payment Card */}
+        <Grid item xs={12} sm={6} md={3}>
+          <Card sx={{ height: '100%' }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                <Typography color="text.secondary" gutterBottom>
                   Next Payment Due
                 </Typography>
-                <Typography variant="h6">
-                  {new Date(tenant.nextPaymentDue).toLocaleDateString()}
-                </Typography>
-                <Chip label="Pending" color="warning" size="small" sx={{ mt: 1 }} />
-                <Button
-                  variant="contained"
-                  color="primary"
-                  fullWidth
-                  sx={{ mt: 2, fontWeight: "bold" }}
-                  onClick={() => navigate("/tenant/payments")}
-                >
-                  Pay Now
-                </Button>
-              </CardContent>
-            </Card>
-          </Grid>
+                <Payment color="secondary" />
+              </Box>
+              <Typography variant="h4" component="div">
+                {format(new Date(tenantData.nextPaymentDue), 'MMM dd')}
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                <Chip 
+                  label="Pending" 
+                  size="small" 
+                  color="warning" 
+                  icon={<Warning fontSize="small" />}
+                />
+              </Box>
+              <Button 
+                fullWidth 
+                variant="contained" 
+                sx={{ mt: 2 }}
+                onClick={() => navigate("/tenant/payments/make-payment")}
+              >
+                Pay Now
+              </Button>
+            </CardContent>
+          </Card>
+        </Grid>
 
-          {/* Lease Period */}
-          <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ p: 2, boxShadow: 3, borderRadius: 2, minHeight: "180px" }}>
-              <CardContent>
-                <Home color="primary" sx={{ fontSize: 40 }} />
-                <Typography variant="subtitle2" color="text.secondary">
+        {/* Lease Card */}
+        <Grid item xs={12} sm={6} md={3}>
+          <Card sx={{ height: '100%' }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                <Typography color="text.secondary" gutterBottom>
                   Lease Period
                 </Typography>
-                <Typography variant="h6">
-                  {new Date(tenant.leaseStart).toLocaleDateString()} -{" "}
-                  {new Date(tenant.leaseEnd).toLocaleDateString()}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
+                <Receipt color="success" />
+              </Box>
+              <Typography variant="h6" component="div">
+                {format(new Date(tenantData.leaseStart), 'MMM yyyy')} -{' '}
+                {format(new Date(tenantData.leaseEnd), 'MMM yyyy')}
+              </Typography>
+              <Typography variant="body2" sx={{ mt: 1 }}>
+                {Math.ceil((new Date(tenantData.leaseEnd) - new Date()) / (1000 * 60 * 60 * 24))} days remaining
+              </Typography>
+              <Button 
+                fullWidth 
+                variant="outlined" 
+                sx={{ mt: 2 }}
+                onClick={() => navigate("/tenant/lease")}
+              >
+                View Lease
+              </Button>
+            </CardContent>
+          </Card>
+        </Grid>
 
-          {/* Maintenance Requests */}
-          <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ p: 2, boxShadow: 3, borderRadius: 2, minHeight: "180px" }}>
-              <CardContent>
-                <Build color="secondary" sx={{ fontSize: 40 }} />
-                <Typography variant="subtitle2" color="text.secondary">
+        {/* Maintenance Card */}
+        <Grid item xs={12} sm={6} md={3}>
+          <Card sx={{ height: '100%' }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                <Typography color="text.secondary" gutterBottom>
+                  Maintenance
+                </Typography>
+                <Build color="action" />
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Typography variant="h4" component="div" sx={{ mr: 1 }}>
+                  {maintenanceRequests.length}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  active requests
+                </Typography>
+              </Box>
+              <Button 
+                fullWidth 
+                variant="contained" 
+                startIcon={<Add />}
+                sx={{ mt: 2 }}
+                onClick={() => navigate("/tenant/maintenance/new")}
+              >
+                New Request
+              </Button>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* Main Content */}
+      <Grid container spacing={3}>
+        {/* Left Column */}
+        <Grid item xs={12} md={8}>
+          {/* Maintenance Requests Section */}
+          <Card sx={{ mb: 3 }}>
+            <CardContent>
+              <Box sx={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center',
+                mb: 2
+              }}>
+                <Typography variant="h6" fontWeight="bold">
                   Maintenance Requests
                 </Typography>
-                <Typography variant="h6">
-                  {tenant.maintenanceRequests.length}
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <TextField
+                    size="small"
+                    placeholder="Search requests..."
+                    InputProps={{
+                      startAdornment: <Search fontSize="small" />
+                    }}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  <FormControl size="small" sx={{ minWidth: 120 }}>
+                    <InputLabel>Status</InputLabel>
+                    <Select
+                      value={filterStatus}
+                      onChange={(e) => setFilterStatus(e.target.value)}
+                      label="Status"
+                    >
+                      <MenuItem value="all">All</MenuItem>
+                      <MenuItem value="Pending">Pending</MenuItem>
+                      <MenuItem value="In Progress">In Progress</MenuItem>
+                      <MenuItem value="Resolved">Resolved</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Box>
+              </Box>
+
+              {maintenanceRequests.length > 0 ? (
+                <List sx={{ maxHeight: 400, overflow: 'auto' }}>
+                  {maintenanceRequests.slice(0, 5).map((request) => (
+                    <ListItem
+                      key={request.id}
+                      secondaryAction={
+                        <Chip
+                          label={request.status}
+                          color={getStatusColor(request.status)}
+                          size="small"
+                          icon={getStatusIcon(request.status)}
+                        />
+                      }
+                      sx={{
+                        borderBottom: '1px solid',
+                        borderColor: 'divider',
+                        '&:hover': {
+                          backgroundColor: 'action.hover',
+                          cursor: 'pointer'
+                        }
+                      }}
+                      onClick={() => navigate(`/tenant/maintenance/${request.id}`)}
+                    >
+                      <ListItemText
+                        primary={request.issue}
+                        secondary={
+                          request.createdAt && format(request.createdAt, 'MMM dd, yyyy')
+                        }
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              ) : (
+                <Paper sx={{ p: 4, textAlign: 'center' }}>
+                  <Build sx={{ fontSize: 60, color: 'text.disabled', mb: 2 }} />
+                  <Typography variant="h6" gutterBottom>
+                    No Maintenance Requests
+                  </Typography>
+                  <Typography color="text.secondary" sx={{ mb: 3 }}>
+                    {filterStatus === 'all' 
+                      ? "You haven't submitted any maintenance requests yet."
+                      : `You have no ${filterStatus.toLowerCase()} maintenance requests.`}
+                  </Typography>
+                  <Button 
+                    variant="contained" 
+                    startIcon={<Add />}
+                    onClick={() => navigate("/tenant/maintenance/new")}
+                  >
+                    Create Request
+                  </Button>
+                </Paper>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Recent Payments Section */}
+          <Card>
+            <CardContent>
+              <Typography variant="h6" fontWeight="bold" gutterBottom>
+                Recent Payments
+              </Typography>
+              <List>
+                {[
+                  {
+                    id: 1,
+                    amount: 1200,
+                    date: new Date(2024, 2, 1),
+                    status: 'Paid',
+                    method: 'MPESA'
+                  },
+                  {
+                    id: 2,
+                    amount: 1200,
+                    date: new Date(2024, 1, 1),
+                    status: 'Paid',
+                    method: 'Bank Transfer'
+                  },
+                  {
+                    id: 3,
+                    amount: 1200,
+                    date: new Date(2024, 0, 1),
+                    status: 'Paid',
+                    method: 'MPESA'
+                  }
+                ].map((payment) => (
+                  <RecentActivityItem
+                    key={payment.id}
+                    icon={<AccountBalanceWallet />}
+                    title={`Payment of $${payment.amount}`}
+                    description={`${payment.method} • ${payment.status}`}
+                    time={payment.date}
+                    action={() => navigate(`/tenant/payments/${payment.id}`)}
+                  />
+                ))}
+              </List>
+              <Button 
+                fullWidth 
+                variant="outlined" 
+                sx={{ mt: 1 }}
+                onClick={() => navigate("/tenant/payments")}
+              >
+                View All Payments
+              </Button>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Right Column */}
+        <Grid item xs={12} md={4}>
+          {/* Recent Notifications */}
+          <Card sx={{ mb: 3 }}>
+            <CardContent>
+              <Box sx={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center',
+                mb: 2
+              }}>
+                <Typography variant="h6" fontWeight="bold">
+                  Recent Notifications
                 </Typography>
-                <Button
-                  variant="outlined"
-                  fullWidth
-                  sx={{ mt: 2, fontWeight: "bold" }}
-                  onClick={() => navigate("/tenant/maintenance")}
+                <Badge 
+                  badgeContent={notifications.length} 
+                  color="primary"
+                  sx={{ mr: 1 }}
+                />
+              </Box>
+
+              {notifications.length > 0 ? (
+                <List sx={{ maxHeight: 300, overflow: 'auto' }}>
+                  {notifications.slice(0, 4).map((note) => (
+                    <RecentActivityItem
+                      key={note.id}
+                      icon={<Notifications />}
+                      title={note.title || 'Notification'}
+                      description={note.message.length > 40 
+                        ? `${note.message.substring(0, 40)}...` 
+                        : note.message}
+                      time={note.createdAt}
+                      action={() => navigate(`/tenant/notifications/${note.id}`)}
+                    />
+                  ))}
+                </List>
+              ) : (
+                <Paper sx={{ p: 3, textAlign: 'center' }}>
+                  <Notifications sx={{ fontSize: 60, color: 'text.disabled', mb: 2 }} />
+                  <Typography variant="h6" gutterBottom>
+                    No Recent Notifications
+                  </Typography>
+                  <Typography color="text.secondary">
+                    You're all caught up with notifications.
+                  </Typography>
+                </Paper>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Quick Actions */}
+          <Card>
+            <CardContent>
+              <Typography variant="h6" fontWeight="bold" gutterBottom>
+                Quick Actions
+              </Typography>
+              <Stack spacing={2}>
+                <Button 
+                  variant="contained" 
+                  fullWidth 
+                  startIcon={<Payment />}
+                  onClick={() => navigate("/tenant/payments/make-payment")}
+                >
+                  Make Payment
+                </Button>
+                <Button 
+                  variant="outlined" 
+                  fullWidth 
+                  startIcon={<Build />}
+                  onClick={() => navigate("/tenant/maintenance/new")}
                 >
                   Request Maintenance
                 </Button>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
-
-        {/* Additional Dashboard Cards */}
-        <Grid container spacing={3} sx={{ mt: 4 }}>
-          {/* Calendar Card */}
-          <Grid item xs={12} md={6}>
-            <Card
-              sx={{
-                p: 2,
-                boxShadow: 3,
-                borderRadius: 2,
-                height: { xs: "100%", md: "450px", lg: "450px" },
-              }}
-            >
-              <CardContent sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
-                <Typography variant="h6" gutterBottom>
-                  Calendar
-                </Typography>
-                <Box
-                  sx={{
-                    flex: 1,
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
+                <Button 
+                  variant="outlined" 
+                  fullWidth 
+                  startIcon={<Event />}
+                  onClick={() => navigate("/tenant/events")}
                 >
-                  <CalendarComponent />
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-          {/* Today's Notifications Card */}
-          <Grid item xs={12} md={6}>
-            <Card
-              sx={{
-                p: 2,
-                boxShadow: 3,
-                borderRadius: 2,
-                height: { xs: "100%", md: "450px", lg: "450px" },
-              }}
-            >
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Today's Notifications
-                </Typography>
-                {notifications.length > 0 ? (
-                  notifications.slice(0, 3).map((note) => (
-                    <Box key={note.id} sx={{ mb: 2 }}>
-                      <Typography variant="body2">
-                        {note.message.length > 50
-                          ? note.message.substring(0, 50) + "..."
-                          : note.message}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {note.createdAt
-                          ? new Date(note.createdAt).toLocaleDateString("en-US", {
-                              weekday: "short",
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })
-                          : ""}
-                      </Typography>
-                    </Box>
-                  ))
-                ) : (
-                  <NoNotificationsPlaceholder />
-                )}
-                <Button
-                  variant="contained"
-                  color="primary"
-                  fullWidth
-                  sx={{ mt: 2 }}
-                  onClick={() => navigate("/tenant/notifications")}
-                >
-                  View All Notifications
+                  View Events
                 </Button>
-              </CardContent>
-            </Card>
-          </Grid>
+                <Button 
+                  variant="outlined" 
+                  fullWidth 
+                  startIcon={<Receipt />}
+                  onClick={() => navigate("/tenant/documents")}
+                >
+                  View Documents
+                </Button>
+              </Stack>
+            </CardContent>
+          </Card>
         </Grid>
-      </Box>
-
-      {/* Footer */}
-      <Box
-        sx={{
-          mt: 4,
-          p: 2,
-          textAlign: "center",
-          backgroundColor: "#222",
-          color: "#fff",
-          fontSize: "14px",
-        }}
-      >
-        <Typography variant="body2">
-          Developed by <strong>Raphael</strong> | Contact:{" "}
-          <a
-            href="tel:+254748211821"
-            style={{ color: "#fff", textDecoration: "none" }}
-          >
-            +254748211821
-          </a>
-        </Typography>
-      </Box>
+      </Grid>
     </Box>
   );
 };
