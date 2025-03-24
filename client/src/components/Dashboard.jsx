@@ -57,6 +57,25 @@ const mockMaintenanceRequests = [
   { id: 3, description: 'Paint Walls', status: 'In Progress' },
 ];
 
+// Financial Report Mock Data
+const financialData = {
+  monthly: {
+    income: [4000, 3000, 6000, 4500, 7000, 8000, 9000],
+    expenses: [2000, 1500, 3000, 2500, 4000, 3500, 5000],
+    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul']
+  },
+  quarterly: {
+    income: [12000, 13500, 21000],
+    expenses: [6000, 7500, 12000],
+    labels: ['Q1', 'Q2', 'Q3']
+  },
+  yearly: {
+    income: [48000, 52000, 60000],
+    expenses: [30000, 35000, 40000],
+    labels: ['2021', '2022', '2023']
+  }
+};
+
 // Trend Indicator Component
 const TrendIndicator = ({ trend }) => (
   <Typography
@@ -178,6 +197,9 @@ const Dashboard = () => {
   const darkModeBg = darkMode ? 'rgba(30, 30, 30, 0.95)' : '#fff';
   const darkModeText = darkMode ? 'rgba(255, 255, 255, 0.87)' : 'text.primary';
 
+  // Current financial data based on selected time period
+  const currentFinancialData = financialData[timePeriod];
+
   // Toggle Dark Mode
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
@@ -222,18 +244,24 @@ const Dashboard = () => {
   return (
     <Box sx={{ 
       backgroundColor: darkModeBg, 
-      minHeight: '100vh',
-      p: 3,
-      pb: 6
+      minHeight: '100vh'
     }}>
       <Navigation />
-      <Box sx={{ p: 3 }}>
+      <Box sx={{ 
+        pt: 0,
+        px: 3,
+        pb: 6,
+        marginLeft: 'auto',
+        marginRight: 'auto',
+        maxWidth: '100%'
+      }}>
         {/* Header */}
         <Box sx={{ 
           mb: 4, 
           display: 'flex', 
           justifyContent: 'space-between', 
-          alignItems: 'center' 
+          alignItems: 'center',
+          pt: 3
         }}>
           <Typography variant="h4" sx={{ 
             fontWeight: 700, 
@@ -309,7 +337,7 @@ const Dashboard = () => {
                   : '0 8px 30px rgba(0,0,0,0.15)' 
               }
             }}>
-              <CardContent sx={{ p: 3 }}>
+              <CardContent sx={{ p: 3, height: '100%' }}>
                 {isLoading ? (
                   <Skeleton variant="rectangular" height="100%" animation="wave" />
                 ) : (
@@ -330,7 +358,8 @@ const Dashboard = () => {
                         onChange={(e) => setTimePeriod(e.target.value)} 
                         sx={{ 
                           bgcolor: darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-                          borderRadius: 1
+                          borderRadius: 1,
+                          minWidth: 120
                         }}
                       >
                         <MenuItem value="monthly">Monthly</MenuItem>
@@ -339,45 +368,52 @@ const Dashboard = () => {
                       </Select>
                     </Box>
                     <Box sx={{ flexGrow: 1 }}>
-                      <LineChart
-                        xAxis={[{ data: ['Jan', 'Feb', 'Mar', 'Apr', 'May'], scaleType: 'band', label: 'Month' }]}
-                        yAxis={[{ label: 'Amount ($)' }]}
-                        series={[
-                          { 
-                            data: [4000, 3000, 6000, 4500, 7000], 
-                            label: 'Income', 
-                            color: '#4CAF50', 
-                            curve: 'natural',
-                            areaStyle: { 
-                              fill: 'url(#incomeGradient)',
-                              opacity: 0.2 
-                            }
-                          },
-                          { 
-                            data: [2000, 1500, 3000, 2500, 4000], 
-                            label: 'Expenses', 
-                            color: '#F44336', 
-                            curve: 'natural',
-                            areaStyle: { 
-                              fill: 'url(#expenseGradient)',
-                              opacity: 0.2 
-                            }
-                          },
-                        ]}
-                        margin={{ left: 70, right: 30 }}
-                        grid={{ vertical: true, horizontal: true }}
-                      >
-                        <defs>
-                          <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#4CAF50" stopOpacity={0.8}/>
-                            <stop offset="95%" stopColor="#4CAF50" stopOpacity={0}/>
-                          </linearGradient>
-                          <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#F44336" stopOpacity={0.8}/>
-                            <stop offset="95%" stopColor="#F44336" stopOpacity={0}/>
-                          </linearGradient>
-                        </defs>
-                      </LineChart>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart
+                          data={currentFinancialData.labels.map((label, index) => ({
+                            label,
+                            income: currentFinancialData.income[index],
+                            expenses: currentFinancialData.expenses[index]
+                          }))}
+                          margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                          <XAxis 
+                            dataKey="label" 
+                            tick={{ fill: darkModeText }} 
+                            axisLine={{ stroke: darkModeText }}
+                          />
+                          <YAxis 
+                            tick={{ fill: darkModeText }} 
+                            axisLine={{ stroke: darkModeText }}
+                          />
+                          <RechartsTooltip 
+                            contentStyle={{
+                              backgroundColor: darkMode ? '#333' : '#fff',
+                              borderColor: darkMode ? '#555' : '#ddd'
+                            }}
+                          />
+                          <Legend />
+                          <Line
+                            type="monotone"
+                            dataKey="income"
+                            stroke="#4CAF50"
+                            strokeWidth={2}
+                            dot={{ r: 4 }}
+                            activeDot={{ r: 6 }}
+                            name="Income"
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="expenses"
+                            stroke="#F44336"
+                            strokeWidth={2}
+                            dot={{ r: 4 }}
+                            activeDot={{ r: 6 }}
+                            name="Expenses"
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
                     </Box>
                   </Box>
                 )}
