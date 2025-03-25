@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   Box, Typography, Grid, Card, CardContent, Divider, Tabs, Tab, 
   Select, MenuItem, FormControl, InputLabel, Button, IconButton,
-  LinearProgress, Chip, useTheme, Paper, Stack
+  LinearProgress, Chip, useTheme, Paper, Stack, Tooltip
 } from '@mui/material';
 import { 
   LineChart, BarChart, PieChart, ScatterChart, SparkLineChart,
@@ -17,10 +17,16 @@ import {
 } from '@mui/icons-material';
 import Navigation from './Navigation';
 import { 
-  mockFinancialData, mockPropertyMetrics, mockTenantMetrics,
+  mockFinancialData, mockPropertyMetrics, 
   mockMaintenanceData, mockPredictiveData 
 } from '../mockData';
 import useAutoLogout from '../hooks/useAutoLogout';
+
+// Inline mock data for tenant metrics
+const mockTenantMetrics = {
+  retentionRate: 85,
+  newTenants: 12
+};
 
 const ReportsAnalytics = () => {
   const [tabValue, setTabValue] = useState(0);
