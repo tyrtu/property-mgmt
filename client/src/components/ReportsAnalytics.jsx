@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Box, Typography, Grid, Card, CardContent, Divider, Tabs, Tab, 
   Select, MenuItem, FormControl, InputLabel, Button, IconButton,
   LinearProgress, Chip, useTheme, Stack, Tooltip, Container
 } from '@mui/material';
 import { 
-  LineChart, BarChart, PieChart, ScatterChart
+  LineChart, BarChart, PieChart
 } from '@mui/x-charts';
 import { DataGrid } from '@mui/x-data-grid';
 import { LocalizationProvider } from '@mui/x-date-pickers';
@@ -50,12 +50,12 @@ const mockPropertyMetrics = {
     { id: 3, name: 'Industrial Park', occupancy: 97, value: 5200000 },
     { id: 4, name: 'Shopping Plaza', occupancy: 90, value: 4800000 }
   ],
-  valueMetrics: [
-    { id: 1, name: 'Cap Rate', value: 6.2 },
-    { id: 2, name: 'Appreciation', value: 3.2 },
-    { id: 3, name: 'Rental Growth', value: 2.5 },
-    { id: 4, name: 'NOI', value: 8.1 }
-  ]
+  valueMetrics: {
+    labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+    capRates: [6.2, 5.8, 7.1, 6.5],
+    appreciation: [3.2, 2.8, 4.1, 3.5],
+    rentalGrowth: [2.5, 2.8, 3.1, 2.9]
+  }
 };
 
 const mockTenantMetrics = {
@@ -68,18 +68,14 @@ const mockTenantMetrics = {
     { id: 3, type: 'Month-to-month', value: 18 },
     { id: 4, type: 'Commercial', value: 22 }
   ],
-  tenantGrowth: [
-    { year: '2020', tenants: 120 },
-    { year: '2021', tenants: 145 },
-    { year: '2022', tenants: 165 },
-    { year: '2023', tenants: 195 }
-  ],
-  satisfactionTrend: [
-    { quarter: 'Q1', rating: 4.2 },
-    { quarter: 'Q2', rating: 4.5 },
-    { quarter: 'Q3', rating: 4.6 },
-    { quarter: 'Q4', rating: 4.7 }
-  ]
+  tenantGrowth: {
+    labels: ['2020', '2021', '2022', '2023'],
+    values: [120, 145, 165, 195]
+  },
+  satisfactionTrend: {
+    labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+    values: [4.2, 4.5, 4.6, 4.7]
+  }
 };
 
 const mockMaintenanceData = {
@@ -91,41 +87,31 @@ const mockMaintenanceData = {
     { id: 3, type: 'HVAC', responseTime: 36, cost: 520 },
     { id: 4, type: 'Structural', responseTime: 72, cost: 480 }
   ],
-  trends: [
-    { month: 'Jan', tickets: 45, cost: 1200 },
-    { month: 'Feb', tickets: 42, cost: 1150 },
-    { month: 'Mar', tickets: 40, cost: 1100 },
-    { month: 'Apr', tickets: 38, cost: 1050 },
-    { month: 'May', tickets: 36, cost: 1000 },
-    { month: 'Jun', tickets: 35, cost: 980 }
-  ]
+  trends: {
+    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+    ticketCounts: [45, 42, 40, 38, 36, 35],
+    costs: [1200, 1150, 1100, 1050, 1000, 980]
+  }
 };
 
 const mockPredictiveData = {
-  occupancy: [
-    { month: 'Jan', actual: 88, forecast: 89 },
-    { month: 'Feb', actual: 89, forecast: 90 },
-    { month: 'Mar', actual: 90, forecast: 91 },
-    { month: 'Apr', actual: 91, forecast: 92 },
-    { month: 'May', actual: 92, forecast: 93 },
-    { month: 'Jun', actual: 93, forecast: 94 }
-  ],
-  revenue: [
-    { quarter: 'Q1', projection: 125000 },
-    { quarter: 'Q2', projection: 130000 },
-    { quarter: 'Q3', projection: 135000 },
-    { quarter: 'Q4', projection: 140000 }
-  ],
-  expenses: [
-    { year: '2023', projection: 85000 },
-    { year: '2024', projection: 90000 },
-    { year: '2025', projection: 95000 }
-  ],
-  netIncome: [
-    { year: '2023', projection: 40000 },
-    { year: '2024', projection: 45000 },
-    { year: '2025', projection: 50000 }
-  ]
+  occupancy: {
+    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+    actual: [88, 89, 90, 91, 92, 93],
+    forecast: [89, 90, 91, 92, 93, 94]
+  },
+  revenue: {
+    labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+    projections: [125, 130, 135, 140].map(v => v * 1000)
+  },
+  expenses: {
+    labels: ['2023', '2024', '2025'],
+    projections: [85, 90, 95].map(v => v * 1000)
+  },
+  netIncome: {
+    labels: ['2023', '2024', '2025'],
+    projections: [40, 45, 50].map(v => v * 1000)
+  }
 };
 
 const ReportsAnalytics = () => {
@@ -173,6 +159,26 @@ const ReportsAnalytics = () => {
     }
   ];
 
+  // Compute averages for predictive occupancy
+  const occupancyAvgActual = useMemo(() => {
+    const sum = mockPredictiveData.occupancy.actual.reduce((a, b) => a + b, 0);
+    return (sum / mockPredictiveData.occupancy.actual.length).toFixed(1);
+  }, []);
+  const occupancyAvgForecast = useMemo(() => {
+    const sum = mockPredictiveData.occupancy.forecast.reduce((a, b) => a + b, 0);
+    return (sum / mockPredictiveData.occupancy.forecast.length).toFixed(1);
+  }, []);
+
+  // Compute averages for value metrics
+  const avgCapRate = useMemo(() => {
+    const sum = mockPropertyMetrics.valueMetrics.capRates.reduce((a, b) => a + b, 0);
+    return (sum / mockPropertyMetrics.valueMetrics.capRates.length).toFixed(1);
+  }, []);
+  const avgAppreciation = useMemo(() => {
+    const sum = mockPropertyMetrics.valueMetrics.appreciation.reduce((a, b) => a + b, 0);
+    return (sum / mockPropertyMetrics.valueMetrics.appreciation.length).toFixed(1);
+  }, []);
+
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
       <Box sx={{ 
@@ -206,7 +212,7 @@ const ReportsAnalytics = () => {
             </Tooltip>
           </Box>
 
-          {/* Quick Stats Cards - Fixed Spacing */}
+          {/* Quick Stats Cards */}
           <Grid container spacing={2} sx={{ mb: 3 }}>
             {[
               { 
@@ -237,49 +243,33 @@ const ReportsAnalytics = () => {
               <Grid item xs={12} sm={6} md={3} key={index}>
                 <Card sx={{ 
                   backgroundColor: darkMode ? '#1e1e1e' : '#fff',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
+                  height: 120,
                   borderRadius: 2,
                   boxShadow: 'none'
                 }}>
-                  <CardContent sx={{ p: 2, flexGrow: 1 }}>
-                    <Stack direction="row" alignItems="center" spacing={1.5} sx={{ height: '100%' }}>
+                  <CardContent sx={{ p: 2, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <Stack direction="row" alignItems="center" spacing={1.5}>
                       {card.icon}
-                      <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
-                        <Box>
-                          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                            {card.title}
-                          </Typography>
-                          <Typography variant="h6" sx={{ mb: 0.5 }}>
-                            {card.value}
-                          </Typography>
-                        </Box>
-                        <Box>
-                          {card.growth && (
-                            <Chip 
-                              icon={card.growth > 0 ? <ArrowUpward sx={{ fontSize: 12 }} /> : <ArrowDownward sx={{ fontSize: 12 }} />}
-                              label={`${card.growth}%`} 
-                              size="small"
-                              sx={{ 
-                                height: 20,
-                                fontSize: '0.7rem',
-                                backgroundColor: card.growth > 0 ? (darkMode ? '#1B5E20' : '#C8E6C9') : (darkMode ? '#B71C1C' : '#FFCDD2'),
-                                color: card.growth > 0 ? (darkMode ? '#A5D6A7' : '#2E7D32') : (darkMode ? '#EF9A9A' : '#C62828')
-                              }}
-                            />
-                          )}
-                          {card.extra && (
-                            <Typography variant="caption" sx={{ 
-                              display: 'block',
-                              color: darkMode ? '#90CAF9' : '#1976D2',
-                              mt: 0.5
-                            }}>
-                              {card.extra}
-                            </Typography>
-                          )}
-                        </Box>
+                      <Box>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
+                          {card.title}
+                        </Typography>
+                        <Typography variant="h6" sx={{ mb: 0.5, lineHeight: 1.2 }}>
+                          {card.value}
+                        </Typography>
+                        {card.growth && (
+                          <Chip 
+                            icon={card.growth > 0 ? <ArrowUpward sx={{ fontSize: 12 }} /> : <ArrowDownward sx={{ fontSize: 12 }} />}
+                            label={`${card.growth}%`} 
+                            size="small"
+                            sx={{ 
+                              height: 20,
+                              fontSize: '0.7rem',
+                              backgroundColor: card.growth > 0 ? (darkMode ? '#1B5E20' : '#C8E6C9') : (darkMode ? '#B71C1C' : '#FFCDD2'),
+                              color: card.growth > 0 ? (darkMode ? '#A5D6A7' : '#2E7D32') : (darkMode ? '#EF9A9A' : '#C62828')
+                            }}
+                          />
+                        )}
                       </Box>
                     </Stack>
                   </CardContent>
@@ -454,27 +444,32 @@ const ReportsAnalytics = () => {
                   <CardContent sx={{ p: 2 }}>
                     <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>Value Metrics</Typography>
                     <Box sx={{ height: 300 }}>
-                      <ScatterChart
+                      <PieChart
                         series={[
                           {
-                            label: 'Metrics',
-                            data: mockPropertyMetrics.valueMetrics.map(item => ({
-                              x: item.id,
-                              y: item.value,
-                              id: item.id
-                            })),
-                            color: currentColors[0]
+                            // Using computed averages for a pie chart display
+                            data: [
+                              { label: 'Cap Rates', value: Number(avgCapRate) },
+                              { label: 'Appreciation', value: Number(avgAppreciation) }
+                            ],
+                            outerRadius: 80,
+                            innerRadius: 40,
+                            paddingAngle: 2,
+                            cornerRadius: 4,
+                            arcLabel: (item) => `${item.value}%`
                           }
                         ]}
-                        xAxis={[{ 
-                          label: 'Metric ID',
-                          data: mockPropertyMetrics.valueMetrics.map(item => item.id),
-                          valueFormatter: (value) => 
-                            mockPropertyMetrics.valueMetrics.find(item => item.id === value)?.name || ''
-                        }]}
-                        yAxis={[{
-                          label: 'Value (%)'
-                        }]}
+                        colors={currentColors}
+                        slotProps={{
+                          legend: {
+                            direction: 'row',
+                            position: { vertical: 'bottom', horizontal: 'middle' },
+                            labelStyle: {
+                              fontSize: 12,
+                              fill: darkMode ? '#fff' : '#666'
+                            }
+                          }
+                        }}
                       />
                     </Box>
                   </CardContent>
@@ -494,13 +489,13 @@ const ReportsAnalytics = () => {
                       <BarChart
                         series={[
                           { 
-                            data: mockTenantMetrics.tenantGrowth.map(item => item.tenants),
+                            data: mockTenantMetrics.tenantGrowth.values,
                             label: 'Tenant Count',
                             color: currentColors[1]
                           }
                         ]}
                         xAxis={[{ 
-                          data: mockTenantMetrics.tenantGrowth.map(item => item.year),
+                          data: mockTenantMetrics.tenantGrowth.labels,
                           scaleType: 'band',
                           label: 'Year'
                         }]}
@@ -518,23 +513,31 @@ const ReportsAnalytics = () => {
                   <CardContent sx={{ p: 2 }}>
                     <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>Satisfaction Trend</Typography>
                     <Box sx={{ height: 300 }}>
-                      <LineChart
+                      <PieChart
                         series={[
                           { 
-                            data: mockTenantMetrics.satisfactionTrend.map(item => item.rating),
-                            label: 'Satisfaction (1-5)',
-                            color: currentColors[2]
+                            data: mockTenantMetrics.satisfactionTrend.labels.map((label, i) => ({
+                              label,
+                              value: mockTenantMetrics.satisfactionTrend.values[i]
+                            })),
+                            outerRadius: 80,
+                            innerRadius: 40,
+                            paddingAngle: 2,
+                            cornerRadius: 4,
+                            arcLabel: (item) => `${item.value}`
                           }
                         ]}
-                        xAxis={[{ 
-                          data: mockTenantMetrics.satisfactionTrend.map(item => item.quarter),
-                          label: 'Quarter'
-                        }]}
-                        yAxis={[{
-                          min: 3,
-                          max: 5,
-                          label: 'Rating'
-                        }]}
+                        colors={currentColors}
+                        slotProps={{
+                          legend: {
+                            direction: 'row',
+                            position: { vertical: 'bottom', horizontal: 'middle' },
+                            labelStyle: {
+                              fontSize: 12,
+                              fill: darkMode ? '#fff' : '#666'
+                            }
+                          }
+                        }}
                       />
                     </Box>
                   </CardContent>
@@ -543,7 +546,7 @@ const ReportsAnalytics = () => {
             </Grid>
           )}
 
-          {/* Maintenance Metrics Tab - Fixed */}
+          {/* Maintenance Metrics Tab */}
           {tabValue === 3 && (
             <Grid container spacing={2}>
               <Grid item xs={12} md={6}>
@@ -551,22 +554,28 @@ const ReportsAnalytics = () => {
                   <CardContent sx={{ p: 2 }}>
                     <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>Maintenance Trends</Typography>
                     <Box sx={{ height: 300 }}>
-                      <BarChart
+                      <LineChart
                         series={[
                           { 
-                            data: mockMaintenanceData.trends.map(item => item.tickets),
+                            data: mockMaintenanceData.trends.ticketCounts,
                             label: 'Ticket Count',
                             color: currentColors[3]
+                          },
+                          { 
+                            data: mockMaintenanceData.trends.costs,
+                            label: 'Cost ($)',
+                            color: currentColors[0],
+                            yAxisKey: 'rightAxis'
                           }
                         ]}
                         xAxis={[{ 
-                          data: mockMaintenanceData.trends.map(item => item.month),
-                          scaleType: 'band',
+                          data: mockMaintenanceData.trends.labels,
                           label: 'Month'
                         }]}
-                        yAxis={[{
-                          label: 'Ticket Count'
-                        }]}
+                        yAxis={[
+                          { label: 'Ticket Count' },
+                          { label: 'Cost ($)', position: 'right' }
+                        ]}
                       />
                     </Box>
                   </CardContent>
@@ -610,26 +619,31 @@ const ReportsAnalytics = () => {
                   <CardContent sx={{ p: 2 }}>
                     <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>Occupancy Forecast</Typography>
                     <Box sx={{ height: 300 }}>
-                      <LineChart
+                      <PieChart
                         series={[
-                          { 
-                            data: mockPredictiveData.occupancy.map(item => item.actual),
-                            label: 'Actual',
-                            color: currentColors[1]
-                          },
-                          { 
-                            data: mockPredictiveData.occupancy.map(item => item.forecast),
-                            label: 'Forecast',
-                            color: currentColors[2]
+                          {
+                            data: [
+                              { label: 'Actual Avg', value: Number(occupancyAvgActual) },
+                              { label: 'Forecast Avg', value: Number(occupancyAvgForecast) }
+                            ],
+                            outerRadius: 80,
+                            innerRadius: 40,
+                            paddingAngle: 2,
+                            cornerRadius: 4,
+                            arcLabel: (item) => `${item.value}%`
                           }
                         ]}
-                        xAxis={[{ 
-                          data: mockPredictiveData.occupancy.map(item => item.month),
-                          label: 'Month'
-                        }]}
-                        yAxis={[{
-                          label: 'Occupancy (%)'
-                        }]}
+                        colors={currentColors}
+                        slotProps={{
+                          legend: {
+                            direction: 'row',
+                            position: { vertical: 'bottom', horizontal: 'middle' },
+                            labelStyle: {
+                              fontSize: 12,
+                              fill: darkMode ? '#fff' : '#666'
+                            }
+                          }
+                        }}
                       />
                     </Box>
                   </CardContent>
@@ -641,20 +655,28 @@ const ReportsAnalytics = () => {
                   <CardContent sx={{ p: 2 }}>
                     <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>Revenue Projections</Typography>
                     <Box sx={{ height: 300 }}>
-                      <PieChart
+                      <BarChart
                         series={[
                           { 
-                            data: mockPredictiveData.revenue.map(item => ({
-                              id: item.quarter,
-                              value: item.projection / 1000,
-                              label: item.quarter
-                            })),
-                            arcLabel: (item) => `$${item.value}k`,
-                            outerRadius: 80,
-                            innerRadius: 40
+                            data: mockPredictiveData.revenue.projections,
+                            label: 'Projected Revenue',
+                            color: currentColors[0]
                           }
                         ]}
-                        colors={currentColors}
+                        xAxis={[{ 
+                          data: mockPredictiveData.revenue.labels,
+                          scaleType: 'band',
+                          label: 'Quarter'
+                        }]}
+                        yAxis={[{
+                          label: 'Amount ($)'
+                        }]}
+                        slotProps={{
+                          bar: {
+                            rx: 4,
+                            width: 25
+                          }
+                        }}
                       />
                     </Box>
                   </CardContent>
