@@ -5,15 +5,15 @@ import {
   LinearProgress, Chip, useTheme, Paper, Stack, Tooltip
 } from '@mui/material';
 import { 
-  LineChart, BarChart, PieChart, ScatterChart, SparkLineChart,
-  AreaPlot, BarPlot, MarkPlot, LinePlot, PieArcLabel
+  LineChart, BarChart, PieChart, ScatterChart,
+  AreaPlot, BarPlot, LinePlot, PieArcLabel
 } from '@mui/x-charts';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import {
   Download, Print, ShowChart, Money, Home, People, Build, 
-  Predictions, Timeline, Analytics, DarkMode, LightMode
+  Timeline, Analytics, DarkMode, LightMode, Assessment
 } from '@mui/icons-material';
 import Navigation from './Navigation';
 import useAutoLogout from '../hooks/useAutoLogout';
@@ -229,7 +229,7 @@ const ReportsAnalytics = () => {
             <Tab label={<><Home /> Properties</>} />
             <Tab label={<><People /> Tenants</>} />
             <Tab label={<><Build /> Maintenance</>} />
-            <Tab label={<><Predictions /> Predictive</>} />
+            <Tab label={<><Assessment /> Predictive</>} />
           </Tabs>
 
           {/* Financial Performance Tab */}
