@@ -16,16 +16,78 @@ import {
   Predictions, Timeline, Analytics, DarkMode, LightMode
 } from '@mui/icons-material';
 import Navigation from './Navigation';
-import { 
-  mockFinancialData, mockPropertyMetrics, 
-  mockMaintenanceData, mockPredictiveData 
-} from '../mockData';
 import useAutoLogout from '../hooks/useAutoLogout';
 
-// Inline mock data for tenant metrics
+// Comprehensive Mock Data
+const mockFinancialData = {
+  netProfit: 248765,
+  profitGrowth: 12.5,
+  income: [125000, 135000, 142000, 156000, 168000, 182000, 195000, 210000, 225000, 238000, 252000, 265000],
+  expenses: [85000, 88000, 92000, 95000, 102000, 108000, 112000, 115000, 120000, 125000, 130000, 135000],
+  months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+  portfolioAllocation: [
+    { id: 0, value: 35, label: 'Residential' },
+    { id: 1, value: 25, label: 'Commercial' },
+    { id: 2, value: 20, label: 'Industrial' },
+    { id: 3, value: 15, label: 'Retail' },
+    { id: 4, value: 5, label: 'Special Purpose' }
+  ],
+  expenseCategories: [
+    { id: 1, label: 'Maintenance', value: 48500 },
+    { id: 2, label: 'Utilities', value: 32500 },
+    { id: 3, label: 'Taxes', value: 78500 },
+    { id: 4, label: 'Insurance', value: 42500 },
+    { id: 5, label: 'Management', value: 36500 },
+    { id: 6, label: 'Marketing', value: 18500 }
+  ]
+};
+
+const mockPropertyMetrics = {
+  avgOccupancy: 92.5,
+  properties: [
+    { id: 1, name: 'Downtown Apartments', occupancy: 95, value: 4200000 },
+    { id: 2, name: 'Riverside Office', occupancy: 88, value: 3800000 },
+    { id: 3, name: 'Industrial Park', occupancy: 97, value: 5200000 },
+    { id: 4, name: 'Shopping Plaza', occupancy: 90, value: 4800000 }
+  ],
+  capRates: [6.2, 5.8, 7.1, 6.5],
+  appreciation: [3.2, 2.8, 4.1, 3.5]
+};
+
 const mockTenantMetrics = {
   retentionRate: 85,
-  newTenants: 12
+  newTenants: 12,
+  tenantSatisfaction: 4.7,
+  leaseBreakdown: [
+    { id: 1, type: '1-year', count: 45 },
+    { id: 2, type: '2-year', count: 32 },
+    { id: 3, type: 'Month-to-month', count: 18 },
+    { id: 4, type: 'Commercial', count: 22 }
+  ],
+  delinquencyRate: 2.3
+};
+
+const mockMaintenanceData = {
+  roi: 3.2,
+  costSavings: 42,
+  tickets: [
+    { id: 1, type: 'Plumbing', responseTime: 24, cost: 420 },
+    { id: 2, type: 'Electrical', responseTime: 18, cost: 380 },
+    { id: 3, type: 'HVAC', responseTime: 36, cost: 520 },
+    { id: 4, type: 'Structural', responseTime: 72, cost: 480 }
+  ],
+  preventiveMaintenance: 78,
+  emergencyMaintenance: 22
+};
+
+const mockPredictiveData = {
+  occupancyActual: [88, 89, 90, 91, 92, 93, 94, 93, 92, 91, 90, 89],
+  occupancyForecast: [89, 90, 91, 92, 93, 94, 95, 94, 93, 92, 91, 90],
+  forecastMonths: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+  revenueProjections: [125000, 130000, 135000, 140000, 145000, 150000, 155000, 160000, 165000, 170000, 175000, 180000],
+  forecastQuarters: ['Q1', 'Q2', 'Q3', 'Q4'],
+  expenseTrend: [85000, 87000, 89000, 91000, 93000, 95000, 97000, 99000, 101000, 103000, 105000, 107000],
+  netIncomeProjection: [40000, 43000, 46000, 49000, 52000, 55000, 58000, 61000, 64000, 67000, 70000, 73000]
 };
 
 const ReportsAnalytics = () => {
@@ -235,6 +297,62 @@ const ReportsAnalytics = () => {
                         </Stack>
                       ))}
                     </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+          )}
+
+          {/* Property Metrics Tab */}
+          {tabValue === 1 && (
+            <Grid container spacing={4}>
+              <Grid item xs={12} md={6}>
+                <Card sx={{ backgroundColor: darkMode ? '#1e1e1e' : '#fff' }}>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>Property Performance</Typography>
+                    <BarChart
+                      series={[
+                        { 
+                          data: mockPropertyMetrics.properties.map(p => p.occupancy),
+                          label: 'Occupancy Rate (%)',
+                          color: currentColors[1]
+                        }
+                      ]}
+                      xAxis={[{ 
+                        data: mockPropertyMetrics.properties.map(p => p.name),
+                        scaleType: 'band',
+                        label: 'Properties'
+                      }]}
+                      height={400}
+                    />
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Card sx={{ backgroundColor: darkMode ? '#1e1e1e' : '#fff' }}>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>Value Appreciation</Typography>
+                    <LineChart
+                      series={[
+                        { 
+                          data: mockPropertyMetrics.capRates,
+                          label: 'Cap Rates (%)',
+                          color: currentColors[0]
+                        },
+                        { 
+                          data: mockPropertyMetrics.appreciation,
+                          label: 'Appreciation (%)',
+                          color: currentColors[2]
+                        }
+                      ]}
+                      xAxis={[{ 
+                        data: mockPropertyMetrics.properties.map(p => p.name),
+                        scaleType: 'band',
+                        label: 'Properties'
+                      }]}
+                      height={400}
+                    />
                   </CardContent>
                 </Card>
               </Grid>
