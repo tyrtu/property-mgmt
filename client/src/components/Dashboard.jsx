@@ -19,9 +19,7 @@ import {
   ArrowDownward as ArrowDownwardIcon
 } from '@mui/icons-material';
 import { BarChart } from '@mui/x-charts/BarChart';
-import { LineChart } from '@mui/x-charts/LineChart';
 import { PieChart } from '@mui/x-charts/PieChart';
-import { Pie, Cell, Legend as RechartsLegend, Tooltip as RechartsTooltip, XAxis, YAxis, BarChart as MuiBarChart } from '@mui/x-charts';
 import { saveAs } from 'file-saver';
 import useAutoLogout from '../hooks/useAutoLogout';
 import Navigation from './Navigation';
