@@ -110,7 +110,7 @@ const generateMockPayments = () => {
   });
 };
 
-const RentPaymentDashboard = () => {
+const RentPayment = () => {
   const [rows, setRows] = useState([]);
   const [filteredRows, setFilteredRows] = useState([]);
   const [selectedStatus, setSelectedStatus] = useState('All');
@@ -476,7 +476,7 @@ const RentPaymentDashboard = () => {
           <Box>
             <Typography variant="h4" sx={{ fontWeight: 700 }}>
               <AttachMoney sx={{ verticalAlign: 'middle', mr: 1 }} />
-              Rent Payments Dashboard
+              Rent Payments
             </Typography>
             <Typography variant="subtitle1" color="text.secondary">
               {filteredRows.length} records found • Last updated: {format(new Date(), 'MMM dd, yyyy h:mm a')}
