@@ -5,7 +5,7 @@ import {
   LinearProgress, Chip, useTheme, Stack, Tooltip, Container
 } from '@mui/material';
 import { 
-  LineChart, BarChart, PieChart, AreaChart 
+  LineChart, BarChart, PieChart
 } from '@mui/x-charts';
 import { DataGrid } from '@mui/x-data-grid';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
@@ -375,7 +375,7 @@ const ReportsAnalytics = () => {
                         </Select>
                       </FormControl>
                     </Box>
-                    <AreaChart
+                    <LineChart
                       series={[
                         { 
                           data: mockFinancialData.income, 
@@ -942,7 +942,7 @@ const ReportsAnalytics = () => {
                           },
                           bar: {
                             rx: 4,
-                            width: 40
+                            width: 30
                           }
                         }}
                       />
