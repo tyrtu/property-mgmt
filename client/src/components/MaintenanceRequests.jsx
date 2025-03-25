@@ -13,6 +13,7 @@ import {
   InputAdornment,
   Container,
   Card,
+  CardContent,
   Button,
   Dialog,
   DialogTitle,
@@ -55,6 +56,248 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { Autocomplete } from '@mui/material';
 import { Slider } from '@mui/material';
+
+// Add Analytics Dialog component
+const AnalyticsDialog = ({ open, onClose, data, darkMode }) => (
+  <Dialog 
+    open={open} 
+    onClose={onClose}
+    maxWidth="md"
+    fullWidth
+    PaperProps={{
+      sx: {
+        bgcolor: darkMode ? '#1e1e1e' : '#fff',
+        color: darkMode ? '#fff' : '#000'
+      }
+    }}
+  >
+    <DialogTitle sx={{ color: darkMode ? '#fff' : '#000' }}>
+      Maintenance Analytics
+    </DialogTitle>
+    <DialogContent>
+      <Grid container spacing={2}>
+        <Grid item xs={12} md={6}>
+          <Card sx={{ bgcolor: darkMode ? '#333' : '#fff' }}>
+            <CardContent>
+              <Typography variant="h6" sx={{ color: darkMode ? '#fff' : '#000' }}>
+                Response Metrics
+              </Typography>
+              <Typography sx={{ color: darkMode ? '#fff' : '#000' }}>
+                Average Response Time: {data.averageResponseTime.toFixed(2)} hours
+              </Typography>
+              <Typography sx={{ color: darkMode ? '#fff' : '#000' }}>
+                Resolution Rate: {data.resolutionRate.toFixed(1)}%
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <Card sx={{ bgcolor: darkMode ? '#333' : '#fff' }}>
+            <CardContent>
+              <Typography variant="h6" sx={{ color: darkMode ? '#fff' : '#000' }}>
+                Cost Analysis
+              </Typography>
+              {Object.entries(data.costByCategory).map(([category, cost]) => (
+                <Typography key={category} sx={{ color: darkMode ? '#fff' : '#000' }}>
+                  {category}: ${cost.toFixed(2)}
+                </Typography>
+              ))}
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12}>
+          <Card sx={{ bgcolor: darkMode ? '#333' : '#fff' }}>
+            <CardContent>
+              <Typography variant="h6" sx={{ color: darkMode ? '#fff' : '#000' }}>
+                Resolution Time by Category
+              </Typography>
+              {Object.entries(data.timeToResolution).map(([category, time]) => (
+                <Typography key={category} sx={{ color: darkMode ? '#fff' : '#000' }}>
+                  {category}: {time.toFixed(2)} hours
+                </Typography>
+              ))}
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+    </DialogContent>
+    <DialogActions>
+      <Button 
+        onClick={onClose}
+        sx={{ color: darkMode ? '#fff' : 'primary.main' }}
+      >
+        Close
+      </Button>
+    </DialogActions>
+  </Dialog>
+);
+
+// Add Filter Dialog component
+const FilterDialog = ({ open, onClose, filters, onFiltersChange, darkMode }) => (
+  <Dialog 
+    open={open} 
+    onClose={onClose}
+    maxWidth="md"
+    fullWidth
+    PaperProps={{
+      sx: {
+        bgcolor: darkMode ? '#1e1e1e' : '#fff',
+        color: darkMode ? '#fff' : '#000'
+      }
+    }}
+  >
+    <DialogTitle sx={{ color: darkMode ? '#fff' : '#000' }}>
+      Advanced Filters
+    </DialogTitle>
+    <DialogContent>
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <LocalizationProvider dateAdapter={AdapterDateFns}>
+            <Stack direction="row" spacing={2}>
+              <DatePicker
+                label="Start Date"
+                value={filters.dateRange[0]}
+                onChange={(date) => onFiltersChange({
+                  ...filters,
+                  dateRange: [date, filters.dateRange[1]]
+                })}
+                sx={{
+                  '& .MuiInputBase-root': {
+                    color: darkMode ? '#fff' : '#000',
+                    bgcolor: darkMode ? '#333' : '#fff'
+                  }
+                }}
+              />
+              <DatePicker
+                label="End Date"
+                value={filters.dateRange[1]}
+                onChange={(date) => onFiltersChange({
+                  ...filters,
+                  dateRange: [filters.dateRange[0], date]
+                })}
+                sx={{
+                  '& .MuiInputBase-root': {
+                    color: darkMode ? '#fff' : '#000',
+                    bgcolor: darkMode ? '#333' : '#fff'
+                  }
+                }}
+              />
+            </Stack>
+          </LocalizationProvider>
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <Autocomplete
+            multiple
+            options={['High', 'Medium', 'Low']}
+            value={filters.priority}
+            onChange={(_, value) => onFiltersChange({
+              ...filters,
+              priority: value
+            })}
+            renderInput={(params) => (
+              <TextField 
+                {...params} 
+                label="Priority"
+                sx={{
+                  '& .MuiInputBase-root': {
+                    color: darkMode ? '#fff' : '#000',
+                    bgcolor: darkMode ? '#333' : '#fff'
+                  },
+                  '& .MuiInputLabel-root': {
+                    color: darkMode ? '#fff' : '#000'
+                  }
+                }}
+              />
+            )}
+            sx={{
+              '& .MuiAutocomplete-tag': {
+                bgcolor: darkMode ? '#555' : '#e0e0e0',
+                color: darkMode ? '#fff' : '#000'
+              }
+            }}
+          />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <Autocomplete
+            multiple
+            options={['Plumbing', 'Electrical', 'HVAC', 'Structural', 'Other']}
+            value={filters.category}
+            onChange={(_, value) => onFiltersChange({
+              ...filters,
+              category: value
+            })}
+            renderInput={(params) => (
+              <TextField 
+                {...params} 
+                label="Category"
+                sx={{
+                  '& .MuiInputBase-root': {
+                    color: darkMode ? '#fff' : '#000',
+                    bgcolor: darkMode ? '#333' : '#fff'
+                  },
+                  '& .MuiInputLabel-root': {
+                    color: darkMode ? '#fff' : '#000'
+                  }
+                }}
+              />
+            )}
+            sx={{
+              '& .MuiAutocomplete-tag': {
+                bgcolor: darkMode ? '#555' : '#e0e0e0',
+                color: darkMode ? '#fff' : '#000'
+              }
+            }}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <Typography gutterBottom sx={{ color: darkMode ? '#fff' : '#000' }}>
+            Cost Range
+          </Typography>
+          <Slider
+            value={filters.costRange}
+            onChange={(_, value) => onFiltersChange({
+              ...filters,
+              costRange: value
+            })}
+            valueLabelDisplay="auto"
+            min={0}
+            max={10000}
+            step={100}
+            sx={{
+              color: darkMode ? '#fff' : 'primary.main',
+              '& .MuiSlider-valueLabel': {
+                bgcolor: darkMode ? '#555' : '#fff',
+                color: darkMode ? '#fff' : '#000'
+              }
+            }}
+          />
+        </Grid>
+      </Grid>
+    </DialogContent>
+    <DialogActions>
+      <Button 
+        onClick={() => onFiltersChange({
+          dateRange: [null, null],
+          priority: [],
+          category: [],
+          assignedTo: [],
+          status: [],
+          propertyType: [],
+          costRange: [0, 10000],
+        })}
+        sx={{ color: darkMode ? '#fff' : 'primary.main' }}
+      >
+        Reset
+      </Button>
+      <Button 
+        onClick={onClose}
+        sx={{ color: darkMode ? '#fff' : 'primary.main' }}
+      >
+        Apply
+      </Button>
+    </DialogActions>
+  </Dialog>
+);
 
 const MaintenanceRequests = () => {
   const [rows, setRows] = useState([]);
@@ -468,248 +711,6 @@ const MaintenanceRequests = () => {
     }
   }, [rows, filterRequests, calculateAnalytics]);
 
-  // Add Analytics Dialog component
-  const AnalyticsDialog = ({ open, onClose, data }) => (
-    <Dialog 
-      open={open} 
-      onClose={onClose}
-      maxWidth="md"
-      fullWidth
-      PaperProps={{
-        sx: {
-          bgcolor: darkMode ? '#1e1e1e' : '#fff',
-          color: darkMode ? '#fff' : '#000'
-        }
-      }}
-    >
-      <DialogTitle sx={{ color: darkMode ? '#fff' : '#000' }}>
-        Maintenance Analytics
-      </DialogTitle>
-      <DialogContent>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
-            <Card sx={{ bgcolor: darkMode ? '#333' : '#fff' }}>
-              <CardContent>
-                <Typography variant="h6" sx={{ color: darkMode ? '#fff' : '#000' }}>
-                  Response Metrics
-                </Typography>
-                <Typography sx={{ color: darkMode ? '#fff' : '#000' }}>
-                  Average Response Time: {data.averageResponseTime.toFixed(2)} hours
-                </Typography>
-                <Typography sx={{ color: darkMode ? '#fff' : '#000' }}>
-                  Resolution Rate: {data.resolutionRate.toFixed(1)}%
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Card sx={{ bgcolor: darkMode ? '#333' : '#fff' }}>
-              <CardContent>
-                <Typography variant="h6" sx={{ color: darkMode ? '#fff' : '#000' }}>
-                  Cost Analysis
-                </Typography>
-                {Object.entries(data.costByCategory).map(([category, cost]) => (
-                  <Typography key={category} sx={{ color: darkMode ? '#fff' : '#000' }}>
-                    {category}: ${cost.toFixed(2)}
-                  </Typography>
-                ))}
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12}>
-            <Card sx={{ bgcolor: darkMode ? '#333' : '#fff' }}>
-              <CardContent>
-                <Typography variant="h6" sx={{ color: darkMode ? '#fff' : '#000' }}>
-                  Resolution Time by Category
-                </Typography>
-                {Object.entries(data.timeToResolution).map(([category, time]) => (
-                  <Typography key={category} sx={{ color: darkMode ? '#fff' : '#000' }}>
-                    {category}: {time.toFixed(2)} hours
-                  </Typography>
-                ))}
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
-      </DialogContent>
-      <DialogActions>
-        <Button 
-          onClick={onClose}
-          sx={{ color: darkMode ? '#fff' : 'primary.main' }}
-        >
-          Close
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
-
-  // Add Filter Dialog component
-  const FilterDialog = ({ open, onClose, filters, onFiltersChange }) => (
-    <Dialog 
-      open={open} 
-      onClose={onClose}
-      maxWidth="md"
-      fullWidth
-      PaperProps={{
-        sx: {
-          bgcolor: darkMode ? '#1e1e1e' : '#fff',
-          color: darkMode ? '#fff' : '#000'
-        }
-      }}
-    >
-      <DialogTitle sx={{ color: darkMode ? '#fff' : '#000' }}>
-        Advanced Filters
-      </DialogTitle>
-      <DialogContent>
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
-            <LocalizationProvider dateAdapter={AdapterDateFns}>
-              <Stack direction="row" spacing={2}>
-                <DatePicker
-                  label="Start Date"
-                  value={filters.dateRange[0]}
-                  onChange={(date) => onFiltersChange({
-                    ...filters,
-                    dateRange: [date, filters.dateRange[1]]
-                  })}
-                  sx={{
-                    '& .MuiInputBase-root': {
-                      color: darkMode ? '#fff' : '#000',
-                      bgcolor: darkMode ? '#333' : '#fff'
-                    }
-                  }}
-                />
-                <DatePicker
-                  label="End Date"
-                  value={filters.dateRange[1]}
-                  onChange={(date) => onFiltersChange({
-                    ...filters,
-                    dateRange: [filters.dateRange[0], date]
-                  })}
-                  sx={{
-                    '& .MuiInputBase-root': {
-                      color: darkMode ? '#fff' : '#000',
-                      bgcolor: darkMode ? '#333' : '#fff'
-                    }
-                  }}
-                />
-              </Stack>
-            </LocalizationProvider>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Autocomplete
-              multiple
-              options={['High', 'Medium', 'Low']}
-              value={filters.priority}
-              onChange={(_, value) => onFiltersChange({
-                ...filters,
-                priority: value
-              })}
-              renderInput={(params) => (
-                <TextField 
-                  {...params} 
-                  label="Priority"
-                  sx={{
-                    '& .MuiInputBase-root': {
-                      color: darkMode ? '#fff' : '#000',
-                      bgcolor: darkMode ? '#333' : '#fff'
-                    },
-                    '& .MuiInputLabel-root': {
-                      color: darkMode ? '#fff' : '#000'
-                    }
-                  }}
-                />
-              )}
-              sx={{
-                '& .MuiAutocomplete-tag': {
-                  bgcolor: darkMode ? '#555' : '#e0e0e0',
-                  color: darkMode ? '#fff' : '#000'
-                }
-              }}
-            />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Autocomplete
-              multiple
-              options={['Plumbing', 'Electrical', 'HVAC', 'Structural', 'Other']}
-              value={filters.category}
-              onChange={(_, value) => onFiltersChange({
-                ...filters,
-                category: value
-              })}
-              renderInput={(params) => (
-                <TextField 
-                  {...params} 
-                  label="Category"
-                  sx={{
-                    '& .MuiInputBase-root': {
-                      color: darkMode ? '#fff' : '#000',
-                      bgcolor: darkMode ? '#333' : '#fff'
-                    },
-                    '& .MuiInputLabel-root': {
-                      color: darkMode ? '#fff' : '#000'
-                    }
-                  }}
-                />
-              )}
-              sx={{
-                '& .MuiAutocomplete-tag': {
-                  bgcolor: darkMode ? '#555' : '#e0e0e0',
-                  color: darkMode ? '#fff' : '#000'
-                }
-              }}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <Typography gutterBottom sx={{ color: darkMode ? '#fff' : '#000' }}>
-              Cost Range
-            </Typography>
-            <Slider
-              value={filters.costRange}
-              onChange={(_, value) => onFiltersChange({
-                ...filters,
-                costRange: value
-              })}
-              valueLabelDisplay="auto"
-              min={0}
-              max={10000}
-              step={100}
-              sx={{
-                color: darkMode ? '#fff' : 'primary.main',
-                '& .MuiSlider-valueLabel': {
-                  bgcolor: darkMode ? '#555' : '#fff',
-                  color: darkMode ? '#fff' : '#000'
-                }
-              }}
-            />
-          </Grid>
-        </Grid>
-      </DialogContent>
-      <DialogActions>
-        <Button 
-          onClick={() => onFiltersChange({
-            dateRange: [null, null],
-            priority: [],
-            category: [],
-            assignedTo: [],
-            status: [],
-            propertyType: [],
-            costRange: [0, 10000],
-          })}
-          sx={{ color: darkMode ? '#fff' : 'primary.main' }}
-        >
-          Reset
-        </Button>
-        <Button 
-          onClick={onClose}
-          sx={{ color: darkMode ? '#fff' : 'primary.main' }}
-        >
-          Apply
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
-
   // Add state for dialogs
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
   const [filterDialogOpen, setFilterDialogOpen] = useState(false);
@@ -974,11 +975,13 @@ const MaintenanceRequests = () => {
         onClose={() => setFilterDialogOpen(false)}
         filters={advancedFilters}
         onFiltersChange={setAdvancedFilters}
+        darkMode={darkMode}
       />
       <AnalyticsDialog
         open={analyticsOpen}
         onClose={() => setAnalyticsOpen(false)}
         data={analyticsData}
+        darkMode={darkMode}
       />
     </Box>
   );
