@@ -5,8 +5,7 @@ import {
   LinearProgress, Chip, useTheme, Paper, Stack, Tooltip
 } from '@mui/material';
 import { 
-  LineChart, BarChart, PieChart, 
-  AreaChart, ChartsContainer
+  LineChart, BarChart, PieChart, AreaChart
 } from '@mui/x-charts';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
@@ -247,27 +246,25 @@ const ReportsAnalytics = () => {
                         <MenuItem value="last_year">Last Year</MenuItem>
                       </Select>
                     </Box>
-                    <ChartsContainer>
-                      <AreaChart
-                        series={[
-                          { 
-                            data: mockFinancialData.income, 
-                            label: 'Revenue',
-                            color: currentColors[0],
-                            area: { fill: 'rgba(76, 175, 80, 0.1)' }
-                          },
-                          { 
-                            data: mockFinancialData.expenses, 
-                            label: 'Expenses',
-                            color: currentColors[3],
-                            area: { fill: 'rgba(244, 67, 54, 0.1)' }
-                          }
-                        ]}
-                        xAxis={[{ data: mockFinancialData.months, scaleType: 'band' }]}
-                        height={400}
-                        margin={{ left: 70 }}
-                      />
-                    </ChartsContainer>
+                    <AreaChart
+                      series={[
+                        { 
+                          data: mockFinancialData.income, 
+                          label: 'Revenue',
+                          color: currentColors[0],
+                          area: { fill: 'rgba(76, 175, 80, 0.1)' }
+                        },
+                        { 
+                          data: mockFinancialData.expenses, 
+                          label: 'Expenses',
+                          color: currentColors[3],
+                          area: { fill: 'rgba(244, 67, 54, 0.1)' }
+                        }
+                      ]}
+                      xAxis={[{ data: mockFinancialData.months, scaleType: 'band' }]}
+                      height={400}
+                      margin={{ left: 70 }}
+                    />
                   </CardContent>
                 </Card>
               </Grid>
@@ -276,22 +273,20 @@ const ReportsAnalytics = () => {
                 <Card sx={{ backgroundColor: darkMode ? '#1e1e1e' : '#fff' }}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom>Portfolio Health</Typography>
-                    <ChartsContainer>
-                      <PieChart
-                        series={[
-                          { 
-                            data: mockFinancialData.portfolioAllocation,
-                            arcLabel: (item) => `${item.label} (${item.value}%)`,
-                            outerRadius: 100,
-                            innerRadius: 50,
-                            paddingAngle: 5,
-                            cornerRadius: 5
-                          }
-                        ]}
-                        colors={currentColors}
-                        height={300}
-                      />
-                    </ChartsContainer>
+                    <PieChart
+                      series={[
+                        { 
+                          data: mockFinancialData.portfolioAllocation,
+                          arcLabel: (item) => `${item.label} (${item.value}%)`,
+                          outerRadius: 100,
+                          innerRadius: 50,
+                          paddingAngle: 5,
+                          cornerRadius: 5
+                        }
+                      ]}
+                      colors={currentColors}
+                      height={300}
+                    />
                     <Divider sx={{ my: 2 }} />
                     <Box sx={{ maxHeight: 200, overflow: 'auto' }}>
                       {mockFinancialData.expenseCategories.map((category) => (
@@ -314,23 +309,21 @@ const ReportsAnalytics = () => {
                 <Card sx={{ backgroundColor: darkMode ? '#1e1e1e' : '#fff' }}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom>Property Performance</Typography>
-                    <ChartsContainer>
-                      <BarChart
-                        series={[
-                          { 
-                            data: mockPropertyMetrics.properties.map(p => p.occupancy),
-                            label: 'Occupancy Rate (%)',
-                            color: currentColors[1]
-                          }
-                        ]}
-                        xAxis={[{ 
-                          data: mockPropertyMetrics.properties.map(p => p.name),
-                          scaleType: 'band',
-                          label: 'Properties'
-                        }]}
-                        height={400}
-                      />
-                    </ChartsContainer>
+                    <BarChart
+                      series={[
+                        { 
+                          data: mockPropertyMetrics.properties.map(p => p.occupancy),
+                          label: 'Occupancy Rate (%)',
+                          color: currentColors[1]
+                        }
+                      ]}
+                      xAxis={[{ 
+                        data: mockPropertyMetrics.properties.map(p => p.name),
+                        scaleType: 'band',
+                        label: 'Properties'
+                      }]}
+                      height={400}
+                    />
                   </CardContent>
                 </Card>
               </Grid>
@@ -339,28 +332,26 @@ const ReportsAnalytics = () => {
                 <Card sx={{ backgroundColor: darkMode ? '#1e1e1e' : '#fff' }}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom>Value Appreciation</Typography>
-                    <ChartsContainer>
-                      <LineChart
-                        series={[
-                          { 
-                            data: mockPropertyMetrics.capRates,
-                            label: 'Cap Rates (%)',
-                            color: currentColors[0]
-                          },
-                          { 
-                            data: mockPropertyMetrics.appreciation,
-                            label: 'Appreciation (%)',
-                            color: currentColors[2]
-                          }
-                        ]}
-                        xAxis={[{ 
-                          data: mockPropertyMetrics.properties.map(p => p.name),
-                          scaleType: 'band',
-                          label: 'Properties'
-                        }]}
-                        height={400}
-                      />
-                    </ChartsContainer>
+                    <LineChart
+                      series={[
+                        { 
+                          data: mockPropertyMetrics.capRates,
+                          label: 'Cap Rates (%)',
+                          color: currentColors[0]
+                        },
+                        { 
+                          data: mockPropertyMetrics.appreciation,
+                          label: 'Appreciation (%)',
+                          color: currentColors[2]
+                        }
+                      ]}
+                      xAxis={[{ 
+                        data: mockPropertyMetrics.properties.map(p => p.name),
+                        scaleType: 'band',
+                        label: 'Properties'
+                      }]}
+                      height={400}
+                    />
                   </CardContent>
                 </Card>
               </Grid>
@@ -374,28 +365,26 @@ const ReportsAnalytics = () => {
                 <Card sx={{ backgroundColor: darkMode ? '#1e1e1e' : '#fff' }}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom>Occupancy Forecast</Typography>
-                    <ChartsContainer>
-                      <LineChart
-                        series={[
-                          { 
-                            data: mockPredictiveData.occupancyActual, 
-                            label: 'Actual',
-                            color: currentColors[1],
-                            showMark: false
-                          },
-                          { 
-                            data: mockPredictiveData.occupancyForecast, 
-                            label: 'Forecast',
-                            color: currentColors[2],
-                            curve: "step",
-                            area: true,
-                            showMark: false
-                          }
-                        ]}
-                        xAxis={[{ data: mockPredictiveData.forecastMonths }]}
-                        height={400}
-                      />
-                    </ChartsContainer>
+                    <LineChart
+                      series={[
+                        { 
+                          data: mockPredictiveData.occupancyActual, 
+                          label: 'Actual',
+                          color: currentColors[1],
+                          showMark: false
+                        },
+                        { 
+                          data: mockPredictiveData.occupancyForecast, 
+                          label: 'Forecast',
+                          color: currentColors[2],
+                          curve: "step",
+                          area: true,
+                          showMark: false
+                        }
+                      ]}
+                      xAxis={[{ data: mockPredictiveData.forecastMonths }]}
+                      height={400}
+                    />
                   </CardContent>
                 </Card>
               </Grid>
@@ -404,19 +393,17 @@ const ReportsAnalytics = () => {
                 <Card sx={{ backgroundColor: darkMode ? '#1e1e1e' : '#fff' }}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom>Revenue Projections</Typography>
-                    <ChartsContainer>
-                      <BarChart
-                        series={[
-                          { 
-                            data: mockPredictiveData.revenueProjections,
-                            label: 'Projected Revenue',
-                            color: currentColors[0]
-                          }
-                        ]}
-                        xAxis={[{ data: mockPredictiveData.forecastQuarters, scaleType: 'band' }]}
-                        height={400}
-                      />
-                    </ChartsContainer>
+                    <BarChart
+                      series={[
+                        { 
+                          data: mockPredictiveData.revenueProjections,
+                          label: 'Projected Revenue',
+                          color: currentColors[0]
+                        }
+                      ]}
+                      xAxis={[{ data: mockPredictiveData.forecastQuarters, scaleType: 'band' }]}
+                      height={400}
+                    />
                   </CardContent>
                 </Card>
               </Grid>
