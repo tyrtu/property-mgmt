@@ -249,24 +249,48 @@ const Dashboard = () => {
     xAxis: [
       {
         label: 'Time Period',
+        scaleType: 'band',
         data: financialData[timePeriod].labels,
       },
     ],
     height: 300,
+    slotProps: {
+      legend: {
+        direction: 'row',
+        position: { vertical: 'bottom', horizontal: 'middle' },
+        padding: 2,
+      },
+    },
   };
 
   const incomeBarChart = (
     <BarChart
       dataset={financialData[timePeriod].labels.map((label, index) => ({
-        label,
+        timeperiod: label,
         income: financialData[timePeriod].income[index],
         expenses: financialData[timePeriod].expenses[index],
       }))}
-      yAxis={[{ id: 'amount', label: 'Amount ($)' }]}
+      yAxis={[{ id: 'amount', label: 'Amount ($)', min: 0 }]}
       series={[
         { dataKey: 'income', label: 'Income', color: theme.palette.success.main },
         { dataKey: 'expenses', label: 'Expenses', color: theme.palette.error.main },
       ]}
+      xAxis={[{ 
+        scaleType: 'band',
+        dataKey: 'timeperiod',
+        label: timePeriod === 'monthly' ? 'Month' : timePeriod === 'quarterly' ? 'Quarter' : 'Year',
+      }]}
+      sx={{
+        '.MuiChartsAxis-label': {
+          fill: darkMode ? '#fff' : '#000',
+        },
+        '.MuiChartsAxis-tick': {
+          fill: darkMode ? '#fff' : '#000',
+        },
+        '.MuiChartsLegend-label': {
+          fill: darkMode ? '#fff' : '#000',
+        },
+      }}
       {...chartSetting}
     />
   );
@@ -288,6 +312,18 @@ const Dashboard = () => {
         },
       ]}
       height={300}
+      slotProps={{
+        legend: {
+          direction: 'row',
+          position: { vertical: 'bottom', horizontal: 'middle' },
+          padding: 2,
+        },
+      }}
+      sx={{
+        '.MuiChartsLegend-label': {
+          fill: darkMode ? '#fff' : '#000',
+        },
+      }}
     />
   );
 
