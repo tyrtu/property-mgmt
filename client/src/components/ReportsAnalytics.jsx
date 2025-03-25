@@ -5,7 +5,7 @@ import {
   LinearProgress, Chip, useTheme, Paper, Stack, Tooltip
 } from '@mui/material';
 import { 
-  LineChart, BarChart, PieChart, AreaChart
+  LineChart, BarChart, PieChart 
 } from '@mui/x-charts';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
@@ -246,19 +246,17 @@ const ReportsAnalytics = () => {
                         <MenuItem value="last_year">Last Year</MenuItem>
                       </Select>
                     </Box>
-                    <AreaChart
+                    <LineChart
                       series={[
                         { 
                           data: mockFinancialData.income, 
                           label: 'Revenue',
-                          color: currentColors[0],
-                          area: { fill: 'rgba(76, 175, 80, 0.1)' }
+                          color: currentColors[0]
                         },
                         { 
                           data: mockFinancialData.expenses, 
                           label: 'Expenses',
-                          color: currentColors[3],
-                          area: { fill: 'rgba(244, 67, 54, 0.1)' }
+                          color: currentColors[3]
                         }
                       ]}
                       xAxis={[{ data: mockFinancialData.months, scaleType: 'band' }]}
@@ -378,7 +376,6 @@ const ReportsAnalytics = () => {
                           label: 'Forecast',
                           color: currentColors[2],
                           curve: "step",
-                          area: true,
                           showMark: false
                         }
                       ]}
