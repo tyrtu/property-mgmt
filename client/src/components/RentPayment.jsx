@@ -56,9 +56,13 @@ import {
   Print,
   Email,
   Sms,
-  BarChart as BarChartIcon, // Renamed import
+  BarChart as BarChartIcon,
   PieChart as PieChartIcon,
-  Timeline
+  Timeline,
+  Home,
+  Apartment,
+  Money,
+  CreditCard
 } from '@mui/icons-material';
 import {
   PieChart, Pie, Cell, Legend, Tooltip as RechartsTooltip, 
@@ -458,6 +462,9 @@ const RentPaymentDashboard = () => {
       backgroundColor: darkMode ? '#121212' : '#f5f5f5',
       color: darkMode ? '#fff' : 'text.primary'
     }}>
+      {/* Navigation Component - Now properly placed at the top */}
+      <Navigation darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+
       <Container maxWidth="xl" sx={{ py: 4 }}>
         {/* Header Section */}
         <Box sx={{ 
@@ -476,23 +483,13 @@ const RentPaymentDashboard = () => {
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <FormControlLabel
-              control={
-                <Switch 
-                  checked={darkMode} 
-                  onChange={toggleDarkMode} 
-                  color="primary"
-                />
-              }
-              label={darkMode ? 'Light Mode' : 'Dark Mode'}
-            />
             <Button variant="contained" startIcon={<Receipt />}>
               Quick Payment
             </Button>
           </Box>
         </Box>
 
-        {/* Filters Section */}
+        {/* Filters Section - Improved layout */}
         <Card sx={{ 
           p: 3, 
           mb: 3, 
@@ -503,7 +500,8 @@ const RentPaymentDashboard = () => {
             display: 'flex', 
             gap: 2, 
             mb: 2,
-            flexDirection: isXSmallScreen ? 'column' : 'row'
+            flexDirection: isXSmallScreen ? 'column' : 'row',
+            alignItems: isXSmallScreen ? 'stretch' : 'center'
           }}>
             <TextField
               fullWidth
@@ -514,13 +512,14 @@ const RentPaymentDashboard = () => {
                 startAdornment: <Search sx={{ mr: 1 }} />
               }}
               size="small"
+              sx={{ flex: 2 }}
             />
             <Select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
               displayEmpty
               size="small"
-              sx={{ minWidth: 150 }}
+              sx={{ minWidth: 150, flex: 1 }}
             >
               <MenuItem value="All">All Statuses</MenuItem>
               <MenuItem value="Paid">Paid</MenuItem>
@@ -534,7 +533,7 @@ const RentPaymentDashboard = () => {
               onChange={(e) => setSelectedProperty(e.target.value)}
               displayEmpty
               size="small"
-              sx={{ minWidth: 180 }}
+              sx={{ minWidth: 180, flex: 1 }}
             >
               <MenuItem value="All">All Properties</MenuItem>
               {[...new Set(rows.map(row => row.property))].map((property, index) => (
@@ -548,18 +547,23 @@ const RentPaymentDashboard = () => {
               startIcon={<FilterList />}
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
               size="small"
+              sx={{ flex: isXSmallScreen ? 1 : 'none' }}
             >
               Advanced
             </Button>
           </Box>
 
+          {/* Advanced Filters - Improved layout */}
           {showAdvancedFilters && (
             <Box sx={{
               display: 'flex',
               gap: 2,
               mt: 2,
               flexWrap: 'wrap',
-              '& > *': { flex: isXSmallScreen ? '1 1 100%' : '1 1 200px' }
+              '& > *': { 
+                flex: isXSmallScreen ? '1 1 100%' : '1 1 200px',
+                minWidth: isXSmallScreen ? '100%' : '200px'
+              }
             }}>
               <TextField
                 label="Min Amount"
@@ -567,6 +571,7 @@ const RentPaymentDashboard = () => {
                 value={minAmount}
                 onChange={(e) => setMinAmount(e.target.value)}
                 size="small"
+                fullWidth
                 InputProps={{
                   startAdornment: <Typography sx={{ mr: 1 }}>$</Typography>
                 }}
@@ -577,6 +582,7 @@ const RentPaymentDashboard = () => {
                 value={maxAmount}
                 onChange={(e) => setMaxAmount(e.target.value)}
                 size="small"
+                fullWidth
                 InputProps={{
                   startAdornment: <Typography sx={{ mr: 1 }}>$</Typography>
                 }}
@@ -587,6 +593,7 @@ const RentPaymentDashboard = () => {
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 size="small"
+                fullWidth
                 InputLabelProps={{ shrink: true }}
               />
               <TextField
@@ -595,13 +602,14 @@ const RentPaymentDashboard = () => {
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 size="small"
+                fullWidth
                 InputLabelProps={{ shrink: true }}
               />
             </Box>
           )}
         </Card>
 
-        {/* Stats Cards */}
+        {/* Stats Cards - Added icons and improved layout */}
         <Grid container spacing={3} sx={{ mb: 3 }}>
           <Grid item xs={12} sm={6} md={3}>
             <Card sx={{ 
@@ -610,9 +618,12 @@ const RentPaymentDashboard = () => {
               backgroundColor: darkMode ? '#252525' : '#fff',
               borderLeft: '4px solid #4CAF50'
             }}>
-              <Typography variant="subtitle2" color="text.secondary">
-                Total Collected
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <Money color="success" sx={{ mr: 1 }} />
+                <Typography variant="subtitle2" color="text.secondary">
+                  Total Collected
+                </Typography>
+              </Box>
               <Typography variant="h4" sx={{ mt: 1 }}>
                 ${filteredRows.reduce((sum, row) => sum + (row.paidAmount || 0), 0).toLocaleString()}
               </Typography>
@@ -635,9 +646,12 @@ const RentPaymentDashboard = () => {
               backgroundColor: darkMode ? '#252525' : '#fff',
               borderLeft: '4px solid #FFC107'
             }}>
-              <Typography variant="subtitle2" color="text.secondary">
-                Pending Payments
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <PendingActions color="warning" sx={{ mr: 1 }} />
+                <Typography variant="subtitle2" color="text.secondary">
+                  Pending Payments
+                </Typography>
+              </Box>
               <Typography variant="h4" sx={{ mt: 1 }}>
                 ${filteredRows
                   .filter(row => row.status === 'Pending')
@@ -656,9 +670,12 @@ const RentPaymentDashboard = () => {
               backgroundColor: darkMode ? '#252525' : '#fff',
               borderLeft: '4px solid #F44336'
             }}>
-              <Typography variant="subtitle2" color="text.secondary">
-                Overdue Payments
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <Warning color="error" sx={{ mr: 1 }} />
+                <Typography variant="subtitle2" color="text.secondary">
+                  Overdue Payments
+                </Typography>
+              </Box>
               <Typography variant="h4" sx={{ mt: 1 }}>
                 ${filteredRows
                   .filter(row => row.status === 'Overdue')
@@ -677,9 +694,12 @@ const RentPaymentDashboard = () => {
               backgroundColor: darkMode ? '#252525' : '#fff',
               borderLeft: '4px solid #2196F3'
             }}>
-              <Typography variant="subtitle2" color="text.secondary">
-                Collection Rate
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <CreditCard color="primary" sx={{ mr: 1 }} />
+                <Typography variant="subtitle2" color="text.secondary">
+                  Collection Rate
+                </Typography>
+              </Box>
               <Typography variant="h4" sx={{ mt: 1 }}>
                 {filteredRows.length > 0 ?
                   Math.round(
@@ -740,7 +760,7 @@ const RentPaymentDashboard = () => {
             </Card>
           </Grid>
 
-          {/* Analytics Section */}
+          {/* Analytics Section - Improved Payment Methods chart */}
           <Grid item xs={12} lg={4}>
             <Card sx={{ 
               p: 2, 
@@ -807,21 +827,23 @@ const RentPaymentDashboard = () => {
                 </BarChart>
               </ResponsiveContainer>
 
-              {/* Payment Methods */}
+              {/* Payment Methods - Improved with better styling */}
               <Typography variant="subtitle2" sx={{ mt: 3 }}>
                 Payment Methods
               </Typography>
               <ResponsiveContainer width="100%" height={200}>
-                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={paymentMethodData}>
-                  <PolarGrid stroke={darkMode ? '#444' : '#eee'} />
-                  <PolarAngleAxis dataKey="name" stroke={darkMode ? '#fff' : '#666'} />
-                  <PolarRadiusAxis angle={30} stroke={darkMode ? '#fff' : '#666'} />
-                  <Radar 
-                    name="Methods" 
-                    dataKey="value" 
-                    stroke="#2196F3" 
-                    fill="#2196F3" 
-                    fillOpacity={0.6} 
+                <BarChart
+                  data={paymentMethodData}
+                  layout="vertical"
+                  margin={{ left: 30 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? '#444' : '#eee'} />
+                  <XAxis type="number" stroke={darkMode ? '#fff' : '#666'} />
+                  <YAxis 
+                    dataKey="name" 
+                    type="category" 
+                    stroke={darkMode ? '#fff' : '#666'}
+                    width={80}
                   />
                   <RechartsTooltip 
                     contentStyle={{
@@ -830,7 +852,20 @@ const RentPaymentDashboard = () => {
                       borderRadius: 4
                     }}
                   />
-                </RadarChart>
+                  <Bar 
+                    dataKey="value" 
+                    fill="#2196F3" 
+                    name="Count"
+                    radius={[0, 4, 4, 0]}
+                  >
+                    {paymentMethodData.map((entry, index) => (
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
               </ResponsiveContainer>
             </Card>
           </Grid>
@@ -1052,4 +1087,4 @@ const RentPaymentDashboard = () => {
   );
 };
 
-export default RentPaymentDashboard;
+export default RentPayment;
