@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
+import Navigation from './Navigation';
 import {
   Box,
   Container,
@@ -19,6 +20,12 @@ import {
   useMediaQuery,
   useTheme,
   Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   Switch,
   FormControlLabel,
   Grid,
@@ -49,7 +56,7 @@ import {
   Print,
   Email,
   Sms,
-  BarChart,
+  BarChart as BarChartIcon, // Renamed import
   PieChart as PieChartIcon,
   Timeline
 } from '@mui/icons-material';
@@ -62,15 +69,12 @@ import {
 import { saveAs } from 'file-saver';
 import { format } from 'date-fns';
 import { alpha } from '@mui/material/styles';
-import Navigation from './Navigation';
-import useAutoLogout from '../hooks/useAutoLogout';
 
 // Enhanced mock data generation
 const generateMockPayments = () => {
   const statuses = ['Paid', 'Pending', 'Overdue', 'Partial', 'Cancelled'];
   const properties = ['Sunset Villas', 'Mountain View', 'Ocean Breeze', 'Downtown Lofts', 'Garden Apartments'];
   const paymentMethods = ['Bank Transfer', 'Credit Card', 'MPESA', 'Cash', 'Check'];
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   
   return Array.from({ length: 50 }, (_, i) => {
     const amount = Math.floor(Math.random() * 2000) + 800;
