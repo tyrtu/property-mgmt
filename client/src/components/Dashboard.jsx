@@ -18,7 +18,10 @@ import {
   LightMode as LightModeIcon,
   ArrowDownward as ArrowDownwardIcon
 } from '@mui/icons-material';
-import { LineChart, PieChart, Pie, Cell, Legend, Tooltip as RechartsTooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Line } from '@mui/x-charts';
+import { BarChart } from '@mui/x-charts/BarChart';
+import { LineChart } from '@mui/x-charts/LineChart';
+import { PieChart } from '@mui/x-charts/PieChart';
+import { Pie, Cell, Legend as RechartsLegend, Tooltip as RechartsTooltip, XAxis, YAxis, CartesianGrid, BarChart as MuiBarChart } from '@mui/x-charts';
 import { saveAs } from 'file-saver';
 import useAutoLogout from '../hooks/useAutoLogout';
 import Navigation from './Navigation';
@@ -241,6 +244,53 @@ const Dashboard = () => {
     saveAs(blob, 'rent_payments.csv');
   };
 
+  // Chart configurations
+  const chartSetting = {
+    xAxis: [
+      {
+        label: 'Time Period',
+        data: financialData[timePeriod].labels,
+      },
+    ],
+    height: 300,
+  };
+
+  const incomeBarChart = (
+    <BarChart
+      dataset={financialData[timePeriod].labels.map((label, index) => ({
+        label,
+        income: financialData[timePeriod].income[index],
+        expenses: financialData[timePeriod].expenses[index],
+      }))}
+      yAxis={[{ id: 'amount', label: 'Amount ($)' }]}
+      series={[
+        { dataKey: 'income', label: 'Income', color: theme.palette.success.main },
+        { dataKey: 'expenses', label: 'Expenses', color: theme.palette.error.main },
+      ]}
+      {...chartSetting}
+    />
+  );
+
+  const pieChartData = [
+    { id: 0, value: 35, label: 'Residential' },
+    { id: 1, value: 25, label: 'Commercial' },
+    { id: 2, value: 20, label: 'Industrial' },
+    { id: 3, value: 20, label: 'Mixed Use' },
+  ];
+
+  const propertyTypePieChart = (
+    <PieChart
+      series={[
+        {
+          data: pieChartData,
+          highlightScope: { faded: 'global', highlighted: 'item' },
+          faded: { innerRadius: 30, additionalRadius: -30 },
+        },
+      ]}
+      height={300}
+    />
+  );
+
   return (
     <Box sx={{ 
       backgroundColor: darkModeBg, 
@@ -323,182 +373,98 @@ const Dashboard = () => {
         {/* Financial Performance Chart */}
         <Grid container spacing={3} sx={{ mt: 2 }}>
           <Grid item xs={12} md={8}>
-            <Card sx={{ 
-              height: { xs: 300, md: 400 }, 
-              overflow: 'hidden',
-              borderRadius: 2,
-              boxShadow: (theme) => theme.palette.mode === 'dark' 
-                ? '0 4px 20px rgba(0,0,0,0.5)' 
-                : '0 4px 20px rgba(0,0,0,0.1)',
-              transition: 'transform 0.3s, box-shadow 0.3s',
-              '&:hover': { 
-                transform: 'translateY(-4px)', 
-                boxShadow: (theme) => theme.palette.mode === 'dark' 
-                  ? '0 8px 30px rgba(0,0,0,0.7)' 
-                  : '0 8px 30px rgba(0,0,0,0.15)' 
-              }
-            }}>
-              <CardContent sx={{ p: 3, height: '100%' }}>
-                {isLoading ? (
-                  <Skeleton variant="rectangular" height="100%" animation="wave" />
-                ) : (
-                  <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                    <Box sx={{ 
-                      display: 'flex', 
-                      justifyContent: 'space-between', 
-                      mb: 2 
-                    }}>
-                      <Typography variant="h6" sx={{ 
-                        fontWeight: 600, 
-                        color: darkModeText 
-                      }}>
-                        Financial Performance
-                      </Typography>
-                      <Select 
-                        value={timePeriod} 
-                        onChange={(e) => setTimePeriod(e.target.value)} 
-                        sx={{ 
-                          bgcolor: darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-                          borderRadius: 1,
-                          minWidth: 120
-                        }}
-                      >
-                        <MenuItem value="monthly">Monthly</MenuItem>
-                        <MenuItem value="quarterly">Quarterly</MenuItem>
-                        <MenuItem value="yearly">Yearly</MenuItem>
-                      </Select>
-                    </Box>
-                    <Box sx={{ flexGrow: 1 }}>
-                      <LineChart
-                        xAxis={[{ 
-                          data: currentFinancialData.labels,
-                          scaleType: 'band',
-                          label: timePeriod === 'monthly' ? 'Month' : timePeriod === 'quarterly' ? 'Quarter' : 'Year',
-                          tickLabelStyle: { fill: darkModeText }
-                        }]}
-                        yAxis={[{ 
-                          label: 'Amount ($)',
-                          tickLabelStyle: { fill: darkModeText }
-                        }]}
-                        series={[
-                          { 
-                            data: currentFinancialData.income, 
-                            label: 'Income', 
-                            color: '#4CAF50', 
-                            curve: 'natural',
-                            areaStyle: { 
-                              fill: 'url(#incomeGradient)',
-                              opacity: 0.2 
-                            }
-                          },
-                          { 
-                            data: currentFinancialData.expenses, 
-                            label: 'Expenses', 
-                            color: '#F44336', 
-                            curve: 'natural',
-                            areaStyle: { 
-                              fill: 'url(#expenseGradient)',
-                              opacity: 0.2 
-                            }
-                          },
-                        ]}
-                        margin={{ left: 70, right: 30, top: 30, bottom: 70 }}
-                        grid={{ vertical: true, horizontal: true }}
-                      >
-                        <defs>
-                          <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#4CAF50" stopOpacity={0.8}/>
-                            <stop offset="95%" stopColor="#4CAF50" stopOpacity={0}/>
-                          </linearGradient>
-                          <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#F44336" stopOpacity={0.8}/>
-                            <stop offset="95%" stopColor="#F44336" stopOpacity={0}/>
-                          </linearGradient>
-                        </defs>
-                      </LineChart>
-                    </Box>
-                  </Box>
-                )}
-              </CardContent>
+            <Card sx={{ p: 2, bgcolor: darkMode ? '#1e1e1e' : '#fff' }}>
+              <Typography variant="h6" sx={{ mb: 2, color: darkMode ? '#fff' : '#000' }}>
+                Financial Overview
+              </Typography>
+              {incomeBarChart}
             </Card>
           </Grid>
-
-          {/* Notifications */}
           <Grid item xs={12} md={4}>
-            <Card sx={{ 
-              height: { xs: 300, md: 400 },
-              borderRadius: 2,
-              boxShadow: (theme) => theme.palette.mode === 'dark' 
-                ? '0 4px 20px rgba(0,0,0,0.5)' 
-                : '0 4px 20px rgba(0,0,0,0.1)',
-              transition: 'transform 0.3s, box-shadow 0.3s',
-              '&:hover': { 
-                transform: 'translateY(-4px)', 
-                boxShadow: (theme) => theme.palette.mode === 'dark' 
-                  ? '0 8px 30px rgba(0,0,0,0.7)' 
-                  : '0 8px 30px rgba(0,0,0,0.15)' 
-              }
-            }}>
-              <CardContent sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
-                <Box sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  mb: 2, 
-                  gap: 1 
-                }}>
-                  <NotificationsIcon color="primary" />
-                  <Typography variant="h6" sx={{ 
-                    fontWeight: 600, 
-                    color: darkModeText,
-                    letterSpacing: '0.5px'
-                  }}>
-                    Recent Notifications
-                  </Typography>
-                </Box>
-                <List dense sx={{ overflow: 'auto', flexGrow: 1 }}>
-                  {mockNotifications.map((note) => (
-                    <ListItem 
-                      key={note.id} 
-                      sx={{ 
-                        borderRadius: 1, 
-                        mb: 0.5, 
-                        bgcolor: note.priority === 'high' ? 'error.light' : 'action.hover', 
-                        '&:hover': { bgcolor: 'action.selected' },
-                        transition: 'background-color 0.2s'
-                      }}
-                    >
-                      <ListItemIcon sx={{ minWidth: 36 }}>
-                        {note.priority === 'high' ? 
-                          <WarningIcon fontSize="small" color="error" /> : 
-                          <InfoIcon fontSize="small" color="info" />
-                        }
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={
-                          <Typography variant="body2" sx={{ 
-                            fontWeight: 500, 
-                            color: darkModeText 
-                          }}>
-                            {note.title}
-                          </Typography>
-                        }
-                        secondary={
-                          <Box component="span" sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <Typography variant="caption" color="text.secondary">
-                              {new Date(note.date).toLocaleDateString()}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {note.priority}
-                            </Typography>
-                          </Box>
-                        }
-                      />
-                    </ListItem>
-                  ))}
-                </List>
-              </CardContent>
+            <Card sx={{ p: 2, bgcolor: darkMode ? '#1e1e1e' : '#fff' }}>
+              <Typography variant="h6" sx={{ mb: 2, color: darkMode ? '#fff' : '#000' }}>
+                Property Type Distribution
+              </Typography>
+              {propertyTypePieChart}
             </Card>
           </Grid>
+        </Grid>
+
+        {/* Notifications */}
+        <Grid item xs={12} md={4}>
+          <Card sx={{ 
+            height: { xs: 300, md: 400 },
+            borderRadius: 2,
+            boxShadow: (theme) => theme.palette.mode === 'dark' 
+              ? '0 4px 20px rgba(0,0,0,0.5)' 
+              : '0 4px 20px rgba(0,0,0,0.1)',
+            transition: 'transform 0.3s, box-shadow 0.3s',
+            '&:hover': { 
+              transform: 'translateY(-4px)', 
+              boxShadow: (theme) => theme.palette.mode === 'dark' 
+                ? '0 8px 30px rgba(0,0,0,0.7)' 
+                : '0 8px 30px rgba(0,0,0,0.15)' 
+            }
+          }}>
+            <CardContent sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                mb: 2, 
+                gap: 1 
+              }}>
+                <NotificationsIcon color="primary" />
+                <Typography variant="h6" sx={{ 
+                  fontWeight: 600, 
+                  color: darkModeText,
+                  letterSpacing: '0.5px'
+                }}>
+                  Recent Notifications
+                </Typography>
+              </Box>
+              <List dense sx={{ overflow: 'auto', flexGrow: 1 }}>
+                {mockNotifications.map((note) => (
+                  <ListItem 
+                    key={note.id} 
+                    sx={{ 
+                      borderRadius: 1, 
+                      mb: 0.5, 
+                      bgcolor: note.priority === 'high' ? 'error.light' : 'action.hover', 
+                      '&:hover': { bgcolor: 'action.selected' },
+                      transition: 'background-color 0.2s'
+                    }}
+                  >
+                    <ListItemIcon sx={{ minWidth: 36 }}>
+                      {note.priority === 'high' ? 
+                        <WarningIcon fontSize="small" color="error" /> : 
+                        <InfoIcon fontSize="small" color="info" />
+                      }
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={
+                        <Typography variant="body2" sx={{ 
+                          fontWeight: 500, 
+                          color: darkModeText 
+                        }}>
+                          {note.title}
+                        </Typography>
+                      }
+                      secondary={
+                        <Box component="span" sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <Typography variant="caption" color="text.secondary">
+                            {new Date(note.date).toLocaleDateString()}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {note.priority}
+                          </Typography>
+                        </Box>
+                      }
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            </CardContent>
+          </Card>
         </Grid>
 
         {/* Property List */}
