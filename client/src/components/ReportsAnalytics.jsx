@@ -5,7 +5,7 @@ import {
   LinearProgress, Chip, useTheme, Stack, Tooltip, Container
 } from '@mui/material';
 import { 
-  LineChart, BarChart, PieChart 
+  LineChart, BarChart, PieChart, AreaChart 
 } from '@mui/x-charts';
 import { DataGrid } from '@mui/x-data-grid';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
@@ -117,7 +117,12 @@ const ReportsAnalytics = () => {
   const propertyColumns = [
     { field: 'name', headerName: 'Property', width: 200 },
     { field: 'occupancy', headerName: 'Occupancy (%)', width: 150 },
-    { field: 'value', headerName: 'Value', width: 150, valueFormatter: (params) => `$${params.value.toLocaleString()}` }
+    { 
+      field: 'value', 
+      headerName: 'Value', 
+      width: 150, 
+      valueFormatter: (params) => params.value ? `$${params.value.toLocaleString()}` : 'N/A'
+    }
   ];
 
   const tenantColumns = [
@@ -128,7 +133,12 @@ const ReportsAnalytics = () => {
   const maintenanceColumns = [
     { field: 'type', headerName: 'Type', width: 150 },
     { field: 'responseTime', headerName: 'Response (hrs)', width: 150 },
-    { field: 'cost', headerName: 'Avg Cost', width: 150, valueFormatter: (params) => `$${params.value}` }
+    { 
+      field: 'cost', 
+      headerName: 'Avg Cost', 
+      width: 150, 
+      valueFormatter: (params) => params.value ? `$${params.value}` : 'N/A'
+    }
   ];
 
   return (
@@ -169,7 +179,7 @@ const ReportsAnalytics = () => {
             <Grid item xs={12} sm={6} md={3}>
               <Card sx={{ 
                 backgroundColor: darkMode ? '#1e1e1e' : '#fff',
-                height: '100%',
+                height: 160,
                 display: 'flex',
                 flexDirection: 'column'
               }}>
@@ -177,8 +187,8 @@ const ReportsAnalytics = () => {
                   <Stack direction="row" alignItems="center" spacing={2}>
                     <Money sx={{ fontSize: 40, color: currentColors[0] }} />
                     <Box>
-                      <Typography variant="h6" gutterBottom>Net Profit</Typography>
-                      <Typography variant="h4" gutterBottom>
+                      <Typography variant="h6" gutterBottom sx={{ fontSize: '1rem' }}>Net Profit</Typography>
+                      <Typography variant="h5" gutterBottom>
                         ${mockFinancialData.netProfit.toLocaleString()}
                       </Typography>
                       <Chip 
@@ -197,7 +207,7 @@ const ReportsAnalytics = () => {
             <Grid item xs={12} sm={6} md={3}>
               <Card sx={{ 
                 backgroundColor: darkMode ? '#1e1e1e' : '#fff',
-                height: '100%',
+                height: 160,
                 display: 'flex',
                 flexDirection: 'column'
               }}>
@@ -205,8 +215,8 @@ const ReportsAnalytics = () => {
                   <Stack direction="row" alignItems="center" spacing={2}>
                     <Home sx={{ fontSize: 40, color: currentColors[1] }} />
                     <Box>
-                      <Typography variant="h6" gutterBottom>Avg Occupancy</Typography>
-                      <Typography variant="h4" gutterBottom>
+                      <Typography variant="h6" gutterBottom sx={{ fontSize: '1rem' }}>Avg Occupancy</Typography>
+                      <Typography variant="h5" gutterBottom>
                         {mockPropertyMetrics.avgOccupancy}%
                       </Typography>
                       <LinearProgress 
@@ -231,7 +241,7 @@ const ReportsAnalytics = () => {
             <Grid item xs={12} sm={6} md={3}>
               <Card sx={{ 
                 backgroundColor: darkMode ? '#1e1e1e' : '#fff',
-                height: '100%',
+                height: 160,
                 display: 'flex',
                 flexDirection: 'column'
               }}>
@@ -239,8 +249,8 @@ const ReportsAnalytics = () => {
                   <Stack direction="row" alignItems="center" spacing={2}>
                     <People sx={{ fontSize: 40, color: currentColors[2] }} />
                     <Box>
-                      <Typography variant="h6" gutterBottom>Tenant Retention</Typography>
-                      <Typography variant="h4" gutterBottom>
+                      <Typography variant="h6" gutterBottom sx={{ fontSize: '1rem' }}>Tenant Retention</Typography>
+                      <Typography variant="h5" gutterBottom>
                         {mockTenantMetrics.retentionRate}%
                       </Typography>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -261,7 +271,7 @@ const ReportsAnalytics = () => {
             <Grid item xs={12} sm={6} md={3}>
               <Card sx={{ 
                 backgroundColor: darkMode ? '#1e1e1e' : '#fff',
-                height: '100%',
+                height: 160,
                 display: 'flex',
                 flexDirection: 'column'
               }}>
@@ -269,8 +279,8 @@ const ReportsAnalytics = () => {
                   <Stack direction="row" alignItems="center" spacing={2}>
                     <Build sx={{ fontSize: 40, color: currentColors[3] }} />
                     <Box>
-                      <Typography variant="h6" gutterBottom>Maintenance ROI</Typography>
-                      <Typography variant="h4" gutterBottom>
+                      <Typography variant="h6" gutterBottom sx={{ fontSize: '1rem' }}>Maintenance ROI</Typography>
+                      <Typography variant="h5" gutterBottom>
                         {mockMaintenanceData.roi}x
                       </Typography>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -289,17 +299,11 @@ const ReportsAnalytics = () => {
             </Grid>
           </Grid>
 
-          {/* Tabs Navigation - More Prominent */}
+          {/* Tabs Navigation */}
           <Box sx={{ 
             borderBottom: 1, 
             borderColor: 'divider',
-            mb: 4,
-            position: 'sticky',
-            top: 64,
-            zIndex: 1100,
-            backgroundColor: darkMode ? '#121212' : '#f5f5f5',
-            pt: 2,
-            pb: 1
+            mb: 4
           }}>
             <Tabs 
               value={tabValue} 
@@ -371,19 +375,19 @@ const ReportsAnalytics = () => {
                         </Select>
                       </FormControl>
                     </Box>
-                    <LineChart
+                    <AreaChart
                       series={[
                         { 
                           data: mockFinancialData.income, 
                           label: 'Revenue',
                           color: currentColors[0],
-                          curve: 'linear'
+                          area: true
                         },
                         { 
                           data: mockFinancialData.expenses, 
                           label: 'Expenses',
                           color: currentColors[3],
-                          curve: 'linear'
+                          area: true
                         }
                       ]}
                       xAxis={[{ 
@@ -394,7 +398,7 @@ const ReportsAnalytics = () => {
                       yAxis={[{
                         label: 'Amount ($)'
                       }]}
-                      height={400}
+                      height={300}
                       margin={{ left: 70, right: 30, top: 30, bottom: 70 }}
                       slotProps={{
                         legend: {
@@ -421,14 +425,14 @@ const ReportsAnalytics = () => {
                 }}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Portfolio Allocation</Typography>
-                    <Box sx={{ height: 300 }}>
+                    <Box sx={{ height: 250 }}>
                       <PieChart
                         series={[
                           { 
                             data: mockFinancialData.portfolioAllocation,
                             arcLabel: (item) => `${item.value}%`,
-                            outerRadius: 100,
-                            innerRadius: 50,
+                            outerRadius: 80,
+                            innerRadius: 40,
                             paddingAngle: 2,
                             cornerRadius: 4,
                             highlightScope: { faded: 'global', highlighted: 'item' },
@@ -495,7 +499,7 @@ const ReportsAnalytics = () => {
                 <Card sx={{ backgroundColor: darkMode ? '#1e1e1e' : '#fff' }}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Property Performance</Typography>
-                    <Box sx={{ height: 400 }}>
+                    <Box sx={{ height: 300 }}>
                       <BarChart
                         series={[
                           { 
@@ -533,7 +537,7 @@ const ReportsAnalytics = () => {
                 <Card sx={{ backgroundColor: darkMode ? '#1e1e1e' : '#fff' }}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Value Metrics</Typography>
-                    <Box sx={{ height: 400 }}>
+                    <Box sx={{ height: 300 }}>
                       <LineChart
                         series={[
                           { 
@@ -606,7 +610,7 @@ const ReportsAnalytics = () => {
                 <Card sx={{ backgroundColor: darkMode ? '#1e1e1e' : '#fff' }}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Tenant Growth</Typography>
-                    <Box sx={{ height: 400 }}>
+                    <Box sx={{ height: 300 }}>
                       <LineChart
                         series={[
                           { 
@@ -643,7 +647,7 @@ const ReportsAnalytics = () => {
                 <Card sx={{ backgroundColor: darkMode ? '#1e1e1e' : '#fff' }}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Satisfaction Trend</Typography>
-                    <Box sx={{ height: 400 }}>
+                    <Box sx={{ height: 300 }}>
                       <LineChart
                         series={[
                           { 
@@ -688,8 +692,8 @@ const ReportsAnalytics = () => {
                           { 
                             data: mockTenantMetrics.leaseBreakdown,
                             arcLabel: (item) => `${item.count}`,
-                            outerRadius: 100,
-                            innerRadius: 50,
+                            outerRadius: 80,
+                            innerRadius: 40,
                             paddingAngle: 2,
                             cornerRadius: 4
                           }
@@ -748,7 +752,7 @@ const ReportsAnalytics = () => {
                 <Card sx={{ backgroundColor: darkMode ? '#1e1e1e' : '#fff' }}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Maintenance Tickets</Typography>
-                    <Box sx={{ height: 400 }}>
+                    <Box sx={{ height: 300 }}>
                       <BarChart
                         series={[
                           { 
@@ -786,7 +790,7 @@ const ReportsAnalytics = () => {
                 <Card sx={{ backgroundColor: darkMode ? '#1e1e1e' : '#fff' }}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Ticket Trends</Typography>
-                    <Box sx={{ height: 400 }}>
+                    <Box sx={{ height: 300 }}>
                       <LineChart
                         series={[
                           { 
@@ -797,7 +801,8 @@ const ReportsAnalytics = () => {
                           { 
                             data: mockMaintenanceData.costTrend.map(c => c/100),
                             label: 'Avg Cost ($100)',
-                            color: currentColors[0]
+                            color: currentColors[0],
+                            yAxisKey: 'rightAxis'
                           }
                         ]}
                         xAxis={[{ 
@@ -807,11 +812,12 @@ const ReportsAnalytics = () => {
                         yAxis={[
                           {
                             label: 'Ticket Count',
-                            id: 'tickets'
+                            id: 'leftAxis'
                           },
                           {
                             label: 'Avg Cost',
-                            id: 'cost'
+                            id: 'rightAxis',
+                            position: 'right'
                           }
                         ]}
                         slotProps={{
@@ -865,21 +871,18 @@ const ReportsAnalytics = () => {
                 <Card sx={{ backgroundColor: darkMode ? '#1e1e1e' : '#fff' }}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Occupancy Forecast</Typography>
-                    <Box sx={{ height: 400 }}>
+                    <Box sx={{ height: 300 }}>
                       <LineChart
                         series={[
                           { 
                             data: mockPredictiveData.occupancyActual, 
                             label: 'Actual',
-                            color: currentColors[1],
-                            showMark: true
+                            color: currentColors[1]
                           },
                           { 
                             data: mockPredictiveData.occupancyForecast, 
                             label: 'Forecast',
-                            color: currentColors[2],
-                            curve: "linear",
-                            showMark: true
+                            color: currentColors[2]
                           }
                         ]}
                         xAxis={[{ 
@@ -910,7 +913,7 @@ const ReportsAnalytics = () => {
                 <Card sx={{ backgroundColor: darkMode ? '#1e1e1e' : '#fff' }}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Revenue Projections</Typography>
-                    <Box sx={{ height: 400 }}>
+                    <Box sx={{ height: 300 }}>
                       <BarChart
                         series={[
                           { 
@@ -936,6 +939,10 @@ const ReportsAnalytics = () => {
                               fontSize: 12,
                               fill: darkMode ? '#fff' : '#666'
                             }
+                          },
+                          bar: {
+                            rx: 4,
+                            width: 40
                           }
                         }}
                       />
@@ -948,7 +955,7 @@ const ReportsAnalytics = () => {
                 <Card sx={{ backgroundColor: darkMode ? '#1e1e1e' : '#fff' }}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Expense Trend</Typography>
-                    <Box sx={{ height: 400 }}>
+                    <Box sx={{ height: 300 }}>
                       <LineChart
                         series={[
                           { 
@@ -985,7 +992,7 @@ const ReportsAnalytics = () => {
                 <Card sx={{ backgroundColor: darkMode ? '#1e1e1e' : '#fff' }}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Net Income Projection</Typography>
-                    <Box sx={{ height: 400 }}>
+                    <Box sx={{ height: 300 }}>
                       <LineChart
                         series={[
                           { 
@@ -1025,10 +1032,7 @@ const ReportsAnalytics = () => {
             mt: 4, 
             display: 'flex', 
             gap: 2, 
-            justifyContent: 'flex-end',
-            position: 'sticky',
-            bottom: 20,
-            zIndex: 1000
+            justifyContent: 'flex-end'
           }}>
             <Button 
               variant="contained" 
