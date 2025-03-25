@@ -124,6 +124,12 @@ const generateMockAnalytics = () => {
       { name: 'Open', value: Math.floor(Math.random() * 15) + 5 },
       { name: 'In Progress', value: Math.floor(Math.random() * 10) + 3 },
       { name: 'Completed', value: Math.floor(Math.random() * 20) + 8 },
+    ],
+    paymentMethods: [
+      { name: 'Bank Transfer', value: Math.floor(Math.random() * 30) + 15 },
+      { name: 'Credit Card', value: Math.floor(Math.random() * 25) + 10 },
+      { name: 'MPESA', value: Math.floor(Math.random() * 20) + 5 },
+      { name: 'Cash', value: Math.floor(Math.random() * 15) + 3 },
     ]
   };
 };
@@ -555,64 +561,146 @@ const TenantManagement = () => {
           ))}
         </Grid>
 
-        {/* Analytics Section */}
+        {/* Analytics and Reports Section */}
         <Card sx={{ 
-          mt: 3, 
-          p: 2,
+          p: 3, 
+          mb: 3,
           backgroundColor: darkMode ? '#1e1e1e' : '#fff'
         }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            <Timeline sx={{ verticalAlign: 'middle', mr: 1 }} />
-            Payment Trends
+          <Typography variant="h5" sx={{ mb: 3, color: darkMode ? '#fff' : '#000' }}>
+            <BarChartIcon sx={{ verticalAlign: 'middle', mr: 1 }} />
+            Analytics and Reports
           </Typography>
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart
-              data={analyticsData.monthlyTrends}
-              margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? '#444' : '#eee'} />
-              <XAxis 
-                dataKey="name" 
-                stroke={darkMode ? '#fff' : '#666'} 
-              />
-              <YAxis stroke={darkMode ? '#fff' : '#666'} />
-              <RechartsTooltip 
-                contentStyle={{
-                  backgroundColor: darkMode ? '#333' : '#fff',
-                  borderColor: darkMode ? '#555' : '#ddd',
-                  borderRadius: 4,
-                  color: darkMode ? '#fff' : '#333'
-                }}
-              />
-              <Area 
-                type="monotone" 
-                dataKey="paid" 
-                stackId="1"
-                stroke="#4CAF50" 
-                fill="#4CAF50" 
-                fillOpacity={0.2} 
-                name="Paid"
-              />
-              <Area 
-                type="monotone" 
-                dataKey="pending" 
-                stackId="1"
-                stroke="#FFC107" 
-                fill="#FFC107" 
-                fillOpacity={0.2} 
-                name="Pending"
-              />
-              <Area 
-                type="monotone" 
-                dataKey="overdue" 
-                stackId="1"
-                stroke="#F44336" 
-                fill="#F44336" 
-                fillOpacity={0.2} 
-                name="Overdue"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+
+          <Grid container spacing={3}>
+            {/* Payment Status Distribution */}
+            <Grid item xs={12} md={6}>
+              <Card sx={{ p: 2, backgroundColor: darkMode ? '#252525' : '#f9f9f9' }}>
+                <Typography variant="h6" sx={{ mb: 2, color: darkMode ? '#fff' : '#000' }}>
+                  <PieChartIcon sx={{ verticalAlign: 'middle', mr: 1 }} />
+                  Payment Status Distribution
+                </Typography>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={analyticsData.paymentStatus}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      innerRadius={40}
+                      paddingAngle={5}
+                      dataKey="value"
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    >
+                      {analyticsData.paymentStatus.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Legend />
+                    <RechartsTooltip 
+                      formatter={(value, name) => [`${value} tenants`, name]}
+                      contentStyle={{
+                        backgroundColor: darkMode ? '#333' : '#fff',
+                        borderColor: darkMode ? '#555' : '#ddd'
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </Card>
+            </Grid>
+
+            {/* Payment Methods */}
+            <Grid item xs={12} md={6}>
+              <Card sx={{ p: 2, backgroundColor: darkMode ? '#252525' : '#f9f9f9' }}>
+                <Typography variant="h6" sx={{ mb: 2, color: darkMode ? '#fff' : '#000' }}>
+                  <CreditCard sx={{ verticalAlign: 'middle', mr: 1 }} />
+                  Payment Methods
+                </Typography>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart
+                    data={analyticsData.paymentMethods}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? '#555' : '#eee'} />
+                    <XAxis 
+                      dataKey="name" 
+                      stroke={darkMode ? '#fff' : '#666'}
+                    />
+                    <YAxis stroke={darkMode ? '#fff' : '#666'} />
+                    <RechartsTooltip 
+                      contentStyle={{
+                        backgroundColor: darkMode ? '#333' : '#fff',
+                        borderColor: darkMode ? '#555' : '#ddd'
+                      }}
+                    />
+                    <Legend />
+                    <Bar dataKey="value" fill="#8884d8" name="Tenants">
+                      {analyticsData.paymentMethods.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </Card>
+            </Grid>
+
+            {/* Monthly Payment Trends */}
+            <Grid item xs={12}>
+              <Card sx={{ p: 2, backgroundColor: darkMode ? '#252525' : '#f9f9f9' }}>
+                <Typography variant="h6" sx={{ mb: 2, color: darkMode ? '#fff' : '#000' }}>
+                  <Timeline sx={{ verticalAlign: 'middle', mr: 1 }} />
+                  Monthly Payment Trends
+                </Typography>
+                <ResponsiveContainer width="100%" height={400}>
+                  <AreaChart
+                    data={analyticsData.monthlyTrends}
+                    margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? '#555' : '#eee'} />
+                    <XAxis 
+                      dataKey="name" 
+                      stroke={darkMode ? '#fff' : '#666'}
+                    />
+                    <YAxis stroke={darkMode ? '#fff' : '#666'} />
+                    <RechartsTooltip 
+                      contentStyle={{
+                        backgroundColor: darkMode ? '#333' : '#fff',
+                        borderColor: darkMode ? '#555' : '#ddd'
+                      }}
+                    />
+                    <Legend />
+                    <Area 
+                      type="monotone" 
+                      dataKey="paid" 
+                      stackId="1" 
+                      stroke="#4CAF50" 
+                      fill="#4CAF50" 
+                      fillOpacity={0.2} 
+                      name="Paid"
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="pending" 
+                      stackId="1" 
+                      stroke="#FFC107" 
+                      fill="#FFC107" 
+                      fillOpacity={0.2} 
+                      name="Pending"
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="overdue" 
+                      stackId="1" 
+                      stroke="#F44336" 
+                      fill="#F44336" 
+                      fillOpacity={0.2} 
+                      name="Overdue"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </Card>
+            </Grid>
+          </Grid>
         </Card>
 
         {/* Tenant Details Dialog */}
