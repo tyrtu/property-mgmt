@@ -196,16 +196,20 @@ const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
-  // Dark mode variables
-  const darkModeBg = darkMode ? 'rgba(30, 30, 30, 0.95)' : '#fff';
+  // Enhanced dark mode variables with better contrast
+  const darkModeBg = darkMode ? 'rgba(18, 18, 18, 0.95)' : '#fff';
+  const darkModeCardBg = darkMode ? 'rgba(30, 30, 30, 0.95)' : '#fff';
   const darkModeText = darkMode ? 'rgba(255, 255, 255, 0.87)' : 'text.primary';
+  const darkModeSecondaryText = darkMode ? 'rgba(255, 255, 255, 0.6)' : 'text.secondary';
 
   // Current financial data based on selected time period
   const currentFinancialData = financialData[timePeriod];
 
-  // Toggle Dark Mode
+  // Toggle Dark Mode with smooth transition
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
+    document.body.style.transition = 'background-color 0.3s ease';
+    document.body.style.backgroundColor = !darkMode ? '#121212' : '#ffffff';
   };
 
   // Calculate Metrics
@@ -331,35 +335,65 @@ const Dashboard = () => {
     <Box sx={{ 
       backgroundColor: darkModeBg, 
       minHeight: '100vh',
-      width: '100%'
+      width: '100%',
+      transition: 'background-color 0.3s ease'
     }}>
       <Navigation />
       <Box sx={{ 
         pt: 0,
-        px: 3,
+        px: { xs: 2, sm: 3, md: 4 },
         pb: 6,
         marginLeft: 'auto',
         marginRight: 'auto',
         maxWidth: '100%'
       }}>
-        {/* Header */}
+        {/* Enhanced Header */}
         <Box sx={{ 
           mb: 4, 
           display: 'flex', 
           justifyContent: 'space-between', 
           alignItems: 'center',
-          pt: 3
+          pt: 3,
+          borderBottom: 1,
+          borderColor: darkMode ? 'rgba(255, 255, 255, 0.1)' : 'divider',
+          pb: 2
         }}>
           <Typography variant="h4" sx={{ 
             fontWeight: 700, 
             color: darkModeText,
-            letterSpacing: '0.5px'
+            letterSpacing: '0.5px',
+            fontSize: { xs: '1.75rem', sm: '2rem', md: '2.25rem' }
           }}>
             Property Dashboard
           </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Chip label="Last updated: Today" variant="outlined" sx={{ borderColor: 'divider' }} />
-            <IconButton onClick={toggleDarkMode} color="inherit">
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 2,
+            '& .MuiChip-root': {
+              borderColor: darkMode ? 'rgba(255, 255, 255, 0.1)' : 'divider',
+              color: darkModeSecondaryText
+            }
+          }}>
+            <Chip 
+              label="Last updated: Today" 
+              variant="outlined" 
+              size="small"
+              sx={{ 
+                borderRadius: 1,
+                height: 32
+              }} 
+            />
+            <IconButton 
+              onClick={toggleDarkMode} 
+              sx={{
+                color: darkMode ? 'rgba(255, 255, 255, 0.87)' : 'rgba(0, 0, 0, 0.87)',
+                transition: 'transform 0.3s ease',
+                '&:hover': {
+                  transform: 'rotate(180deg)'
+                }
+              }}
+            >
               {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
             </IconButton>
           </Box>
@@ -406,19 +440,81 @@ const Dashboard = () => {
           />
         </Grid>
 
-        {/* Financial Performance Chart */}
+        {/* Enhanced Financial Performance Section */}
         <Grid container spacing={3} sx={{ mt: 2 }}>
           <Grid item xs={12} md={8}>
-            <Card sx={{ p: 2, bgcolor: darkMode ? '#1e1e1e' : '#fff' }}>
-              <Typography variant="h6" sx={{ mb: 2, color: darkMode ? '#fff' : '#000' }}>
-                Financial Overview
-              </Typography>
+            <Card sx={{ 
+              p: 3, 
+              bgcolor: darkModeCardBg,
+              borderRadius: 2,
+              boxShadow: darkMode 
+                ? '0 4px 20px rgba(0,0,0,0.5)' 
+                : '0 4px 20px rgba(0,0,0,0.1)',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-4px)',
+                boxShadow: darkMode 
+                  ? '0 8px 30px rgba(0,0,0,0.7)' 
+                  : '0 8px 30px rgba(0,0,0,0.15)'
+              }
+            }}>
+              <Box sx={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center',
+                mb: 3 
+              }}>
+                <Typography variant="h6" sx={{ 
+                  color: darkModeText,
+                  fontWeight: 600,
+                  letterSpacing: '0.5px'
+                }}>
+                  Financial Overview
+                </Typography>
+                <Select
+                  value={timePeriod}
+                  onChange={(e) => setTimePeriod(e.target.value)}
+                  size="small"
+                  sx={{
+                    minWidth: 120,
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: darkMode ? 'rgba(255, 255, 255, 0.1)' : 'divider'
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: darkMode ? 'rgba(255, 255, 255, 0.2)' : 'primary.main'
+                    }
+                  }}
+                >
+                  <MenuItem value="monthly">Monthly</MenuItem>
+                  <MenuItem value="quarterly">Quarterly</MenuItem>
+                  <MenuItem value="yearly">Yearly</MenuItem>
+                </Select>
+              </Box>
               {incomeBarChart}
             </Card>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Card sx={{ p: 2, bgcolor: darkMode ? '#1e1e1e' : '#fff' }}>
-              <Typography variant="h6" sx={{ mb: 2, color: darkMode ? '#fff' : '#000' }}>
+            <Card sx={{ 
+              p: 3, 
+              bgcolor: darkModeCardBg,
+              borderRadius: 2,
+              boxShadow: darkMode 
+                ? '0 4px 20px rgba(0,0,0,0.5)' 
+                : '0 4px 20px rgba(0,0,0,0.1)',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-4px)',
+                boxShadow: darkMode 
+                  ? '0 8px 30px rgba(0,0,0,0.7)' 
+                  : '0 8px 30px rgba(0,0,0,0.15)'
+              }
+            }}>
+              <Typography variant="h6" sx={{ 
+                mb: 3, 
+                color: darkModeText,
+                fontWeight: 600,
+                letterSpacing: '0.5px'
+              }}>
                 Property Type Distribution
               </Typography>
               {propertyTypePieChart}
@@ -426,127 +522,170 @@ const Dashboard = () => {
           </Grid>
         </Grid>
 
-        {/* Notifications */}
-        <Grid item xs={12} md={4}>
-          <Card sx={{ 
-            height: { xs: 300, md: 400 },
-            borderRadius: 2,
-            boxShadow: (theme) => theme.palette.mode === 'dark' 
-              ? '0 4px 20px rgba(0,0,0,0.5)' 
-              : '0 4px 20px rgba(0,0,0,0.1)',
-            transition: 'transform 0.3s, box-shadow 0.3s',
-            '&:hover': { 
-              transform: 'translateY(-4px)', 
-              boxShadow: (theme) => theme.palette.mode === 'dark' 
-                ? '0 8px 30px rgba(0,0,0,0.7)' 
-                : '0 8px 30px rgba(0,0,0,0.15)' 
-            }
-          }}>
-            <CardContent sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <Box sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                mb: 2, 
-                gap: 1 
-              }}>
-                <NotificationsIcon color="primary" />
-                <Typography variant="h6" sx={{ 
-                  fontWeight: 600, 
-                  color: darkModeText,
-                  letterSpacing: '0.5px'
-                }}>
-                  Recent Notifications
-                </Typography>
-              </Box>
-              <List dense sx={{ overflow: 'auto', flexGrow: 1 }}>
-                {mockNotifications.map((note) => (
-                  <ListItem 
-                    key={note.id} 
-                    sx={{ 
-                      borderRadius: 1, 
-                      mb: 0.5, 
-                      bgcolor: note.priority === 'high' ? 'error.light' : 'action.hover', 
-                      '&:hover': { bgcolor: 'action.selected' },
-                      transition: 'background-color 0.2s'
-                    }}
-                  >
-                    <ListItemIcon sx={{ minWidth: 36 }}>
-                      {note.priority === 'high' ? 
-                        <WarningIcon fontSize="small" color="error" /> : 
-                        <InfoIcon fontSize="small" color="info" />
-                      }
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={
-                        <Typography variant="body2" sx={{ 
-                          fontWeight: 500, 
-                          color: darkModeText 
-                        }}>
-                          {note.title}
-                        </Typography>
-                      }
-                      secondary={
-                        <Box component="span" sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <Typography variant="caption" color="text.secondary">
-                            {new Date(note.date).toLocaleDateString()}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {note.priority}
-                          </Typography>
-                        </Box>
-                      }
-                    />
-                  </ListItem>
-                ))}
-              </List>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Property List */}
+        {/* Enhanced Notifications Section */}
         <Grid container spacing={3} sx={{ mt: 2 }}>
-          <Grid item xs={12}>
+          <Grid item xs={12} md={4}>
             <Card sx={{ 
+              height: { xs: 300, md: 400 },
+              bgcolor: darkModeCardBg,
               borderRadius: 2,
-              boxShadow: (theme) => theme.palette.mode === 'dark' 
+              boxShadow: darkMode 
                 ? '0 4px 20px rgba(0,0,0,0.5)' 
                 : '0 4px 20px rgba(0,0,0,0.1)',
-              transition: 'transform 0.3s, box-shadow 0.3s',
-              '&:hover': { 
-                transform: 'translateY(-4px)', 
-                boxShadow: (theme) => theme.palette.mode === 'dark' 
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-4px)',
+                boxShadow: darkMode 
                   ? '0 8px 30px rgba(0,0,0,0.7)' 
-                  : '0 8px 30px rgba(0,0,0,0.15)' 
+                  : '0 8px 30px rgba(0,0,0,0.15)'
+              }
+            }}>
+              <CardContent sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <Box sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  mb: 3, 
+                  gap: 1 
+                }}>
+                  <NotificationsIcon sx={{ color: darkMode ? 'primary.light' : 'primary.main' }} />
+                  <Typography variant="h6" sx={{ 
+                    fontWeight: 600, 
+                    color: darkModeText,
+                    letterSpacing: '0.5px'
+                  }}>
+                    Recent Notifications
+                  </Typography>
+                </Box>
+                <List dense sx={{ 
+                  overflow: 'auto', 
+                  flexGrow: 1,
+                  '& .MuiListItem-root': {
+                    borderRadius: 1,
+                    mb: 0.5,
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      bgcolor: darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)'
+                    }
+                  }
+                }}>
+                  {mockNotifications.map((note) => (
+                    <ListItem 
+                      key={note.id} 
+                      sx={{ 
+                        bgcolor: note.priority === 'high' 
+                          ? darkMode ? 'error.dark' : 'error.light'
+                          : darkMode ? 'rgba(255,255,255,0.05)' : 'action.hover'
+                      }}
+                    >
+                      <ListItemIcon sx={{ minWidth: 36 }}>
+                        {note.priority === 'high' ? 
+                          <WarningIcon fontSize="small" color="error" /> : 
+                          <InfoIcon fontSize="small" color="info" />
+                        }
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={
+                          <Typography variant="body2" sx={{ 
+                            fontWeight: 500, 
+                            color: darkModeText 
+                          }}>
+                            {note.title}
+                          </Typography>
+                        }
+                        secondary={
+                          <Box component="span" sx={{ 
+                            display: 'flex', 
+                            justifyContent: 'space-between',
+                            color: darkModeSecondaryText
+                          }}>
+                            <Typography variant="caption">
+                              {new Date(note.date).toLocaleDateString()}
+                            </Typography>
+                            <Typography variant="caption">
+                              {note.priority}
+                            </Typography>
+                          </Box>
+                        }
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Enhanced Property List Section */}
+          <Grid item xs={12} md={8}>
+            <Card sx={{ 
+              bgcolor: darkModeCardBg,
+              borderRadius: 2,
+              boxShadow: darkMode 
+                ? '0 4px 20px rgba(0,0,0,0.5)' 
+                : '0 4px 20px rgba(0,0,0,0.1)',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-4px)',
+                boxShadow: darkMode 
+                  ? '0 8px 30px rgba(0,0,0,0.7)' 
+                  : '0 8px 30px rgba(0,0,0,0.15)'
               }
             }}>
               <CardContent sx={{ p: 3 }}>
-                <Typography variant="h6" sx={{ 
-                  mb: 2, 
-                  fontWeight: 600, 
-                  color: darkModeText,
-                  letterSpacing: '0.5px'
+                <Box sx={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'center',
+                  mb: 3 
                 }}>
-                  Property List
-                </Typography>
+                  <Typography variant="h6" sx={{ 
+                    fontWeight: 600, 
+                    color: darkModeText,
+                    letterSpacing: '0.5px'
+                  }}>
+                    Property List
+                  </Typography>
+                  <TextField
+                    size="small"
+                    placeholder="Search properties..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    sx={{
+                      minWidth: 200,
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 1,
+                        '& fieldset': {
+                          borderColor: darkMode ? 'rgba(255, 255, 255, 0.1)' : 'divider'
+                        },
+                        '&:hover fieldset': {
+                          borderColor: darkMode ? 'rgba(255, 255, 255, 0.2)' : 'primary.main'
+                        }
+                      }
+                    }}
+                  />
+                </Box>
                 <TableContainer>
                   <Table>
                     <TableHead>
                       <TableRow>
                         <TableCell sx={{ 
-                          color: darkModeText,
-                          fontWeight: 600
+                          color: darkModeSecondaryText,
+                          fontWeight: 600,
+                          borderColor: darkMode ? 'rgba(255, 255, 255, 0.1)' : 'divider'
                         }}>Property</TableCell>
                         <TableCell sx={{ 
-                          color: darkModeText,
-                          fontWeight: 600
+                          color: darkModeSecondaryText,
+                          fontWeight: 600,
+                          borderColor: darkMode ? 'rgba(255, 255, 255, 0.1)' : 'divider'
                         }}>Address</TableCell>
                         <TableCell sx={{ 
-                          color: darkModeText,
-                          fontWeight: 600
+                          color: darkModeSecondaryText,
+                          fontWeight: 600,
+                          borderColor: darkMode ? 'rgba(255, 255, 255, 0.1)' : 'divider'
                         }}>Tenants</TableCell>
                         <TableCell sx={{ 
-                          color: darkModeText,
-                          fontWeight: 600
+                          color: darkModeSecondaryText,
+                          fontWeight: 600,
+                          borderColor: darkMode ? 'rgba(255, 255, 255, 0.1)' : 'divider'
                         }}>Status</TableCell>
                       </TableRow>
                     </TableHead>
@@ -564,10 +703,35 @@ const Dashboard = () => {
                             transition: 'background-color 0.2s'
                           }}
                         >
-                          <TableCell sx={{ color: darkModeText }}>{prop.name}</TableCell>
-                          <TableCell sx={{ color: darkModeText }}>{prop.address}</TableCell>
-                          <TableCell sx={{ color: darkModeText }}>{prop.tenants}</TableCell>
-                          <TableCell sx={{ color: darkModeText }}>{prop.status}</TableCell>
+                          <TableCell sx={{ 
+                            color: darkModeText,
+                            borderColor: darkMode ? 'rgba(255, 255, 255, 0.1)' : 'divider'
+                          }}>{prop.name}</TableCell>
+                          <TableCell sx={{ 
+                            color: darkModeText,
+                            borderColor: darkMode ? 'rgba(255, 255, 255, 0.1)' : 'divider'
+                          }}>{prop.address}</TableCell>
+                          <TableCell sx={{ 
+                            color: darkModeText,
+                            borderColor: darkMode ? 'rgba(255, 255, 255, 0.1)' : 'divider'
+                          }}>{prop.tenants}</TableCell>
+                          <TableCell sx={{ 
+                            color: darkModeText,
+                            borderColor: darkMode ? 'rgba(255, 255, 255, 0.1)' : 'divider'
+                          }}>
+                            <Chip 
+                              label={prop.status} 
+                              size="small"
+                              color={prop.status === 'Occupied' ? 'success' : 'warning'}
+                              sx={{ 
+                                borderRadius: 1,
+                                height: 24,
+                                '& .MuiChip-label': {
+                                  px: 1
+                                }
+                              }}
+                            />
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -578,25 +742,26 @@ const Dashboard = () => {
           </Grid>
         </Grid>
 
-        {/* Maintenance Requests */}
+        {/* Enhanced Maintenance Requests Section */}
         <Grid container spacing={3} sx={{ mt: 2 }}>
           <Grid item xs={12}>
             <Card sx={{ 
+              bgcolor: darkModeCardBg,
               borderRadius: 2,
-              boxShadow: (theme) => theme.palette.mode === 'dark' 
+              boxShadow: darkMode 
                 ? '0 4px 20px rgba(0,0,0,0.5)' 
                 : '0 4px 20px rgba(0,0,0,0.1)',
-              transition: 'transform 0.3s, box-shadow 0.3s',
-              '&:hover': { 
-                transform: 'translateY(-4px)', 
-                boxShadow: (theme) => theme.palette.mode === 'dark' 
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-4px)',
+                boxShadow: darkMode 
                   ? '0 8px 30px rgba(0,0,0,0.7)' 
-                  : '0 8px 30px rgba(0,0,0,0.15)' 
+                  : '0 8px 30px rgba(0,0,0,0.15)'
               }
             }}>
               <CardContent sx={{ p: 3 }}>
                 <Typography variant="h6" sx={{ 
-                  mb: 2, 
+                  mb: 3, 
                   fontWeight: 600, 
                   color: darkModeText,
                   letterSpacing: '0.5px'
@@ -608,15 +773,13 @@ const Dashboard = () => {
                     <ListItem 
                       key={req.id}
                       sx={{
-                        '&:nth-of-type(odd)': { 
-                          bgcolor: darkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)' 
-                        },
+                        bgcolor: darkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
                         '&:hover': { 
                           bgcolor: darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)' 
                         },
-                        transition: 'background-color 0.2s',
+                        transition: 'all 0.2s ease',
                         borderRadius: 1,
-                        mb: 0.5
+                        mb: 1
                       }}
                     >
                       <ListItemText
@@ -629,9 +792,28 @@ const Dashboard = () => {
                           </Typography>
                         }
                         secondary={
-                          <Typography variant="caption" color="text.secondary">
-                            Status: {req.status}
-                          </Typography>
+                          <Box sx={{ 
+                            display: 'flex', 
+                            alignItems: 'center',
+                            gap: 1,
+                            mt: 0.5
+                          }}>
+                            <Chip 
+                              label={req.status} 
+                              size="small"
+                              color={
+                                req.status === 'Completed' ? 'success' :
+                                req.status === 'In Progress' ? 'warning' : 'error'
+                              }
+                              sx={{ 
+                                borderRadius: 1,
+                                height: 24,
+                                '& .MuiChip-label': {
+                                  px: 1
+                                }
+                              }}
+                            />
+                          </Box>
                         }
                       />
                     </ListItem>
@@ -642,7 +824,7 @@ const Dashboard = () => {
           </Grid>
         </Grid>
 
-        {/* Export Button */}
+        {/* Enhanced Export Button */}
         <Box sx={{ 
           mt: 3, 
           display: 'flex', 
@@ -658,11 +840,11 @@ const Dashboard = () => {
               px: 3,
               py: 1,
               fontWeight: 600,
+              transition: 'all 0.2s ease',
               '&:hover': { 
                 transform: 'translateY(-2px)', 
                 boxShadow: 4 
-              },
-              transition: 'transform 0.2s, box-shadow 0.2s'
+              }
             }}
           >
             Export to CSV
