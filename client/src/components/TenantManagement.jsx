@@ -69,11 +69,11 @@ import {
   Print,
   Download,
   MoreVert,
-  PendingActions,
-  Warning,
-  Visibility,
   PieChart as PieChartIcon,
-  Timeline
+  Timeline,
+  PendingActions,
+  Visibility,
+  Warning
 } from '@mui/icons-material';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 import { collection, getDocs, onSnapshot, query, where, orderBy, doc, getDoc, deleteDoc, updateDoc, addDoc } from 'firebase/firestore';
@@ -313,171 +313,6 @@ const TenantManagement = () => {
     setSnackbarOpen(true);
   };
 
-  // Columns for DataGrid
-  const columns = [
-    { 
-      field: 'id', 
-      headerName: 'ID', 
-      width: 70,
-      renderCell: (params) => (
-        <Badge 
-          color="primary" 
-          badgeContent={params.row.lastReminder ? '!' : null}
-          anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
-        >
-          {params.value}
-        </Badge>
-      )
-    },
-    { 
-      field: 'name', 
-      headerName: 'Tenant', 
-      width: 180,
-      renderCell: (params) => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Avatar sx={{ width: 32, height: 32, mr: 1, bgcolor: 'primary.main' }}>
-            {params.value.charAt(0)}
-          </Avatar>
-          <Box>
-            <Typography variant="body2">{params.value}</Typography>
-            <Typography variant="caption" color="text.secondary">
-              {params.row.unit || 'N/A'}
-            </Typography>
-          </Box>
-        </Box>
-      )
-    },
-    { 
-      field: 'email', 
-      headerName: 'Email', 
-      width: 200,
-      renderCell: (params) => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Email fontSize="small" sx={{ mr: 1, color: 'action.active' }} />
-          {params.value}
-        </Box>
-      )
-    },
-    { 
-      field: 'phone', 
-      headerName: 'Phone', 
-      width: 130,
-      renderCell: (params) => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Phone fontSize="small" sx={{ mr: 1, color: 'action.active' }} />
-          {params.value || 'N/A'}
-        </Box>
-      )
-    },
-    {
-      field: 'paymentStatus',
-      headerName: 'Status',
-      width: 130,
-      renderCell: (params) => {
-        const getIcon = () => {
-          switch(params.value) {
-            case 'Paid': return <CheckCircle fontSize="small" />;
-            case 'Pending': return <PendingActions fontSize="small" />;
-            case 'Overdue': return <Warning fontSize="small" />;
-            default: return <MoreVert fontSize="small" />;
-          }
-        };
-        
-        return (
-          <Chip
-            label={params.value}
-            icon={getIcon()}
-            color={
-              params.value === 'Paid' ? 'success' :
-              params.value === 'Pending' ? 'warning' : 'error'
-            }
-            size="small"
-            variant="outlined"
-          />
-        );
-      },
-    },
-    {
-      field: 'propertyId',
-      headerName: 'Property',
-      width: 150,
-      renderCell: (params) => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Home fontSize="small" sx={{ mr: 1, color: 'action.active' }} />
-          {properties.find(p => p.id === params.value)?.name || params.value}
-        </Box>
-      )
-    },
-    {
-      field: 'actions',
-      headerName: 'Actions',
-      width: 150,
-      renderCell: (params) => (
-        <Box>
-          <Tooltip title="View Details">
-            <IconButton onClick={() => handleViewTenant(params.row.id)} size="small">
-              <Visibility fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Send Notification">
-            <IconButton size="small">
-              <Email fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Delete">
-            <IconButton 
-              onClick={() => handleConfirmDelete(params.row.id)} 
-              size="small"
-              color="error"
-            >
-              <Delete fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      ),
-    },
-  ];
-
-  // Custom toolbar for DataGrid
-  const CustomToolbar = () => (
-    <Box sx={{ p: 1, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-      <Button
-        variant="contained"
-        startIcon={<Send />}
-        onClick={() => handleBulkAction('sendNotification')}
-        disabled={selectedTenants.length === 0}
-        size="small"
-      >
-        Notify
-      </Button>
-      <Button
-        variant="contained"
-        startIcon={<Payment />}
-        onClick={() => handleBulkAction('updatePaymentStatus')}
-        disabled={selectedTenants.length === 0}
-        size="small"
-      >
-        Update Status
-      </Button>
-      <Button
-        variant="outlined"
-        startIcon={<Download />}
-        onClick={() => handleBulkAction('exportData')}
-        size="small"
-      >
-        Export
-      </Button>
-      <Button
-        variant="outlined"
-        startIcon={<Print />}
-        onClick={() => window.print()}
-        size="small"
-      >
-        Print
-      </Button>
-    </Box>
-  );
-
   return (
     <Box sx={{ 
       minHeight: '100vh', 
@@ -668,188 +503,59 @@ const TenantManagement = () => {
           </Grid>
         </Grid>
 
-        {/* Main Content */}
-        <Grid container spacing={3}>
-          {/* Data Table */}
-          <Grid item xs={12} lg={8}>
-            <Card sx={{ 
-              p: 2, 
-              height: '100%',
-              backgroundColor: darkMode ? '#1e1e1e' : '#fff'
-            }}>
-              <Box sx={{ height: 600 }}>
-                <DataGrid
-                  rows={filteredTenants}
-                  columns={columns}
-                  slots={{ 
-                    toolbar: () => <CustomToolbar />,
-                  }}
-                  pageSizeOptions={[10, 25, 50]}
-                  checkboxSelection
-                  onRowSelectionModelChange={(newSelection) => setSelectedTenants(newSelection)}
-                  sx={{
-                    '& .MuiDataGrid-columnHeaders': {
-                      backgroundColor: darkMode ? '#333' : 'primary.main',
-                      color: '#fff',
-                    },
-                    '& .MuiDataGrid-cell': {
-                      borderBottomColor: darkMode ? '#333' : 'divider',
-                      color: darkMode ? '#fff' : 'text.primary'
-                    },
-                    '& .MuiDataGrid-row:hover': {
-                      backgroundColor: darkMode ? alpha('#333', 0.5) : 'action.hover',
-                    },
-                    '& .MuiDataGrid-footerContainer': {
-                      borderTopColor: darkMode ? '#333' : 'divider',
-                      backgroundColor: darkMode ? '#333' : 'background.default'
-                    },
-                    '& .MuiCheckbox-root': {
-                      color: darkMode ? '#fff' : undefined,
-                    },
-                  }}
-                />
-              </Box>
-            </Card>
-          </Grid>
-
-          {/* Analytics Section */}
-          <Grid item xs={12} lg={4}>
-            <Card sx={{ 
-              p: 2, 
-              height: '100%',
-              backgroundColor: darkMode ? '#1e1e1e' : '#fff'
-            }}>
-              <Box sx={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center',
-                mb: 2
-              }}>
-                <Typography variant="h6">
-                  <BarChartIcon sx={{ verticalAlign: 'middle', mr: 1 }} />
-                  Tenant Analytics
-                </Typography>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={showAnalytics}
-                      onChange={() => setShowAnalytics(!showAnalytics)}
-                      color="primary"
-                    />
-                  }
-                  label="Show"
-                  sx={{ m: 0 }}
-                />
-              </Box>
-
-              {showAnalytics && (
-                <>
-                  {/* Payment Status Distribution */}
-                  <Typography variant="subtitle2" sx={{ mt: 2 }}>
-                    Payment Status
-                  </Typography>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <PieChart>
-                      <Pie
-                        data={analyticsData.paymentStatus}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={60}
-                        innerRadius={30}
-                        fill="#8884d8"
-                        dataKey="value"
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                      >
-                        {analyticsData.paymentStatus.map((entry, index) => (
-                          <Cell 
-                            key={`cell-${index}`} 
-                            fill={COLORS[index % COLORS.length]} 
-                            stroke={darkMode ? '#1e1e1e' : '#fff'}
-                          />
-                        ))}
-                      </Pie>
-                      <RechartsTooltip 
-                        contentStyle={{
-                          backgroundColor: darkMode ? '#333' : '#fff',
-                          borderColor: darkMode ? '#555' : '#ddd',
-                          borderRadius: 4,
-                          color: darkMode ? '#fff' : '#333'
-                        }}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-
-                  {/* Property Performance */}
-                  <Typography variant="subtitle2" sx={{ mt: 3 }}>
-                    Property Occupancy
-                  </Typography>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <BarChart data={analyticsData.propertyPerformance}>
-                      <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? '#444' : '#eee'} />
-                      <XAxis 
-                        dataKey="name" 
-                        stroke={darkMode ? '#fff' : '#666'} 
-                        tick={{ fontSize: 12 }}
-                      />
-                      <YAxis stroke={darkMode ? '#fff' : '#666'} />
-                      <RechartsTooltip 
-                        contentStyle={{
-                          backgroundColor: darkMode ? '#333' : '#fff',
-                          borderColor: darkMode ? '#555' : '#ddd',
-                          borderRadius: 4,
-                          color: darkMode ? '#fff' : '#333'
-                        }}
-                      />
-                      <Bar 
-                        dataKey="occupancy" 
-                        fill="#8884d8" 
-                        name="Occupancy %"
-                        radius={[4, 4, 0, 0]}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-
-                  {/* Maintenance Requests */}
-                  <Typography variant="subtitle2" sx={{ mt: 3 }}>
-                    Maintenance Requests
-                  </Typography>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <PieChart>
-                      <Pie
-                        data={analyticsData.maintenanceRequests}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={60}
-                        innerRadius={30}
-                        fill="#8884d8"
-                        dataKey="value"
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                      >
-                        {analyticsData.maintenanceRequests.map((entry, index) => (
-                          <Cell 
-                            key={`cell-${index}`} 
-                            fill={COLORS[index + 2 % COLORS.length]} 
-                            stroke={darkMode ? '#1e1e1e' : '#fff'}
-                          />
-                        ))}
-                      </Pie>
-                      <RechartsTooltip 
-                        contentStyle={{
-                          backgroundColor: darkMode ? '#333' : '#fff',
-                          borderColor: darkMode ? '#555' : '#ddd',
-                          borderRadius: 4,
-                          color: darkMode ? '#fff' : '#333'
-                        }}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </>
-              )}
-            </Card>
-          </Grid>
+        {/* Tenant Cards Section */}
+        <Grid container spacing={3} sx={{ mb: 3 }}>
+          {filteredTenants.map((tenant) => (
+            <Grid item xs={12} sm={6} md={4} key={tenant.id}>
+              <Card sx={{ p: 2, backgroundColor: darkMode ? '#333' : '#fff' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Avatar src={`https://i.pravatar.cc/80?u=${tenant.id}`}>
+                    {tenant.name[0]}
+                  </Avatar>
+                  <Box>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600, color: darkMode ? '#fff' : '#000' }}>
+                      {tenant.name}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {tenant.email}
+                    </Typography>
+                  </Box>
+                </Box>
+                <Box sx={{ mt: 2 }}>
+                  <Chip
+                    label={tenant.paymentStatus}
+                    color={
+                      tenant.paymentStatus === 'Paid'
+                        ? 'success'
+                        : tenant.paymentStatus === 'Pending'
+                        ? 'warning'
+                        : 'error'
+                    }
+                    size="small"
+                  />
+                </Box>
+                <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    onClick={() => handleViewTenant(tenant.id)}
+                  >
+                    View More
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    onClick={() => handleDeleteTenant(tenant.id)}
+                  >
+                    Delete
+                  </Button>
+                </Box>
+              </Card>
+            </Grid>
+          ))}
         </Grid>
 
-        {/* Detailed Analytics Section */}
+        {/* Analytics Section */}
         <Card sx={{ 
           mt: 3, 
           p: 2,
