@@ -5,7 +5,7 @@ import {
   LinearProgress, Chip, useTheme, Stack, Tooltip, Container
 } from '@mui/material';
 import { 
-  LineChart, BarChart, PieChart, AreaChart
+  LineChart, BarChart, PieChart
 } from '@mui/x-charts';
 import { DataGrid } from '@mui/x-data-grid';
 import { LocalizationProvider } from '@mui/x-date-pickers';
@@ -424,7 +424,7 @@ const ReportsAnalytics = () => {
                   <CardContent sx={{ p: 2 }}>
                     <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>Value Metrics</Typography>
                     <Box sx={{ height: 300 }}>
-                      <AreaChart
+                      <LineChart
                         series={[
                           { 
                             data: mockPropertyMetrics.valueMetrics.capRates,
