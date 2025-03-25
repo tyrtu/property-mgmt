@@ -18,12 +18,12 @@ import {
 import Navigation from './Navigation';
 import useAutoLogout from '../hooks/useAutoLogout';
 
-// Comprehensive Mock Data
+// Updated Comprehensive Mock Data
 const mockFinancialData = {
   netProfit: 248765,
   profitGrowth: 12.5,
-  income: [125000, 135000, 142000, 156000, 168000, 182000, 195000, 210000, 225000, 238000, 252000, 265000],
-  expenses: [85000, 88000, 92000, 95000, 102000, 108000, 112000, 115000, 120000, 125000, 130000, 135000],
+  income: [125, 135, 142, 156, 168, 182, 195, 210, 225, 238, 252, 265].map(v => v * 1000),
+  expenses: [85, 88, 92, 95, 102, 108, 112, 115, 120, 125, 130, 135].map(v => v * 1000),
   months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
   portfolioAllocation: [
     { id: 0, value: 35, label: 'Residential' },
@@ -59,10 +59,10 @@ const mockTenantMetrics = {
   newTenants: 12,
   tenantSatisfaction: 4.7,
   leaseBreakdown: [
-    { id: 1, type: '1-year', count: 45 },
-    { id: 2, type: '2-year', count: 32 },
-    { id: 3, type: 'Month-to-month', count: 18 },
-    { id: 4, type: 'Commercial', count: 22 }
+    { id: 1, type: '1-year', value: 45 },
+    { id: 2, type: '2-year', value: 32 },
+    { id: 3, type: 'Month-to-month', value: 18 },
+    { id: 4, type: 'Commercial', value: 22 }
   ],
   delinquencyRate: 2.3,
   tenantGrowth: [120, 125, 130, 135, 140, 145, 150, 155, 160, 165, 170, 175],
@@ -89,10 +89,10 @@ const mockPredictiveData = {
   occupancyActual: [88, 89, 90, 91, 92, 93, 94, 93, 92, 91, 90, 89],
   occupancyForecast: [89, 90, 91, 92, 93, 94, 95, 94, 93, 92, 91, 90],
   forecastMonths: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-  revenueProjections: [125000, 130000, 135000, 140000, 145000, 150000, 155000, 160000, 165000, 170000, 175000, 180000],
+  revenueProjections: [125, 130, 135, 140, 145, 150, 155, 160, 165, 170, 175, 180].map(v => v * 1000),
   forecastQuarters: ['Q1', 'Q2', 'Q3', 'Q4'],
-  expenseTrend: [85000, 87000, 89000, 91000, 93000, 95000, 97000, 99000, 101000, 103000, 105000, 107000],
-  netIncomeProjection: [40000, 43000, 46000, 49000, 52000, 55000, 58000, 61000, 64000, 67000, 70000, 73000]
+  expenseTrend: [85, 87, 89, 91, 93, 95, 97, 99, 101, 103, 105, 107].map(v => v * 1000),
+  netIncomeProjection: [40, 43, 46, 49, 52, 55, 58, 61, 64, 67, 70, 73].map(v => v * 1000)
 };
 
 const ReportsAnalytics = () => {
@@ -106,7 +106,6 @@ const ReportsAnalytics = () => {
   const handleTabChange = (event, newValue) => setTabValue(newValue);
   const toggleDarkMode = () => setDarkMode(!darkMode);
 
-  // Chart color schemes
   const chartColors = {
     light: ['#4CAF50', '#2196F3', '#FF9800', '#E91E63', '#9C27B0'],
     dark: ['#00E676', '#40C4FF', '#FFD740', '#FF5252', '#D500F9']
@@ -127,7 +126,7 @@ const ReportsAnalytics = () => {
 
   const tenantColumns = [
     { field: 'type', headerName: 'Lease Type', width: 150 },
-    { field: 'count', headerName: 'Count', width: 120 }
+    { field: 'value', headerName: 'Count', width: 120 }
   ];
 
   const maintenanceColumns = [
@@ -176,135 +175,93 @@ const ReportsAnalytics = () => {
 
           {/* Quick Stats Cards */}
           <Grid container spacing={3} sx={{ mb: 4 }}>
-            <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ 
-                backgroundColor: darkMode ? '#1e1e1e' : '#fff',
-                height: 160,
-                display: 'flex',
-                flexDirection: 'column'
-              }}>
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Stack direction="row" alignItems="center" spacing={2}>
-                    <Money sx={{ fontSize: 40, color: currentColors[0] }} />
-                    <Box>
-                      <Typography variant="h6" gutterBottom sx={{ fontSize: '1rem' }}>Net Profit</Typography>
-                      <Typography variant="h5" gutterBottom>
-                        ${mockFinancialData.netProfit.toLocaleString()}
-                      </Typography>
-                      <Chip 
-                        icon={mockFinancialData.profitGrowth > 0 ? <ArrowUpward /> : <ArrowDownward />}
-                        label={`${mockFinancialData.profitGrowth}% Growth`} 
-                        color={mockFinancialData.profitGrowth > 0 ? "success" : "error"} 
-                        size="small"
-                        sx={{ fontWeight: 'bold' }}
-                      />
-                    </Box>
-                  </Stack>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ 
-                backgroundColor: darkMode ? '#1e1e1e' : '#fff',
-                height: 160,
-                display: 'flex',
-                flexDirection: 'column'
-              }}>
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Stack direction="row" alignItems="center" spacing={2}>
-                    <Home sx={{ fontSize: 40, color: currentColors[1] }} />
-                    <Box>
-                      <Typography variant="h6" gutterBottom sx={{ fontSize: '1rem' }}>Avg Occupancy</Typography>
-                      <Typography variant="h5" gutterBottom>
-                        {mockPropertyMetrics.avgOccupancy}%
-                      </Typography>
-                      <LinearProgress 
-                        variant="determinate" 
-                        value={mockPropertyMetrics.avgOccupancy} 
-                        sx={{ 
-                          height: 6, 
-                          mt: 1,
-                          borderRadius: 3,
-                          backgroundColor: darkMode ? '#333' : '#eee',
-                          '& .MuiLinearProgress-bar': {
-                            backgroundColor: currentColors[1]
-                          }
-                        }}
-                      />
-                    </Box>
-                  </Stack>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ 
-                backgroundColor: darkMode ? '#1e1e1e' : '#fff',
-                height: 160,
-                display: 'flex',
-                flexDirection: 'column'
-              }}>
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Stack direction="row" alignItems="center" spacing={2}>
-                    <People sx={{ fontSize: 40, color: currentColors[2] }} />
-                    <Box>
-                      <Typography variant="h6" gutterBottom sx={{ fontSize: '1rem' }}>Tenant Retention</Typography>
-                      <Typography variant="h5" gutterBottom>
-                        {mockTenantMetrics.retentionRate}%
-                      </Typography>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Chip 
-                          label={`${mockTenantMetrics.newTenants} New`} 
-                          color="info" 
-                          size="small"
-                        />
-                        <Star sx={{ color: '#FFD700', fontSize: '1rem' }} />
-                        <Typography variant="body2">{mockTenantMetrics.tenantSatisfaction}/5</Typography>
+            {[
+              { 
+                icon: <Money sx={{ fontSize: 34, color: currentColors[0] }} />,
+                title: 'Net Profit',
+                value: `$${mockFinancialData.netProfit.toLocaleString()}`,
+                growth: mockFinancialData.profitGrowth
+              },
+              { 
+                icon: <Home sx={{ fontSize: 34, color: currentColors[1] }} />,
+                title: 'Avg Occupancy',
+                value: `${mockPropertyMetrics.avgOccupancy}%`,
+                progress: mockPropertyMetrics.avgOccupancy
+              },
+              { 
+                icon: <People sx={{ fontSize: 34, color: currentColors[2] }} />,
+                title: 'Tenant Retention',
+                value: `${mockTenantMetrics.retentionRate}%`,
+                extra: `${mockTenantMetrics.newTenants} New`
+              },
+              { 
+                icon: <Build sx={{ fontSize: 34, color: currentColors[3] }} />,
+                title: 'Maintenance ROI',
+                value: `${mockMaintenanceData.roi}x`,
+                extra: `Saved $${mockMaintenanceData.costSavings}k`
+              }
+            ].map((card, index) => (
+              <Grid item xs={12} sm={6} md={3} key={index}>
+                <Card sx={{ 
+                  backgroundColor: darkMode ? '#1e1e1e' : '#fff',
+                  height: 140,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  borderRadius: 2
+                }}>
+                  <CardContent sx={{ flexGrow: 1, p: 2 }}>
+                    <Stack direction="row" alignItems="center" spacing={1.5}>
+                      {card.icon}
+                      <Box>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>{card.title}</Typography>
+                        <Typography variant="h6" sx={{ mb: 0.5 }}>{card.value}</Typography>
+                        {card.growth && (
+                          <Chip 
+                            icon={card.growth > 0 ? <ArrowUpward sx={{ fontSize: 14 }} /> : <ArrowDownward sx={{ fontSize: 14 }} />}
+                            label={`${card.growth}%`} 
+                            size="small"
+                            sx={{ 
+                              height: 22,
+                              fontSize: '0.75rem',
+                              backgroundColor: card.growth > 0 ? (darkMode ? '#1B5E20' : '#C8E6C9') : (darkMode ? '#B71C1C' : '#FFCDD2'),
+                              color: card.growth > 0 ? (darkMode ? '#A5D6A7' : '#2E7D32') : (darkMode ? '#EF9A9A' : '#C62828')
+                            }}
+                          />
+                        )}
+                        {card.progress && (
+                          <LinearProgress 
+                            variant="determinate" 
+                            value={card.progress} 
+                            sx={{ 
+                              height: 4, 
+                              mt: 1,
+                              borderRadius: 3,
+                              backgroundColor: darkMode ? '#333' : '#eee',
+                              '& .MuiLinearProgress-bar': {
+                                backgroundColor: currentColors[1]
+                              }
+                            }}
+                          />
+                        )}
+                        {card.extra && (
+                          <Typography variant="caption" sx={{ 
+                            display: 'block',
+                            color: darkMode ? '#90CAF9' : '#1976D2',
+                            mt: 0.5
+                          }}>
+                            {card.extra}
+                          </Typography>
+                        )}
                       </Box>
-                    </Box>
-                  </Stack>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ 
-                backgroundColor: darkMode ? '#1e1e1e' : '#fff',
-                height: 160,
-                display: 'flex',
-                flexDirection: 'column'
-              }}>
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Stack direction="row" alignItems="center" spacing={2}>
-                    <Build sx={{ fontSize: 40, color: currentColors[3] }} />
-                    <Box>
-                      <Typography variant="h6" gutterBottom sx={{ fontSize: '1rem' }}>Maintenance ROI</Typography>
-                      <Typography variant="h5" gutterBottom>
-                        {mockMaintenanceData.roi}x
-                      </Typography>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Chip 
-                          label={`Saved $${mockMaintenanceData.costSavings}k`} 
-                          color="warning" 
-                          size="small"
-                        />
-                        <Warning sx={{ color: mockMaintenanceData.emergencyMaintenance > 25 ? '#ff5722' : '#4caf50', fontSize: '1rem' }} />
-                        <Typography variant="body2">{mockMaintenanceData.emergencyMaintenance}%</Typography>
-                      </Box>
-                    </Box>
-                  </Stack>
-                </CardContent>
-              </Card>
-            </Grid>
+                    </Stack>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
           </Grid>
 
           {/* Tabs Navigation */}
-          <Box sx={{ 
-            borderBottom: 1, 
-            borderColor: 'divider',
-            mb: 4
-          }}>
+          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
             <Tabs 
               value={tabValue} 
               onChange={handleTabChange} 
@@ -312,56 +269,36 @@ const ReportsAnalytics = () => {
               scrollButtons="auto"
               sx={{
                 '& .MuiTabs-indicator': {
-                  height: 4,
+                  height: 3,
                   backgroundColor: currentColors[0]
                 }
               }}
             >
-              <Tab label={
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <ShowChart sx={{ mr: 1 }} /> Financials
-                </Box>
-              } />
-              <Tab label={
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Home sx={{ mr: 1 }} /> Properties
-                </Box>
-              } />
-              <Tab label={
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <People sx={{ mr: 1 }} /> Tenants
-                </Box>
-              } />
-              <Tab label={
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Build sx={{ mr: 1 }} /> Maintenance
-                </Box>
-              } />
-              <Tab label={
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Assessment sx={{ mr: 1 }} /> Predictive
-                </Box>
-              } />
+              {['Financials', 'Properties', 'Tenants', 'Maintenance', 'Predictive'].map((label, index) => (
+                <Tab key={index} label={
+                  <Box sx={{ display: 'flex', alignItems: 'center', py: 1 }}>
+                    {[<ShowChart />, <Home />, <People />, <Build />, <Assessment />][index]}
+                    <span style={{ marginLeft: 8 }}>{label}</span>
+                  </Box>
+                } />
+              ))}
             </Tabs>
           </Box>
 
           {/* Financial Performance Tab */}
           {tabValue === 0 && (
-            <Grid container spacing={4}>
+            <Grid container spacing={3}>
               <Grid item xs={12} lg={8}>
-                <Card sx={{ 
-                  backgroundColor: darkMode ? '#1e1e1e' : '#fff',
-                  height: '100%'
-                }}>
-                  <CardContent>
+                <Card sx={{ backgroundColor: darkMode ? '#1e1e1e' : '#fff' }}>
+                  <CardContent sx={{ p: 2 }}>
                     <Box sx={{ 
                       display: 'flex', 
                       justifyContent: 'space-between', 
                       alignItems: 'center',
-                      mb: 3
+                      mb: 2
                     }}>
-                      <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Cash Flow Analysis</Typography>
-                      <FormControl size="small" sx={{ minWidth: 180 }}>
+                      <Typography variant="h6" sx={{ fontWeight: 600 }}>Cash Flow Analysis</Typography>
+                      <FormControl size="small" sx={{ minWidth: 150 }}>
                         <InputLabel>Time Range</InputLabel>
                         <Select 
                           value={timeRange} 
@@ -375,56 +312,53 @@ const ReportsAnalytics = () => {
                         </Select>
                       </FormControl>
                     </Box>
-                    <LineChart
-                      series={[
-                        { 
-                          data: mockFinancialData.income, 
-                          label: 'Revenue',
-                          color: currentColors[0],
-                          area: true
-                        },
-                        { 
-                          data: mockFinancialData.expenses, 
-                          label: 'Expenses',
-                          color: currentColors[3],
-                          area: true
-                        }
-                      ]}
-                      xAxis={[{ 
-                        data: mockFinancialData.months, 
-                        scaleType: 'band',
-                        label: 'Month'
-                      }]}
-                      yAxis={[{
-                        label: 'Amount ($)'
-                      }]}
-                      height={300}
-                      margin={{ left: 70, right: 30, top: 30, bottom: 70 }}
-                      slotProps={{
-                        legend: {
-                          direction: 'row',
-                          position: { vertical: 'bottom', horizontal: 'middle' },
-                          padding: 0,
-                          itemMarkWidth: 10,
-                          itemMarkHeight: 10,
-                          labelStyle: {
-                            fontSize: 12,
-                            fill: darkMode ? '#fff' : '#666'
+                    <Box sx={{ height: 320 }}>
+                      <BarChart
+                        series={[
+                          { 
+                            data: mockFinancialData.income,
+                            label: 'Revenue',
+                            color: currentColors[0]
+                          },
+                          { 
+                            data: mockFinancialData.expenses,
+                            label: 'Expenses',
+                            color: currentColors[3]
                           }
-                        }
-                      }}
-                    />
+                        ]}
+                        xAxis={[{ 
+                          data: mockFinancialData.months, 
+                          scaleType: 'band',
+                          label: 'Month'
+                        }]}
+                        yAxis={[{
+                          label: 'Amount ($)'
+                        }]}
+                        margin={{ left: 70, right: 30, top: 20, bottom: 70 }}
+                        slotProps={{
+                          legend: {
+                            direction: 'row',
+                            position: { vertical: 'bottom', horizontal: 'middle' },
+                            labelStyle: {
+                              fontSize: 12,
+                              fill: darkMode ? '#fff' : '#666'
+                            }
+                          },
+                          bar: {
+                            rx: 4,
+                            width: 30
+                          }
+                        }}
+                      />
+                    </Box>
                   </CardContent>
                 </Card>
               </Grid>
 
               <Grid item xs={12} lg={4}>
-                <Card sx={{ 
-                  backgroundColor: darkMode ? '#1e1e1e' : '#fff',
-                  height: '100%'
-                }}>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Portfolio Allocation</Typography>
+                <Card sx={{ backgroundColor: darkMode ? '#1e1e1e' : '#fff' }}>
+                  <CardContent sx={{ p: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>Portfolio Allocation</Typography>
                     <Box sx={{ height: 250 }}>
                       <PieChart
                         series={[
@@ -434,9 +368,7 @@ const ReportsAnalytics = () => {
                             outerRadius: 80,
                             innerRadius: 40,
                             paddingAngle: 2,
-                            cornerRadius: 4,
-                            highlightScope: { faded: 'global', highlighted: 'item' },
-                            faded: { innerRadius: 30, additionalRadius: -10, color: 'gray' }
+                            cornerRadius: 4
                           }
                         ]}
                         colors={currentColors}
@@ -444,9 +376,6 @@ const ReportsAnalytics = () => {
                           legend: {
                             direction: 'row',
                             position: { vertical: 'bottom', horizontal: 'middle' },
-                            padding: 0,
-                            itemMarkWidth: 10,
-                            itemMarkHeight: 10,
                             labelStyle: {
                               fontSize: 12,
                               fill: darkMode ? '#fff' : '#666'
@@ -456,7 +385,7 @@ const ReportsAnalytics = () => {
                       />
                     </Box>
                     <Divider sx={{ my: 2 }} />
-                    <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Expense Breakdown</Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>Expense Breakdown</Typography>
                     <Box sx={{ maxHeight: 200, overflow: 'auto' }}>
                       {mockFinancialData.expenseCategories.map((category) => (
                         <Stack 
@@ -466,7 +395,7 @@ const ReportsAnalytics = () => {
                           alignItems="center"
                           spacing={2} 
                           sx={{ 
-                            p: 1,
+                            p: 0.5,
                             '&:hover': {
                               backgroundColor: darkMode ? '#333' : '#f5f5f5'
                             }
@@ -480,7 +409,7 @@ const ReportsAnalytics = () => {
                               fontWeight: 'medium'
                             }} 
                           />
-                          <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                          <Typography variant="body2" sx={{ fontWeight: 500 }}>
                             ${category.value.toLocaleString()}
                           </Typography>
                         </Stack>
@@ -494,11 +423,11 @@ const ReportsAnalytics = () => {
 
           {/* Property Metrics Tab */}
           {tabValue === 1 && (
-            <Grid container spacing={4}>
+            <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
                 <Card sx={{ backgroundColor: darkMode ? '#1e1e1e' : '#fff' }}>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Property Performance</Typography>
+                  <CardContent sx={{ p: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>Property Performance</Typography>
                     <Box sx={{ height: 300 }}>
                       <BarChart
                         series={[
@@ -516,15 +445,11 @@ const ReportsAnalytics = () => {
                         yAxis={[{
                           label: 'Occupancy (%)'
                         }]}
+                        margin={{ left: 70, right: 30, top: 20, bottom: 70 }}
                         slotProps={{
-                          legend: {
-                            direction: 'row',
-                            position: { vertical: 'bottom', horizontal: 'middle' },
-                            padding: 0,
-                            labelStyle: {
-                              fontSize: 12,
-                              fill: darkMode ? '#fff' : '#666'
-                            }
+                          bar: {
+                            rx: 4,
+                            width: 30
                           }
                         }}
                       />
@@ -535,8 +460,8 @@ const ReportsAnalytics = () => {
 
               <Grid item xs={12} md={6}>
                 <Card sx={{ backgroundColor: darkMode ? '#1e1e1e' : '#fff' }}>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Value Metrics</Typography>
+                  <CardContent sx={{ p: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>Value Metrics</Typography>
                     <Box sx={{ height: 300 }}>
                       <LineChart
                         series={[
@@ -553,23 +478,11 @@ const ReportsAnalytics = () => {
                         ]}
                         xAxis={[{ 
                           data: mockPropertyMetrics.properties.map(p => p.name),
-                          scaleType: 'band',
                           label: 'Properties'
                         }]}
                         yAxis={[{
                           label: 'Percentage (%)'
                         }]}
-                        slotProps={{
-                          legend: {
-                            direction: 'row',
-                            position: { vertical: 'bottom', horizontal: 'middle' },
-                            padding: 0,
-                            labelStyle: {
-                              fontSize: 12,
-                              fill: darkMode ? '#fff' : '#666'
-                            }
-                          }
-                        }}
                       />
                     </Box>
                   </CardContent>
@@ -578,9 +491,9 @@ const ReportsAnalytics = () => {
 
               <Grid item xs={12}>
                 <Card sx={{ backgroundColor: darkMode ? '#1e1e1e' : '#fff' }}>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Property Portfolio</Typography>
-                    <Box sx={{ height: 400 }}>
+                  <CardContent sx={{ p: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>Property Portfolio</Typography>
+                    <Box sx={{ height: 350 }}>
                       <DataGrid
                         rows={mockPropertyMetrics.properties}
                         columns={propertyColumns}
@@ -605,11 +518,11 @@ const ReportsAnalytics = () => {
 
           {/* Tenant Metrics Tab */}
           {tabValue === 2 && (
-            <Grid container spacing={4}>
+            <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
                 <Card sx={{ backgroundColor: darkMode ? '#1e1e1e' : '#fff' }}>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Tenant Growth</Typography>
+                  <CardContent sx={{ p: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>Tenant Growth</Typography>
                     <Box sx={{ height: 300 }}>
                       <LineChart
                         series={[
@@ -626,17 +539,6 @@ const ReportsAnalytics = () => {
                         yAxis={[{
                           label: 'Number of Tenants'
                         }]}
-                        slotProps={{
-                          legend: {
-                            direction: 'row',
-                            position: { vertical: 'bottom', horizontal: 'middle' },
-                            padding: 0,
-                            labelStyle: {
-                              fontSize: 12,
-                              fill: darkMode ? '#fff' : '#666'
-                            }
-                          }
-                        }}
                       />
                     </Box>
                   </CardContent>
@@ -645,8 +547,8 @@ const ReportsAnalytics = () => {
 
               <Grid item xs={12} md={6}>
                 <Card sx={{ backgroundColor: darkMode ? '#1e1e1e' : '#fff' }}>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Satisfaction Trend</Typography>
+                  <CardContent sx={{ p: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>Satisfaction Trend</Typography>
                     <Box sx={{ height: 300 }}>
                       <LineChart
                         series={[
@@ -665,17 +567,6 @@ const ReportsAnalytics = () => {
                           max: 5,
                           label: 'Rating'
                         }]}
-                        slotProps={{
-                          legend: {
-                            direction: 'row',
-                            position: { vertical: 'bottom', horizontal: 'middle' },
-                            padding: 0,
-                            labelStyle: {
-                              fontSize: 12,
-                              fill: darkMode ? '#fff' : '#666'
-                            }
-                          }
-                        }}
                       />
                     </Box>
                   </CardContent>
@@ -684,34 +575,20 @@ const ReportsAnalytics = () => {
 
               <Grid item xs={12} md={6}>
                 <Card sx={{ backgroundColor: darkMode ? '#1e1e1e' : '#fff' }}>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Lease Breakdown</Typography>
+                  <CardContent sx={{ p: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>Lease Breakdown</Typography>
                     <Box sx={{ height: 300 }}>
                       <PieChart
                         series={[
                           { 
                             data: mockTenantMetrics.leaseBreakdown,
-                            arcLabel: (item) => `${item.count}`,
+                            arcLabel: (item) => `${item.value}`,
                             outerRadius: 80,
                             innerRadius: 40,
-                            paddingAngle: 2,
-                            cornerRadius: 4
+                            paddingAngle: 2
                           }
                         ]}
                         colors={currentColors}
-                        slotProps={{
-                          legend: {
-                            direction: 'row',
-                            position: { vertical: 'bottom', horizontal: 'middle' },
-                            padding: 0,
-                            itemMarkWidth: 10,
-                            itemMarkHeight: 10,
-                            labelStyle: {
-                              fontSize: 12,
-                              fill: darkMode ? '#fff' : '#666'
-                            }
-                          }
-                        }}
                       />
                     </Box>
                   </CardContent>
@@ -720,8 +597,8 @@ const ReportsAnalytics = () => {
 
               <Grid item xs={12} md={6}>
                 <Card sx={{ backgroundColor: darkMode ? '#1e1e1e' : '#fff' }}>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Lease Types</Typography>
+                  <CardContent sx={{ p: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>Lease Types</Typography>
                     <Box sx={{ height: 300 }}>
                       <DataGrid
                         rows={mockTenantMetrics.leaseBreakdown}
@@ -729,14 +606,6 @@ const ReportsAnalytics = () => {
                         pageSize={5}
                         rowsPerPageOptions={[5]}
                         disableSelectionOnClick
-                        sx={{
-                          '& .MuiDataGrid-columnHeaders': {
-                            backgroundColor: darkMode ? '#333' : '#f5f5f5'
-                          },
-                          '& .MuiDataGrid-cell': {
-                            borderBottomColor: darkMode ? '#333' : '#f0f0f0'
-                          }
-                        }}
                       />
                     </Box>
                   </CardContent>
@@ -747,11 +616,11 @@ const ReportsAnalytics = () => {
 
           {/* Maintenance Metrics Tab */}
           {tabValue === 3 && (
-            <Grid container spacing={4}>
+            <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
                 <Card sx={{ backgroundColor: darkMode ? '#1e1e1e' : '#fff' }}>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Maintenance Tickets</Typography>
+                  <CardContent sx={{ p: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>Maintenance Tickets</Typography>
                     <Box sx={{ height: 300 }}>
                       <BarChart
                         series={[
@@ -769,17 +638,6 @@ const ReportsAnalytics = () => {
                         yAxis={[{
                           label: 'Hours'
                         }]}
-                        slotProps={{
-                          legend: {
-                            direction: 'row',
-                            position: { vertical: 'bottom', horizontal: 'middle' },
-                            padding: 0,
-                            labelStyle: {
-                              fontSize: 12,
-                              fill: darkMode ? '#fff' : '#666'
-                            }
-                          }
-                        }}
                       />
                     </Box>
                   </CardContent>
@@ -788,8 +646,8 @@ const ReportsAnalytics = () => {
 
               <Grid item xs={12} md={6}>
                 <Card sx={{ backgroundColor: darkMode ? '#1e1e1e' : '#fff' }}>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Ticket Trends</Typography>
+                  <CardContent sx={{ p: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>Ticket Trends</Typography>
                     <Box sx={{ height: 300 }}>
                       <LineChart
                         series={[
@@ -810,27 +668,9 @@ const ReportsAnalytics = () => {
                           label: 'Month'
                         }]}
                         yAxis={[
-                          {
-                            label: 'Ticket Count',
-                            id: 'leftAxis'
-                          },
-                          {
-                            label: 'Avg Cost',
-                            id: 'rightAxis',
-                            position: 'right'
-                          }
+                          { label: 'Ticket Count' },
+                          { label: 'Avg Cost', position: 'right' }
                         ]}
-                        slotProps={{
-                          legend: {
-                            direction: 'row',
-                            position: { vertical: 'bottom', horizontal: 'middle' },
-                            padding: 0,
-                            labelStyle: {
-                              fontSize: 12,
-                              fill: darkMode ? '#fff' : '#666'
-                            }
-                          }
-                        }}
                       />
                     </Box>
                   </CardContent>
@@ -839,23 +679,15 @@ const ReportsAnalytics = () => {
 
               <Grid item xs={12}>
                 <Card sx={{ backgroundColor: darkMode ? '#1e1e1e' : '#fff' }}>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Maintenance Details</Typography>
-                    <Box sx={{ height: 400 }}>
+                  <CardContent sx={{ p: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>Maintenance Details</Typography>
+                    <Box sx={{ height: 350 }}>
                       <DataGrid
                         rows={mockMaintenanceData.tickets}
                         columns={maintenanceColumns}
                         pageSize={5}
                         rowsPerPageOptions={[5]}
                         disableSelectionOnClick
-                        sx={{
-                          '& .MuiDataGrid-columnHeaders': {
-                            backgroundColor: darkMode ? '#333' : '#f5f5f5'
-                          },
-                          '& .MuiDataGrid-cell': {
-                            borderBottomColor: darkMode ? '#333' : '#f0f0f0'
-                          }
-                        }}
                       />
                     </Box>
                   </CardContent>
@@ -866,21 +698,21 @@ const ReportsAnalytics = () => {
 
           {/* Predictive Analytics Tab */}
           {tabValue === 4 && (
-            <Grid container spacing={4}>
+            <Grid container spacing={3}>
               <Grid item xs={12} lg={6}>
                 <Card sx={{ backgroundColor: darkMode ? '#1e1e1e' : '#fff' }}>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Occupancy Forecast</Typography>
+                  <CardContent sx={{ p: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>Occupancy Forecast</Typography>
                     <Box sx={{ height: 300 }}>
                       <LineChart
                         series={[
                           { 
-                            data: mockPredictiveData.occupancyActual, 
+                            data: mockPredictiveData.occupancyActual,
                             label: 'Actual',
                             color: currentColors[1]
                           },
                           { 
-                            data: mockPredictiveData.occupancyForecast, 
+                            data: mockPredictiveData.occupancyForecast,
                             label: 'Forecast',
                             color: currentColors[2]
                           }
@@ -892,17 +724,6 @@ const ReportsAnalytics = () => {
                         yAxis={[{
                           label: 'Occupancy (%)'
                         }]}
-                        slotProps={{
-                          legend: {
-                            direction: 'row',
-                            position: { vertical: 'bottom', horizontal: 'middle' },
-                            padding: 0,
-                            labelStyle: {
-                              fontSize: 12,
-                              fill: darkMode ? '#fff' : '#666'
-                            }
-                          }
-                        }}
                       />
                     </Box>
                   </CardContent>
@@ -911,8 +732,8 @@ const ReportsAnalytics = () => {
 
               <Grid item xs={12} lg={6}>
                 <Card sx={{ backgroundColor: darkMode ? '#1e1e1e' : '#fff' }}>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Revenue Projections</Typography>
+                  <CardContent sx={{ p: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>Revenue Projections</Typography>
                     <Box sx={{ height: 300 }}>
                       <BarChart
                         series={[
@@ -923,7 +744,7 @@ const ReportsAnalytics = () => {
                           }
                         ]}
                         xAxis={[{ 
-                          data: mockPredictiveData.forecastQuarters, 
+                          data: mockPredictiveData.forecastQuarters,
                           scaleType: 'band',
                           label: 'Quarter'
                         }]}
@@ -931,18 +752,9 @@ const ReportsAnalytics = () => {
                           label: 'Amount ($)'
                         }]}
                         slotProps={{
-                          legend: {
-                            direction: 'row',
-                            position: { vertical: 'bottom', horizontal: 'middle' },
-                            padding: 0,
-                            labelStyle: {
-                              fontSize: 12,
-                              fill: darkMode ? '#fff' : '#666'
-                            }
-                          },
                           bar: {
                             rx: 4,
-                            width: 30
+                            width: 25
                           }
                         }}
                       />
@@ -953,8 +765,8 @@ const ReportsAnalytics = () => {
 
               <Grid item xs={12} lg={6}>
                 <Card sx={{ backgroundColor: darkMode ? '#1e1e1e' : '#fff' }}>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Expense Trend</Typography>
+                  <CardContent sx={{ p: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>Expense Trend</Typography>
                     <Box sx={{ height: 300 }}>
                       <LineChart
                         series={[
@@ -971,17 +783,6 @@ const ReportsAnalytics = () => {
                         yAxis={[{
                           label: 'Amount ($)'
                         }]}
-                        slotProps={{
-                          legend: {
-                            direction: 'row',
-                            position: { vertical: 'bottom', horizontal: 'middle' },
-                            padding: 0,
-                            labelStyle: {
-                              fontSize: 12,
-                              fill: darkMode ? '#fff' : '#666'
-                            }
-                          }
-                        }}
                       />
                     </Box>
                   </CardContent>
@@ -990,8 +791,8 @@ const ReportsAnalytics = () => {
 
               <Grid item xs={12} lg={6}>
                 <Card sx={{ backgroundColor: darkMode ? '#1e1e1e' : '#fff' }}>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Net Income Projection</Typography>
+                  <CardContent sx={{ p: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>Net Income Projection</Typography>
                     <Box sx={{ height: 300 }}>
                       <LineChart
                         series={[
@@ -1008,17 +809,6 @@ const ReportsAnalytics = () => {
                         yAxis={[{
                           label: 'Amount ($)'
                         }]}
-                        slotProps={{
-                          legend: {
-                            direction: 'row',
-                            position: { vertical: 'bottom', horizontal: 'middle' },
-                            padding: 0,
-                            labelStyle: {
-                              fontSize: 12,
-                              fill: darkMode ? '#fff' : '#666'
-                            }
-                          }
-                        }}
                       />
                     </Box>
                   </CardContent>
@@ -1028,21 +818,13 @@ const ReportsAnalytics = () => {
           )}
 
           {/* Export Controls */}
-          <Box sx={{ 
-            mt: 4, 
-            display: 'flex', 
-            gap: 2, 
-            justifyContent: 'flex-end'
-          }}>
+          <Box sx={{ mt: 4, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
             <Button 
               variant="contained" 
               startIcon={<Download />}
               sx={{
                 backgroundColor: currentColors[0],
-                '&:hover': {
-                  backgroundColor: currentColors[0],
-                  opacity: 0.9
-                }
+                '&:hover': { backgroundColor: currentColors[0], opacity: 0.9 }
               }}
             >
               Export PDF
