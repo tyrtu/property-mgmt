@@ -28,6 +28,8 @@ import {
   Backdrop,
   Pagination,
   Modal,
+  Container,
+  Card,
 } from "@mui/material";
 import {
   Construction as ConstructionIcon,
@@ -39,6 +41,9 @@ import {
   AttachFile as AttachFileIcon,
   FilterList as FilterIcon,
   Sort as SortIcon,
+  LightMode as LightModeIcon,
+  DarkMode as DarkModeIcon,
+  Close as CloseIcon,
 } from "@mui/icons-material";
 import {
   collection,
@@ -52,396 +57,628 @@ import {
   getDoc,
 } from "firebase/firestore";
 import { auth, db } from "../firebase";
+import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '@mui/material/styles';
+import { useMediaQuery } from '@mui/material';
 
 const TenantMaintenance = () => {
+  const { currentUser } = useAuth();
   const [requests, setRequests] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
-  const [newIssue, setNewIssue] = useState("");
-  const [file, setFile] = useState(null);
-  const [successMessage, setSuccessMessage] = useState("");
-  const [propertyDetails, setPropertyDetails] = useState({ 
-    property: "", 
-    unit: "",
-    propertyName: ""
+  const [newRequest, setNewRequest] = useState({
+    issue: '',
+    description: '',
+    priority: 'Medium',
+    image: null,
+    unitId: '',
+    unitNumber: '',
+    propertyName: '',
+    tenantName: '',
+    tenantId: '',
+    tenantEmail: '',
   });
-  const [selectedProperty, setSelectedProperty] = useState("All Properties");
-  const [properties, setProperties] = useState([]);
-  const [filterStatus, setFilterStatus] = useState("All");
-  const [sortOrder, setSortOrder] = useState("desc");
-  const [selectedRequest, setSelectedRequest] = useState(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [page, setPage] = useState(1);
-  const [requestsPerPage] = useState(5);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [darkMode, setDarkMode] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [userDetails, setUserDetails] = useState(null);
+  const [unitDetails, setUnitDetails] = useState(null);
 
-  // Fetch available properties for selection
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+
+  // Fetch user and unit details when component mounts
   useEffect(() => {
-    const fetchProperties = async () => {
-      try {
-        const querySnapshot = await getDoc(collection(db, "properties"));
-        const propertyList = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          name: doc.data().name,
-        }));
-        setProperties(propertyList);
-      } catch (error) {
-        console.error("Error fetching properties:", error);
-      }
-    };
-
-    fetchProperties();
-  }, []);
-
-  // Fetch tenant's property and unit details
-  useEffect(() => {
-    const fetchTenantDetails = async () => {
-      const user = auth.currentUser;
-      if (!user) return;
+    const fetchUserAndUnitDetails = async () => {
+      if (!currentUser?.uid) return;
 
       try {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
+        // Fetch user details
+        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
         if (userDoc.exists()) {
           const userData = userDoc.data();
+          setUserDetails(userData);
           
-          // Fetch property details
-          const propertyDoc = await getDoc(doc(db, "properties", userData.propertyId));
-          const propertyName = propertyDoc.exists() ? propertyDoc.data().name : "Unknown Property";
-          
-          setPropertyDetails({
-            property: userData.propertyId || "Unknown Property",
-            unit: userData.unit || "Unknown Unit",
-            propertyName: propertyName
-          });
+          // If user has a unitId, fetch unit details
+          if (userData.unitId) {
+            const unitDoc = await getDoc(doc(db, 'units', userData.unitId));
+            if (unitDoc.exists()) {
+              const unitData = unitDoc.data();
+              setUnitDetails(unitData);
+              
+              // Update newRequest with user and unit details
+              setNewRequest(prev => ({
+                ...prev,
+                unitId: userData.unitId,
+                unitNumber: unitData.number || '',
+                propertyName: unitData.propertyName || '',
+                tenantName: userData.name || '',
+                tenantId: currentUser.uid,
+                tenantEmail: currentUser.email || '',
+              }));
+            }
+          }
         }
       } catch (error) {
-        console.error("Error fetching tenant details:", error);
+        console.error('Error fetching user/unit details:', error);
+        setError('Error loading user information');
       }
     };
 
-    fetchTenantDetails();
-  }, []);
+    fetchUserAndUnitDetails();
+  }, [currentUser]);
 
   // Fetch maintenance requests
   useEffect(() => {
-    const user = auth.currentUser;
-    if (!user) return;
+    if (!currentUser?.uid) return;
 
-    let maintenanceRef = collection(db, "maintenanceRequests");
-    let q = query(maintenanceRef, where("userId", "==", user.uid), orderBy("createdAt", sortOrder));
-
-    if (selectedProperty !== "All Properties") {
-      q = query(maintenanceRef, where("property", "==", selectedProperty), where("userId", "==", user.uid), orderBy("createdAt", sortOrder));
-    }
-
-    if (filterStatus !== "All") {
-      q = query(maintenanceRef, where("status", "==", filterStatus), where("userId", "==", user.uid), orderBy("createdAt", sortOrder));
-    }
-
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const reqs = snapshot.docs.map((doc) => {
-          const data = doc.data();
-          const createdAt = data.createdAt
-            ? new Date(data.createdAt.seconds * 1000)
-            : new Date(0);
-          return {
-            id: doc.id,
-            ...data,
-            submittedAt: createdAt.toLocaleDateString(),
-          };
-        });
-        setRequests(reqs);
-      },
-      (error) => {
-        console.error("Error fetching maintenance requests:", error);
-      }
+    const q = query(
+      collection(db, 'maintenanceRequests'),
+      where('tenantId', '==', currentUser.uid),
+      orderBy('createdAt', 'desc')
     );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const requestsData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate(),
+      }));
+      setRequests(requestsData);
+    });
+
     return () => unsubscribe();
-  }, [selectedProperty, filterStatus, sortOrder]);
+  }, [currentUser]);
 
-  // Open modal
-  const handleOpenDialog = () => {
-    setOpenDialog(true);
-  };
-
-  // Close modal and reset inputs
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
-    setNewIssue("");
-    setFile(null);
-  };
-
-  // Submit new maintenance request
-  const handleSubmitRequest = async () => {
-    if (newIssue.trim() === "") return;
-    const user = auth.currentUser;
-    if (!user) return;
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccess('');
 
     try {
-      await addDoc(collection(db, "maintenanceRequests"), {
-        userId: user.uid,
-        issue: newIssue,
-        status: "Pending",
-        createdAt: serverTimestamp(),
-        propertyId: propertyDetails.property,
-        propertyName: propertyDetails.propertyName,
-        unit: propertyDetails.unit,
-        tenantName: user.displayName || "Unknown Tenant",
-        tenantEmail: user.email
-      });
+      // Validate required fields
+      if (!newRequest.issue || !newRequest.description) {
+        throw new Error('Please fill in all required fields');
+      }
 
-      setSuccessMessage("Maintenance request submitted successfully!");
-      setTimeout(() => {
-        setSuccessMessage("");
-      }, 3000);
-      handleCloseDialog();
+      // Add timestamp and status
+      const requestData = {
+        ...newRequest,
+        createdAt: new Date(),
+        status: 'Pending',
+      };
+
+      await addDoc(collection(db, 'maintenanceRequests'), requestData);
+      
+      // Reset form
+      setNewRequest({
+        issue: '',
+        description: '',
+        priority: 'Medium',
+        image: null,
+        unitId: unitDetails?.id || '',
+        unitNumber: unitDetails?.number || '',
+        propertyName: unitDetails?.propertyName || '',
+        tenantName: userDetails?.name || '',
+        tenantId: currentUser.uid,
+        tenantEmail: currentUser.email || '',
+      });
+      setImagePreview(null);
+      setSuccess('Maintenance request submitted successfully');
     } catch (error) {
-      console.error("Error submitting maintenance request:", error);
+      console.error('Error submitting request:', error);
+      setError(error.message || 'Error submitting request');
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Open request details modal
-  const handleOpenRequestModal = (request) => {
-    setSelectedRequest(request);
-    setModalOpen(true);
+  // Handle image upload
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setNewRequest(prev => ({ ...prev, image: file }));
+      setImagePreview(URL.createObjectURL(file));
+    }
   };
 
-  // Pagination
-  const indexOfLastRequest = page * requestsPerPage;
-  const indexOfFirstRequest = indexOfLastRequest - requestsPerPage;
-  const currentRequests = requests.slice(indexOfFirstRequest, indexOfLastRequest);
+  // Toggle dark mode
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+  };
 
   return (
-    <Box sx={{ backgroundColor: "background.default", minHeight: "100vh", p: 3 }}>
-      {/* Header */}
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-        <Typography variant="h4" sx={{ color: "primary.main" }}>
-          <ConstructionIcon sx={{ fontSize: 35, mr: 1, color: "primary.main" }} /> Maintenance Requests
-        </Typography>
-
-        {/* Property selection dropdown */}
-        <FormControl sx={{ minWidth: 200 }}>
-          <InputLabel>Select Property</InputLabel>
-          <Select
-            value={selectedProperty}
-            onChange={(e) => setSelectedProperty(e.target.value)}
-          >
-            <MenuItem value="All Properties">All Properties</MenuItem>
-            {properties.map((property) => (
-              <MenuItem key={property.id} value={property.name}>
-                {property.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </Box>
-
-      {/* Analytics Section */}
-      <Grid container spacing={3} mb={4}>
-        <Grid item xs={12} md={4}>
-          <Paper
-            sx={{
-              p: 2,
-              textAlign: "center",
-              backgroundColor: "#f0f4f8", // Light and dull background
-            }}
-          >
-            <ConstructionIcon sx={{ fontSize: 40, mb: 1, color: "primary.main" }} />
-            <Typography variant="h6">Total Requests</Typography>
-            <Typography variant="h4">{requests.length}</Typography>
-          </Paper>
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <Paper
-            sx={{
-              p: 2,
-              textAlign: "center",
-              backgroundColor: "#f0f4f8", // Light and dull background
-            }}
-          >
-            <WarningIcon sx={{ fontSize: 40, mb: 1, color: "warning.main" }} />
-            <Typography variant="h6">Pending Requests</Typography>
-            <Typography variant="h4">
-              {requests.filter((req) => req.status === "Pending").length}
+    <Box sx={{ 
+      minHeight: '100vh', 
+      bgcolor: darkMode ? '#121212' : '#f5f5f5',
+      py: { xs: 2, sm: 4 }
+    }}>
+      <Container maxWidth="lg">
+        <Card sx={{ 
+          p: { xs: 2, sm: 4 },
+          bgcolor: darkMode ? '#1e1e1e' : '#fff',
+          borderRadius: 2,
+          boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+        }}>
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            mb: 4
+          }}>
+            <Typography 
+              variant="h4" 
+              sx={{ 
+                fontWeight: 700,
+                color: darkMode ? '#fff' : '#000',
+                fontSize: { xs: '1.5rem', sm: '2rem' }
+              }}
+            >
+              Submit Maintenance Request
             </Typography>
-          </Paper>
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <Paper
-            sx={{
-              p: 2,
-              textAlign: "center",
-              backgroundColor: "#f0f4f8", // Light and dull background
-            }}
-          >
-            <CheckCircleIcon sx={{ fontSize: 40, mb: 1, color: "success.main" }} />
-            <Typography variant="h6">Resolved Requests</Typography>
-            <Typography variant="h4">
-              {requests.filter((req) => req.status === "Resolved").length}
-            </Typography>
-          </Paper>
-        </Grid>
-      </Grid>
-
-      {/* Filter and Sort Options */}
-      <Box display="flex" gap={2} mb={3}>
-        <FormControl sx={{ minWidth: 150 }}>
-          <InputLabel>Filter by Status</InputLabel>
-          <Select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-          >
-            <MenuItem value="All">All</MenuItem>
-            <MenuItem value="Pending">Pending</MenuItem>
-            <MenuItem value="In Progress">In Progress</MenuItem>
-            <MenuItem value="Resolved">Resolved</MenuItem>
-          </Select>
-        </FormControl>
-        <FormControl sx={{ minWidth: 150 }}>
-          <InputLabel>Sort by Date</InputLabel>
-          <Select
-            value={sortOrder}
-            onChange={(e) => setSortOrder(e.target.value)}
-          >
-            <MenuItem value="desc">Newest First</MenuItem>
-            <MenuItem value="asc">Oldest First</MenuItem>
-          </Select>
-        </FormControl>
-      </Box>
-
-      {/* Submit Request Button */}
-      <Button variant="contained" onClick={handleOpenDialog} sx={{ mb: 2 }}>
-        <AddIcon sx={{ mr: 1 }} /> Request Maintenance
-      </Button>
-
-      {successMessage && (
-        <Typography variant="subtitle1" color="success.main" sx={{ mb: 2 }}>
-          {successMessage}
-        </Typography>
-      )}
-
-      {/* Requests List */}
-      <Paper sx={{ p: 3, backgroundColor: "#f0f4f8" }}>
-        <Typography variant="h6">Your Requests</Typography>
-        {requests.length === 0 ? (
-          <Box sx={{ textAlign: "center", p: 4 }}>
-            <ConstructionIcon sx={{ fontSize: 60, color: "primary.main", mb: 2 }} />
-            <Typography variant="h5">No Maintenance Requests Found</Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-              You haven't submitted any maintenance requests yet. When you do, they'll appear here.
-            </Typography>
-            <Button variant="contained" onClick={handleOpenDialog}>
-              Submit a Request
-            </Button>
-          </Box>
-        ) : (
-          <List>
-            {currentRequests.map((req) => (
-              <ListItem
-                key={req.id}
-                sx={{
-                  mb: 2,
-                  borderBottom: "1px solid #ddd",
-                  cursor: "pointer",
-                  transition: "transform 0.2s, box-shadow 0.2s",
-                  "&:hover": {
-                    transform: "scale(1.02)",
-                    boxShadow: 3,
-                  },
-                }}
-                onClick={() => handleOpenRequestModal(req)}
-              >
-                <ListItemText
-                  primary={req.issue}
-                  secondary={`Property: ${req.propertyName} | Unit: ${req.unit} | Submitted: ${req.submittedAt}`}
-                />
-                <Chip
-                  label={req.status}
-                  color={
-                    req.status === "Resolved"
-                      ? "success"
-                      : req.status === "In Progress"
-                      ? "warning"
-                      : "default"
+            <Tooltip title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>
+              <IconButton 
+                onClick={toggleDarkMode} 
+                sx={{ 
+                  color: darkMode ? '#fff' : '#000',
+                  '&:hover': {
+                    bgcolor: darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)'
                   }
-                />
-              </ListItem>
-            ))}
-          </List>
-        )}
+                }}
+              >
+                {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
+              </IconButton>
+            </Tooltip>
+          </Box>
 
-        {/* Pagination */}
-        <Box display="flex" justifyContent="center" mt={3}>
-          <Pagination
-            count={Math.ceil(requests.length / requestsPerPage)}
-            page={page}
-            onChange={(e, value) => setPage(value)}
-            color="primary"
-          />
-        </Box>
-      </Paper>
-
-      {/* Maintenance Request Modal */}
-      <Dialog open={openDialog} onClose={handleCloseDialog}>
-        <DialogTitle>Request Maintenance</DialogTitle>
-        <DialogContent>
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="subtitle1" gutterBottom>
+          {/* Property and Unit Information */}
+          <Card sx={{ 
+            p: 2, 
+            mb: 3,
+            bgcolor: darkMode ? '#333' : '#f5f5f5',
+            borderRadius: 2
+          }}>
+            <Typography 
+              variant="h6" 
+              sx={{ 
+                mb: 2,
+                color: darkMode ? '#fff' : '#000'
+              }}
+            >
               Property Information
             </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Property: {propertyDetails.propertyName}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Unit: {propertyDetails.unit}
-            </Typography>
-          </Box>
-          <TextField
-            label="Describe the issue"
-            fullWidth
-            multiline
-            rows={3}
-            value={newIssue}
-            onChange={(e) => setNewIssue(e.target.value)}
-            sx={{ mt: 2 }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button variant="contained" onClick={handleSubmitRequest}>
-            Submit
-          </Button>
-        </DialogActions>
-      </Dialog>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    color: darkMode ? '#aaa' : '#666',
+                    mb: 0.5
+                  }}
+                >
+                  Property
+                </Typography>
+                <Typography 
+                  variant="body1" 
+                  sx={{ 
+                    color: darkMode ? '#fff' : '#000',
+                    fontWeight: 500
+                  }}
+                >
+                  {unitDetails?.propertyName || 'Not assigned'}
+                </Typography>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    color: darkMode ? '#aaa' : '#666',
+                    mb: 0.5
+                  }}
+                >
+                  Unit Number
+                </Typography>
+                <Typography 
+                  variant="body1" 
+                  sx={{ 
+                    color: darkMode ? '#fff' : '#000',
+                    fontWeight: 500
+                  }}
+                >
+                  {unitDetails?.number || 'Not assigned'}
+                </Typography>
+              </Grid>
+            </Grid>
+          </Card>
 
-      {/* Request Details Modal */}
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} closeAfterTransition BackdropComponent={Backdrop}>
-        <Fade in={modalOpen}>
-          <Box
-            sx={{
-              p: 4,
-              backgroundColor: "#f0f4f8",
-              mx: "auto",
-              my: "20%",
-              width: 400,
-              borderRadius: 2,
-            }}
-          >
-            <Typography variant="h6" gutterBottom>{selectedRequest?.issue}</Typography>
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" color="text.secondary">Property Information</Typography>
-              <Typography variant="body2">Property: {selectedRequest?.propertyName}</Typography>
-              <Typography variant="body2">Unit: {selectedRequest?.unit}</Typography>
+          {/* Maintenance Request Form */}
+          <form onSubmit={handleSubmit}>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Issue Title"
+                  value={newRequest.issue}
+                  onChange={(e) => setNewRequest(prev => ({ ...prev, issue: e.target.value }))}
+                  required
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      bgcolor: darkMode ? '#333' : '#fff',
+                      '& fieldset': {
+                        borderColor: darkMode ? '#555' : '#ccc',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: darkMode ? '#666' : '#999',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: 'primary.main',
+                      },
+                      color: darkMode ? '#fff' : '#000',
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: darkMode ? '#aaa' : '#666',
+                    },
+                  }}
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Description"
+                  multiline
+                  rows={4}
+                  value={newRequest.description}
+                  onChange={(e) => setNewRequest(prev => ({ ...prev, description: e.target.value }))}
+                  required
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      bgcolor: darkMode ? '#333' : '#fff',
+                      '& fieldset': {
+                        borderColor: darkMode ? '#555' : '#ccc',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: darkMode ? '#666' : '#999',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: 'primary.main',
+                      },
+                      color: darkMode ? '#fff' : '#000',
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: darkMode ? '#aaa' : '#666',
+                    },
+                  }}
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel sx={{ color: darkMode ? '#aaa' : '#666' }}>
+                    Priority
+                  </InputLabel>
+                  <Select
+                    value={newRequest.priority}
+                    onChange={(e) => setNewRequest(prev => ({ ...prev, priority: e.target.value }))}
+                    label="Priority"
+                    sx={{
+                      bgcolor: darkMode ? '#333' : '#fff',
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: darkMode ? '#555' : '#ccc',
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: darkMode ? '#666' : '#999',
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'primary.main',
+                      },
+                      color: darkMode ? '#fff' : '#000',
+                    }}
+                  >
+                    <MenuItem value="Low">Low</MenuItem>
+                    <MenuItem value="Medium">Medium</MenuItem>
+                    <MenuItem value="High">High</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <Button
+                  component="label"
+                  variant="outlined"
+                  fullWidth
+                  sx={{
+                    height: '56px',
+                    borderColor: darkMode ? '#555' : '#ccc',
+                    color: darkMode ? '#fff' : '#000',
+                    '&:hover': {
+                      borderColor: darkMode ? '#666' : '#999',
+                    },
+                  }}
+                >
+                  Upload Image
+                  <input
+                    type="file"
+                    hidden
+                    accept="image/*"
+                    onChange={handleImageChange}
+                  />
+                </Button>
+              </Grid>
+
+              {imagePreview && (
+                <Grid item xs={12}>
+                  <Box sx={{ 
+                    position: 'relative',
+                    width: '100%',
+                    maxWidth: 300,
+                    mx: 'auto'
+                  }}>
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      style={{
+                        width: '100%',
+                        height: 'auto',
+                        borderRadius: 8,
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                      }}
+                    />
+                    <IconButton
+                      onClick={() => {
+                        setImagePreview(null);
+                        setNewRequest(prev => ({ ...prev, image: null }));
+                      }}
+                      sx={{
+                        position: 'absolute',
+                        top: 8,
+                        right: 8,
+                        bgcolor: 'rgba(0,0,0,0.5)',
+                        color: '#fff',
+                        '&:hover': {
+                          bgcolor: 'rgba(0,0,0,0.7)',
+                        },
+                      }}
+                    >
+                      <CloseIcon />
+                    </IconButton>
+                  </Box>
+                </Grid>
+              )}
+
+              <Grid item xs={12}>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  fullWidth
+                  disabled={loading}
+                  sx={{
+                    py: 1.5,
+                    fontSize: '1rem',
+                    textTransform: 'none',
+                    borderRadius: 2,
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                  }}
+                >
+                  {loading ? 'Submitting...' : 'Submit Request'}
+                </Button>
+              </Grid>
+            </Grid>
+          </form>
+
+          {/* Error and Success Messages */}
+          {error && (
+            <Alert 
+              severity="error" 
+              sx={{ 
+                mt: 2,
+                bgcolor: darkMode ? 'rgba(211, 47, 47, 0.1)' : 'rgba(211, 47, 47, 0.04)',
+                color: darkMode ? '#ff8a8a' : '#d32f2f',
+                '& .MuiAlert-icon': {
+                  color: darkMode ? '#ff8a8a' : '#d32f2f',
+                },
+              }}
+            >
+              {error}
+            </Alert>
+          )}
+          {success && (
+            <Alert 
+              severity="success" 
+              sx={{ 
+                mt: 2,
+                bgcolor: darkMode ? 'rgba(46, 125, 50, 0.1)' : 'rgba(46, 125, 50, 0.04)',
+                color: darkMode ? '#81c784' : '#2e7d32',
+                '& .MuiAlert-icon': {
+                  color: darkMode ? '#81c784' : '#2e7d32',
+                },
+              }}
+            >
+              {success}
+            </Alert>
+          )}
+
+          {/* Previous Requests */}
+          <Box sx={{ mt: 6 }}>
+            <Typography 
+              variant="h5" 
+              sx={{ 
+                mb: 3,
+                color: darkMode ? '#fff' : '#000',
+                fontSize: { xs: '1.25rem', sm: '1.5rem' }
+              }}
+            >
+              Previous Requests
+            </Typography>
+            <Box sx={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              gap: 2,
+              px: { xs: 0, sm: 1 }
+            }}>
+              {requests.map((request) => (
+                <Card 
+                  key={request.id}
+                  sx={{ 
+                    p: 2,
+                    bgcolor: darkMode ? '#333' : '#fff',
+                    borderRadius: 2,
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    '&:hover': {
+                      bgcolor: darkMode ? '#3a3a3a' : '#f5f5f5',
+                    }
+                  }}
+                >
+                  <Box sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'flex-start',
+                    mb: 2,
+                    flexWrap: 'wrap',
+                    gap: 1
+                  }}>
+                    <Typography 
+                      variant="subtitle1" 
+                      sx={{ 
+                        fontWeight: 'bold',
+                        color: darkMode ? '#fff' : '#000',
+                        flex: 1,
+                        minWidth: '200px'
+                      }}
+                    >
+                      {request.issue}
+                    </Typography>
+                    <Chip
+                      label={request.status}
+                      color={
+                        request.status === 'Completed'
+                          ? 'success'
+                          : request.status === 'In Progress'
+                          ? 'primary'
+                          : 'warning'
+                      }
+                      size="small"
+                      sx={{
+                        textTransform: 'capitalize',
+                        fontWeight: 500,
+                      }}
+                    />
+                  </Box>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          color: darkMode ? '#aaa' : '#666',
+                          mb: 0.5
+                        }}
+                      >
+                        Submitted
+                      </Typography>
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          color: darkMode ? '#fff' : '#000',
+                          fontWeight: 500
+                        }}
+                      >
+                        {request.createdAt?.toLocaleDateString()}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          color: darkMode ? '#aaa' : '#666',
+                          mb: 0.5
+                        }}
+                      >
+                        Priority
+                      </Typography>
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          color: darkMode ? '#fff' : '#000',
+                          fontWeight: 500,
+                          textTransform: 'capitalize'
+                        }}
+                      >
+                        {request.priority}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          color: darkMode ? '#aaa' : '#666',
+                          mb: 0.5
+                        }}
+                      >
+                        Description
+                      </Typography>
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          color: darkMode ? '#fff' : '#000',
+                          whiteSpace: 'pre-wrap'
+                        }}
+                      >
+                        {request.description}
+                      </Typography>
+                    </Grid>
+                    {request.image && (
+                      <Grid item xs={12}>
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            color: darkMode ? '#aaa' : '#666',
+                            mb: 0.5
+                          }}
+                        >
+                          Image
+                        </Typography>
+                        <img
+                          src={request.image}
+                          alt="Maintenance issue"
+                          style={{
+                            width: '100%',
+                            maxWidth: 300,
+                            borderRadius: 8,
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                          }}
+                        />
+                      </Grid>
+                    )}
+                  </Grid>
+                </Card>
+              ))}
             </Box>
-            <Typography variant="body2">
-              Submitted: {selectedRequest?.submittedAt}
-            </Typography>
-            <Typography variant="body2">
-              Status: {selectedRequest?.status}
-            </Typography>
           </Box>
-        </Fade>
-      </Modal>
+        </Card>
+      </Container>
     </Box>
   );
 };

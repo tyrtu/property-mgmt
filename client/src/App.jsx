@@ -17,7 +17,8 @@ import TenantResetPassword from './components/TenantResetPassword';
 import AdminRoute from './components/AdminRoute';
 import { auth } from './firebase';
 import { setPersistence, browserLocalPersistence } from 'firebase/auth';
-import Chatbot from './components/Chatbot'; // Import chatbot
+import Chatbot from './components/Chatbot';
+import { AuthProvider } from './contexts/AuthContext';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -67,86 +68,88 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Router>
-        <ErrorBoundary>
-          <Routes>
-            {/* Redirect to Tenant Login as the initial page */}
-            <Route path="/" element={<Navigate to="/tenant/login" />} />
+      <AuthProvider>
+        <Router>
+          <ErrorBoundary>
+            <Routes>
+              {/* Redirect to Tenant Login as the initial page */}
+              <Route path="/" element={<Navigate to="/tenant/login" />} />
 
-            {/* Tenant Authentication Pages */}
-            <Route path="/tenant/login" element={<TenantLogin />} />
-            <Route path="/tenant/register" element={<TenantRegister />} />
-            <Route path="/tenant/reset-password" element={<TenantResetPassword />} />
+              {/* Tenant Authentication Pages */}
+              <Route path="/tenant/login" element={<TenantLogin />} />
+              <Route path="/tenant/register" element={<TenantRegister />} />
+              <Route path="/tenant/reset-password" element={<TenantResetPassword />} />
 
-            {/* Tenant Portal (Protected Routes) */}
-            <Route
-              path="/tenant/*"
-              element={
-                <>
-                  <TenantPortal />
-                  {isAuthenticated && <Chatbot />} {/* Render chatbot only if authenticated */}
-                </>
-              }
-            />
+              {/* Tenant Portal (Protected Routes) */}
+              <Route
+                path="/tenant/*"
+                element={
+                  <>
+                    <TenantPortal />
+                    {isAuthenticated && <Chatbot />} {/* Render chatbot only if authenticated */}
+                  </>
+                }
+              />
 
-            {/* Admin Pages (Protected by AdminRoute) */}
-            <Route
-              path="/dashboard"
-              element={
-                <AdminRoute userRole={userRole}>
-                  <Dashboard />
-                  {isAuthenticated && <Chatbot />} {/* Render chatbot only if authenticated */}
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/properties"
-              element={
-                <AdminRoute userRole={userRole}>
-                  <PropertyManagement />
-                  {isAuthenticated && <Chatbot />} {/* Render chatbot only if authenticated */}
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/tenants"
-              element={
-                <AdminRoute userRole={userRole}>
-                  <TenantManagement />
-                  {isAuthenticated && <Chatbot />} {/* Render chatbot only if authenticated */}
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/payments"
-              element={
-                <AdminRoute userRole={userRole}>
-                  <RentPayment />
-                  {isAuthenticated && <Chatbot />} {/* Render chatbot only if authenticated */}
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/maintenance"
-              element={
-                <AdminRoute userRole={userRole}>
-                  <MaintenanceRequests />
-                  {isAuthenticated && <Chatbot />} {/* Render chatbot only if authenticated */}
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/reports"
-              element={
-                <AdminRoute userRole={userRole}>
-                  <ReportsAnalytics />
-                  {isAuthenticated && <Chatbot />} {/* Render chatbot only if authenticated */}
-                </AdminRoute>
-              }
-            />
-          </Routes>
-        </ErrorBoundary>
-      </Router>
+              {/* Admin Pages (Protected by AdminRoute) */}
+              <Route
+                path="/dashboard"
+                element={
+                  <AdminRoute userRole={userRole}>
+                    <Dashboard />
+                    {isAuthenticated && <Chatbot />} {/* Render chatbot only if authenticated */}
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/properties"
+                element={
+                  <AdminRoute userRole={userRole}>
+                    <PropertyManagement />
+                    {isAuthenticated && <Chatbot />} {/* Render chatbot only if authenticated */}
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/tenants"
+                element={
+                  <AdminRoute userRole={userRole}>
+                    <TenantManagement />
+                    {isAuthenticated && <Chatbot />} {/* Render chatbot only if authenticated */}
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/payments"
+                element={
+                  <AdminRoute userRole={userRole}>
+                    <RentPayment />
+                    {isAuthenticated && <Chatbot />} {/* Render chatbot only if authenticated */}
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/maintenance"
+                element={
+                  <AdminRoute userRole={userRole}>
+                    <MaintenanceRequests />
+                    {isAuthenticated && <Chatbot />} {/* Render chatbot only if authenticated */}
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/reports"
+                element={
+                  <AdminRoute userRole={userRole}>
+                    <ReportsAnalytics />
+                    {isAuthenticated && <Chatbot />} {/* Render chatbot only if authenticated */}
+                  </AdminRoute>
+                }
+              />
+            </Routes>
+          </ErrorBoundary>
+        </Router>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

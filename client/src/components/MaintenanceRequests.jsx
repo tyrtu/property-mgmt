@@ -48,7 +48,7 @@ import {
   Analytics,
   Delete,
 } from '@mui/icons-material';
-import { collection, query, orderBy, onSnapshot, updateDoc, doc, getDocs, deleteDoc, addDoc } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, updateDoc, doc, getDocs, deleteDoc, addDoc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { PieChart, Pie, Cell, Legend, Tooltip as RechartsTooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 import { saveAs } from 'file-saver';
@@ -358,14 +358,29 @@ const MaintenanceRequests = () => {
 
     const unsubscribe = onSnapshot(
       q,
-      (snapshot) => {
-        const requests = snapshot.docs.map((docSnap) => {
+      async (snapshot) => {
+        const requests = await Promise.all(snapshot.docs.map(async (docSnap) => {
           const data = docSnap.data();
+          
+          // Fetch unit details if unitId exists
+          let unitNumber = '';
+          if (data.unitId) {
+            try {
+              const unitDoc = await getDoc(doc(db, 'units', data.unitId));
+              if (unitDoc.exists()) {
+                unitNumber = unitDoc.data().number || '';
+              }
+            } catch (error) {
+              console.error('Error fetching unit details:', error);
+            }
+          }
+
           return {
             id: docSnap.id,
             issue: data.issue || '',
             propertyName: data.propertyName || '',
-            unit: data.unit || '',
+            unit: unitNumber || data.unit || '',
+            unitId: data.unitId || '',
             tenantName: data.tenantName || '',
             status: data.status || 'Pending',
             priority: data.priority || 'Medium',
@@ -373,7 +388,7 @@ const MaintenanceRequests = () => {
             description: data.description || 'No description provided.',
             image: data.image || null,
           };
-        });
+        }));
 
         // Filter requests
         const filteredRequests = requests.filter((req) => {
@@ -385,7 +400,8 @@ const MaintenanceRequests = () => {
             selectedPriority === 'All Priorities' || req.priority === selectedPriority;
           const matchesSearch =
             req.issue.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            req.propertyName.toLowerCase().includes(searchQuery.toLowerCase());
+            req.propertyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            req.unit.toLowerCase().includes(searchQuery.toLowerCase());
 
           return matchesProperty && matchesStatus && matchesPriority && matchesSearch;
         });
@@ -483,7 +499,7 @@ const MaintenanceRequests = () => {
     },
     {
       field: 'unit',
-      headerName: 'Unit',
+      headerName: 'Unit No.',
       flex: 1,
       minWidth: 100,
     },
@@ -804,40 +820,224 @@ const MaintenanceRequests = () => {
           </Box>
 
           {/* Data Table */}
-          <Box sx={{ height: 600, width: '100%' }}>
-            <DataGrid
-              rows={rows}
-              columns={columns}
-              slots={{ toolbar: GridToolbar }}
-              pageSizeOptions={[10, 25, 50]}
-              disableColumnMenu={isSmallScreen}
-              autoHeight
-              disableRowSelectionOnClick
-              sx={{
-                '& .MuiDataGrid-columnHeaders': {
-                  backgroundColor: darkMode ? '#333' : 'primary.light',
-                  fontSize: isSmallScreen ? 14 : 16,
+          <Box sx={{ width: '100%', overflowX: 'auto' }}>
+            {isSmallScreen ? (
+              <Box sx={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: 2,
+                px: 1 // Add padding for better mobile spacing
+              }}>
+                {rows.map((row) => (
+                  <Card 
+                    key={row.id}
+                    sx={{ 
+                      p: 2,
+                      bgcolor: darkMode ? '#1e1e1e' : '#fff',
+                      '&:hover': {
+                        bgcolor: darkMode ? '#2a2a2a' : '#f5f5f5',
+                      },
+                      borderRadius: 2,
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    }}
+                  >
+                    <Box sx={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'flex-start', 
+                      mb: 2,
+                      flexWrap: 'wrap',
+                      gap: 1
+                    }}>
+                      <Typography 
+                        variant="subtitle1" 
+                        sx={{ 
+                          fontWeight: 'bold', 
+                          color: darkMode ? '#fff' : '#000',
+                          flex: 1,
+                          minWidth: '200px'
+                        }}
+                      >
+                        {row.issue}
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 0.5 }}>
+                        <Tooltip title="View Details">
+                          <IconButton
+                            onClick={() => setViewRequest(row)}
+                            color="primary"
+                            size="small"
+                            sx={{ 
+                              bgcolor: darkMode ? 'rgba(25, 118, 210, 0.1)' : 'rgba(25, 118, 210, 0.04)',
+                              '&:hover': {
+                                bgcolor: darkMode ? 'rgba(25, 118, 210, 0.2)' : 'rgba(25, 118, 210, 0.08)',
+                              }
+                            }}
+                          >
+                            <Visibility />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Delete Request">
+                          <IconButton
+                            onClick={() => handleDeleteRequest(row.id)}
+                            color="error"
+                            size="small"
+                            sx={{ 
+                              bgcolor: darkMode ? 'rgba(211, 47, 47, 0.1)' : 'rgba(211, 47, 47, 0.04)',
+                              '&:hover': {
+                                bgcolor: darkMode ? 'rgba(211, 47, 47, 0.2)' : 'rgba(211, 47, 47, 0.08)',
+                              }
+                            }}
+                          >
+                            <Delete />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    </Box>
+                    <Grid container spacing={2}>
+                      <Grid item xs={6}>
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            color: darkMode ? '#aaa' : '#666',
+                            mb: 0.5
+                          }}
+                        >
+                          Property
+                        </Typography>
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            color: darkMode ? '#fff' : '#000',
+                            fontWeight: 500
+                          }}
+                        >
+                          {row.propertyName}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            color: darkMode ? '#aaa' : '#666',
+                            mb: 0.5
+                          }}
+                        >
+                          Unit No.
+                        </Typography>
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            color: darkMode ? '#fff' : '#000',
+                            fontWeight: 500
+                          }}
+                        >
+                          {row.unit}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            color: darkMode ? '#aaa' : '#666',
+                            mb: 0.5
+                          }}
+                        >
+                          Tenant
+                        </Typography>
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            color: darkMode ? '#fff' : '#000',
+                            fontWeight: 500
+                          }}
+                        >
+                          {row.tenantName}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            color: darkMode ? '#aaa' : '#666',
+                            mb: 0.5
+                          }}
+                        >
+                          Status
+                        </Typography>
+                        <Select
+                          value={row.status}
+                          onChange={(e) => handleStatusChange(row.id, e.target.value)}
+                          size="small"
+                          fullWidth
+                          sx={{
+                            '& .MuiSelect-select': {
+                              py: 0.5,
+                              fontSize: '0.875rem',
+                            },
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              borderColor: darkMode ? '#555' : '#ccc',
+                            },
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: darkMode ? '#666' : '#999',
+                            },
+                          }}
+                        >
+                          <MenuItem value="Pending">Pending</MenuItem>
+                          <MenuItem value="In Progress">In Progress</MenuItem>
+                          <MenuItem value="Completed">Completed</MenuItem>
+                        </Select>
+                      </Grid>
+                      <Grid item xs={12}>
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            color: darkMode ? '#aaa' : '#666',
+                            mb: 0.5
+                          }}
+                        >
+                          Submitted
+                        </Typography>
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            color: darkMode ? '#fff' : '#000',
+                            fontWeight: 500
+                          }}
+                        >
+                          {row.createdAt ? new Date(row.createdAt).toLocaleDateString() : ''}
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                  </Card>
+                ))}
+              </Box>
+            ) : (
+              // Desktop view with DataGrid
+              <DataGrid
+                rows={rows}
+                columns={columns}
+                slots={{ toolbar: GridToolbar }}
+                pageSizeOptions={[10, 25, 50]}
+                autoHeight
+                disableRowSelectionOnClick
+                sx={{
+                  '& .MuiDataGrid-columnHeaders': {
+                    backgroundColor: darkMode ? '#333' : 'primary.light',
+                    fontSize: 16,
+                    color: darkMode ? '#fff' : '#000',
+                  },
+                  '& .MuiDataGrid-row:nth-of-type(odd)': {
+                    backgroundColor: darkMode ? '#1e1e1e' : 'action.hover',
+                  },
                   color: darkMode ? '#fff' : '#000',
-                },
-                '& .MuiDataGrid-row:nth-of-type(odd)': {
-                  backgroundColor: darkMode ? '#1e1e1e' : 'action.hover',
-                },
-                color: darkMode ? '#fff' : '#000',
-                '& .MuiDataGrid-cell': {
-                  whiteSpace: 'normal',
-                  lineHeight: 'normal',
-                  padding: isSmallScreen ? '4px' : '8px',
-                  fontSize: isSmallScreen ? 14 : 16,
-                },
-                '& .MuiDataGrid-columnHeader': {
-                  fontSize: isSmallScreen ? 14 : 16,
-                  fontWeight: 'bold',
-                },
-                '& .MuiDataGrid-virtualScroller': {
-                  overflow: 'auto',
-                },
-              }}
-            />
+                  '& .MuiDataGrid-cell': {
+                    whiteSpace: 'normal',
+                    lineHeight: 'normal',
+                    padding: '8px',
+                  },
+                }}
+              />
+            )}
           </Box>
 
           {/* Analytics and Reports */}
