@@ -46,8 +46,9 @@ import {
   Visibility,
   FilterList,
   Analytics,
+  Delete,
 } from '@mui/icons-material';
-import { collection, query, orderBy, onSnapshot, updateDoc, doc, getDocs } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, updateDoc, doc, getDocs, deleteDoc, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { PieChart, Pie, Cell, Legend, Tooltip as RechartsTooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 import { saveAs } from 'file-saver';
@@ -309,6 +310,7 @@ const MaintenanceRequests = () => {
   const [viewRequest, setViewRequest] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
   const [auditLogs, setAuditLogs] = useState([]);
+  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
 
   // Add new state variables for enhanced filtering and analytics
   const [advancedFilters, setAdvancedFilters] = useState({
@@ -497,16 +499,21 @@ const MaintenanceRequests = () => {
       flex: 1,
       minWidth: 120,
       renderCell: (params) => (
-        <Chip
-          label={params.value}
-          color={
-            params.value === 'Resolved'
-              ? 'success'
-              : params.value === 'In Progress'
-              ? 'warning'
-              : 'error'
-          }
-        />
+        <Select
+          value={params.value}
+          onChange={(e) => handleStatusChange(params.row.id, e.target.value)}
+          size="small"
+          sx={{
+            minWidth: 120,
+            '& .MuiSelect-select': {
+              py: 0.5,
+            },
+          }}
+        >
+          <MenuItem value="Pending">Pending</MenuItem>
+          <MenuItem value="In Progress">In Progress</MenuItem>
+          <MenuItem value="Completed">Completed</MenuItem>
+        </Select>
       ),
     },
     {
@@ -517,15 +524,12 @@ const MaintenanceRequests = () => {
       valueFormatter: (params) => {
         if (!params.value) return '';
         try {
-          // Handle Firestore Timestamp
           if (params.value.seconds) {
             return new Date(params.value.seconds * 1000).toLocaleDateString();
           }
-          // Handle regular Date object
           if (params.value instanceof Date) {
             return params.value.toLocaleDateString();
           }
-          // Handle string date
           return new Date(params.value).toLocaleDateString();
         } catch (error) {
           console.error('Error formatting date:', error);
@@ -548,12 +552,12 @@ const MaintenanceRequests = () => {
               <Visibility />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Update Status">
+          <Tooltip title="Delete Request">
             <IconButton
-              onClick={() => handleStatusChange(params.row.id, 'In Progress')}
-              color="primary"
+              onClick={() => handleDeleteRequest(params.row.id)}
+              color="error"
             >
-              <InProgressIcon />
+              <Delete />
             </IconButton>
           </Tooltip>
         </Box>
@@ -709,6 +713,27 @@ const MaintenanceRequests = () => {
     </>
   );
 
+  // Update the handleDeleteRequest function
+  const handleDeleteRequest = async (id) => {
+    setDeleteConfirmId(id);
+  };
+
+  // Add the confirmDelete function
+  const confirmDelete = async (id) => {
+    try {
+      await deleteDoc(doc(db, 'maintenanceRequests', id));
+      // Log the deletion in audit log
+      await addDoc(collection(db, 'auditLogs'), {
+        action: 'Request Deleted',
+        requestId: id,
+        timestamp: new Date(),
+      });
+      setDeleteConfirmId(null);
+    } catch (error) {
+      console.error('Error deleting request:', error);
+    }
+  };
+
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: darkMode ? '#121212' : '#f5f5f5' }}>
       <Navigation />
@@ -785,16 +810,32 @@ const MaintenanceRequests = () => {
               columns={columns}
               slots={{ toolbar: GridToolbar }}
               pageSizeOptions={[10, 25, 50]}
+              disableColumnMenu={isSmallScreen}
+              autoHeight
+              disableRowSelectionOnClick
               sx={{
                 '& .MuiDataGrid-columnHeaders': {
                   backgroundColor: darkMode ? '#333' : 'primary.light',
-                  fontSize: 16,
+                  fontSize: isSmallScreen ? 14 : 16,
                   color: darkMode ? '#fff' : '#000',
                 },
                 '& .MuiDataGrid-row:nth-of-type(odd)': {
                   backgroundColor: darkMode ? '#1e1e1e' : 'action.hover',
                 },
                 color: darkMode ? '#fff' : '#000',
+                '& .MuiDataGrid-cell': {
+                  whiteSpace: 'normal',
+                  lineHeight: 'normal',
+                  padding: isSmallScreen ? '4px' : '8px',
+                  fontSize: isSmallScreen ? 14 : 16,
+                },
+                '& .MuiDataGrid-columnHeader': {
+                  fontSize: isSmallScreen ? 14 : 16,
+                  fontWeight: 'bold',
+                },
+                '& .MuiDataGrid-virtualScroller': {
+                  overflow: 'auto',
+                },
               }}
             />
           </Box>
@@ -901,46 +942,123 @@ const MaintenanceRequests = () => {
 
       {/* Request Details Modal */}
       {viewRequest && (
-        <Dialog open={Boolean(viewRequest)} onClose={() => setViewRequest(null)} maxWidth="md" fullWidth>
-          <DialogTitle>Request Details</DialogTitle>
-          <DialogContent>
-            <Typography variant="h6">{viewRequest.issue}</Typography>
-            <Typography variant="body2" sx={{ mt: 2 }}>
-              <strong>Property:</strong> {viewRequest.propertyName}
-            </Typography>
-            <Typography variant="body2">
-              <strong>Date:</strong> {viewRequest.createdAt ? new Date(viewRequest.createdAt).toLocaleDateString() : ''}
-            </Typography>
-            <Typography variant="body2">
-              <strong>Status:</strong> {viewRequest.status}
-            </Typography>
-            <Typography variant="body2">
-              <strong>Priority:</strong> {viewRequest.priority}
-            </Typography>
-            <Typography variant="body2" sx={{ mt: 2 }}>
-              <strong>Description:</strong> {viewRequest.description}
-            </Typography>
-            {viewRequest.image && (
-              <Box sx={{ mt: 2 }}>
-                <Typography variant="body2">
-                  <strong>Image:</strong>
-                </Typography>
-                <img
-                  src={viewRequest.image}
-                  alt="Maintenance issue"
-                  style={{
-                    width: '100%',
-                    maxHeight: 300,
-                    borderRadius: 5,
-                    border: '1px solid #ddd',
-                    objectFit: 'cover',
-                  }}
-                />
-              </Box>
-            )}
+        <Dialog 
+          open={Boolean(viewRequest)} 
+          onClose={() => setViewRequest(null)} 
+          maxWidth="md" 
+          fullWidth
+          PaperProps={{
+            sx: {
+              bgcolor: darkMode ? '#1e1e1e' : '#fff',
+              color: darkMode ? '#fff' : '#000'
+            }
+          }}
+        >
+          <DialogTitle sx={{ 
+            borderBottom: '1px solid',
+            borderColor: darkMode ? '#333' : '#e0e0e0',
+            pb: 2
+          }}>
+            Request Details
+          </DialogTitle>
+          <DialogContent sx={{ mt: 2 }}>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <Card sx={{ 
+                  p: 2, 
+                  bgcolor: darkMode ? '#333' : '#f5f5f5',
+                  height: '100%'
+                }}>
+                  <Typography variant="h6" gutterBottom sx={{ color: darkMode ? '#fff' : '#000' }}>
+                    Basic Information
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    <strong>Issue:</strong> {viewRequest.issue}
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    <strong>Property:</strong> {viewRequest.propertyName}
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    <strong>Unit:</strong> {viewRequest.unit}
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    <strong>Tenant:</strong> {viewRequest.tenantName}
+                  </Typography>
+                </Card>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Card sx={{ 
+                  p: 2, 
+                  bgcolor: darkMode ? '#333' : '#f5f5f5',
+                  height: '100%'
+                }}>
+                  <Typography variant="h6" gutterBottom sx={{ color: darkMode ? '#fff' : '#000' }}>
+                    Status Information
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    <strong>Status:</strong> {viewRequest.status}
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    <strong>Priority:</strong> {viewRequest.priority}
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    <strong>Submitted:</strong> {viewRequest.createdAt ? new Date(viewRequest.createdAt).toLocaleDateString() : ''}
+                  </Typography>
+                </Card>
+              </Grid>
+              <Grid item xs={12}>
+                <Card sx={{ 
+                  p: 2, 
+                  bgcolor: darkMode ? '#333' : '#f5f5f5'
+                }}>
+                  <Typography variant="h6" gutterBottom sx={{ color: darkMode ? '#fff' : '#000' }}>
+                    Description
+                  </Typography>
+                  <Typography variant="body2">
+                    {viewRequest.description}
+                  </Typography>
+                </Card>
+              </Grid>
+              {viewRequest.image && (
+                <Grid item xs={12}>
+                  <Card sx={{ 
+                    p: 2, 
+                    bgcolor: darkMode ? '#333' : '#f5f5f5'
+                  }}>
+                    <Typography variant="h6" gutterBottom sx={{ color: darkMode ? '#fff' : '#000' }}>
+                      Attached Image
+                    </Typography>
+                    <img
+                      src={viewRequest.image}
+                      alt="Maintenance issue"
+                      style={{
+                        width: '100%',
+                        maxHeight: 300,
+                        borderRadius: 8,
+                        objectFit: 'cover',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                      }}
+                    />
+                  </Card>
+                </Grid>
+              )}
+            </Grid>
           </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setViewRequest(null)}>Close</Button>
+          <DialogActions sx={{ 
+            borderTop: '1px solid',
+            borderColor: darkMode ? '#333' : '#e0e0e0',
+            pt: 2
+          }}>
+            <Button 
+              onClick={() => handleDeleteRequest(viewRequest.id)}
+              color="error"
+              startIcon={<Delete />}
+            >
+              Delete Request
+            </Button>
+            <Button onClick={() => setViewRequest(null)}>
+              Close
+            </Button>
           </DialogActions>
         </Dialog>
       )}
@@ -958,6 +1076,56 @@ const MaintenanceRequests = () => {
         data={analyticsData}
         darkMode={darkMode}
       />
+
+      {/* Add the Delete Confirmation Dialog */}
+      <Dialog
+        open={Boolean(deleteConfirmId)}
+        onClose={() => setDeleteConfirmId(null)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{
+          sx: {
+            bgcolor: darkMode ? '#1e1e1e' : '#fff',
+            color: darkMode ? '#fff' : '#000'
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          borderBottom: '1px solid',
+          borderColor: darkMode ? '#333' : '#e0e0e0',
+          pb: 2
+        }}>
+          Confirm Delete
+        </DialogTitle>
+        <DialogContent sx={{ mt: 2 }}>
+          <Typography>
+            Are you sure you want to delete this maintenance request? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ 
+          borderTop: '1px solid',
+          borderColor: darkMode ? '#333' : '#e0e0e0',
+          pt: 2
+        }}>
+          <Button 
+            onClick={() => setDeleteConfirmId(null)}
+            color="inherit"
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={() => {
+              confirmDelete(deleteConfirmId);
+              setDeleteConfirmId(null);
+            }}
+            color="error"
+            variant="contained"
+            startIcon={<Delete />}
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
