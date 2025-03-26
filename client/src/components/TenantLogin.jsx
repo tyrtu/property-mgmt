@@ -13,12 +13,15 @@ import {
   useTheme,
   useMediaQuery,
   Container,
+  Divider,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "../firebase"; 
 import { doc, getDoc } from "firebase/firestore";
+import { useAuth } from '../contexts/AuthContext';
+import GoogleIcon from '@mui/icons-material/Google';
 
 const TenantLogin = () => {
   const [email, setEmail] = useState("");
@@ -26,10 +29,12 @@ const TenantLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [googleLoading, setGoogleLoading] = useState(false);
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
+  const { login, signInWithGoogle } = useAuth();
 
   // Toggle password visibility
   const handleTogglePasswordVisibility = () => {
@@ -88,6 +93,19 @@ const TenantLogin = () => {
       setLoading(false);
     }
   };
+
+  async function handleGoogleSignIn() {
+    try {
+      setError('');
+      setGoogleLoading(true);
+      await signInWithGoogle();
+      navigate('/tenant-dashboard');
+    } catch (error) {
+      setError('Failed to sign in with Google. Please try again.');
+    } finally {
+      setGoogleLoading(false);
+    }
+  }
 
   return (
     <Box
@@ -281,6 +299,27 @@ const TenantLogin = () => {
                 disableElevation
               >
                 {loading ? <CircularProgress size={24} color="inherit" /> : "Login"}
+              </Button>
+
+              <Divider sx={{ my: 2 }}>OR</Divider>
+
+              <Button
+                fullWidth
+                variant="outlined"
+                startIcon={<GoogleIcon />}
+                onClick={handleGoogleSignIn}
+                disabled={googleLoading}
+                sx={{ 
+                  mb: 2,
+                  color: '#DB4437',
+                  borderColor: '#DB4437',
+                  '&:hover': {
+                    borderColor: '#DB4437',
+                    backgroundColor: 'rgba(219, 68, 55, 0.04)',
+                  },
+                }}
+              >
+                {googleLoading ? <CircularProgress size={24} /> : 'Sign in with Google'}
               </Button>
 
               <Box sx={{ textAlign: "center" }}>
