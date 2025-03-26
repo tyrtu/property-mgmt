@@ -99,7 +99,7 @@ const TenantLogin = () => {
       setError('');
       setGoogleLoading(true);
       await signInWithGoogle();
-      navigate('/tenant-dashboard');
+      navigate('/tenant/dashboard');
     } catch (error) {
       setError('Failed to sign in with Google. Please try again.');
     } finally {
