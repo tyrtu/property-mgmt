@@ -361,29 +361,29 @@ const MaintenanceRequests = () => {
           const data = docSnap.data();
           return {
             id: docSnap.id,
-            title: data.issue,
-            property: data.property || '',
-            date: data.createdAt
-              ? new Date(data.createdAt.seconds * 1000).toLocaleDateString()
-              : '',
+            issue: data.issue || '',
+            propertyName: data.propertyName || '',
+            unit: data.unit || '',
+            tenantName: data.tenantName || '',
             status: data.status || 'Pending',
             priority: data.priority || 'Medium',
-            image: data.image || null,
+            createdAt: data.createdAt || null,
             description: data.description || 'No description provided.',
+            image: data.image || null,
           };
         });
 
         // Filter requests
         const filteredRequests = requests.filter((req) => {
           const matchesProperty =
-            selectedProperty === 'All Properties' || req.property === selectedProperty;
+            selectedProperty === 'All Properties' || req.propertyName === selectedProperty;
           const matchesStatus =
             selectedStatus === 'All Statuses' || req.status === selectedStatus;
           const matchesPriority =
             selectedPriority === 'All Priorities' || req.priority === selectedPriority;
           const matchesSearch =
-            req.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            req.property.toLowerCase().includes(searchQuery.toLowerCase());
+            req.issue.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            req.propertyName.toLowerCase().includes(searchQuery.toLowerCase());
 
           return matchesProperty && matchesStatus && matchesPriority && matchesSearch;
         });
@@ -438,9 +438,9 @@ const MaintenanceRequests = () => {
   // Export data to CSV
   const exportToCSV = () => {
     const csvData = rows.map((row) => ({
-      Title: row.title,
-      Property: row.property,
-      Date: row.date,
+      Title: row.issue,
+      Property: row.propertyName,
+      Date: row.createdAt ? new Date(row.createdAt).toLocaleDateString() : '',
       Status: row.status,
       Priority: row.priority,
     }));
@@ -904,12 +904,12 @@ const MaintenanceRequests = () => {
         <Dialog open={Boolean(viewRequest)} onClose={() => setViewRequest(null)} maxWidth="md" fullWidth>
           <DialogTitle>Request Details</DialogTitle>
           <DialogContent>
-            <Typography variant="h6">{viewRequest.title}</Typography>
+            <Typography variant="h6">{viewRequest.issue}</Typography>
             <Typography variant="body2" sx={{ mt: 2 }}>
-              <strong>Property:</strong> {viewRequest.property}
+              <strong>Property:</strong> {viewRequest.propertyName}
             </Typography>
             <Typography variant="body2">
-              <strong>Date:</strong> {viewRequest.date}
+              <strong>Date:</strong> {viewRequest.createdAt ? new Date(viewRequest.createdAt).toLocaleDateString() : ''}
             </Typography>
             <Typography variant="body2">
               <strong>Status:</strong> {viewRequest.status}
