@@ -515,10 +515,22 @@ const MaintenanceRequests = () => {
       flex: 1,
       minWidth: 150,
       valueFormatter: (params) => {
-        if (params.value) {
-          return new Date(params.value.seconds * 1000).toLocaleDateString();
+        if (!params.value) return '';
+        try {
+          // Handle Firestore Timestamp
+          if (params.value.seconds) {
+            return new Date(params.value.seconds * 1000).toLocaleDateString();
+          }
+          // Handle regular Date object
+          if (params.value instanceof Date) {
+            return params.value.toLocaleDateString();
+          }
+          // Handle string date
+          return new Date(params.value).toLocaleDateString();
+        } catch (error) {
+          console.error('Error formatting date:', error);
+          return '';
         }
-        return '';
       },
     },
     {
