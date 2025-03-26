@@ -59,7 +59,11 @@ const TenantMaintenance = () => {
   const [newIssue, setNewIssue] = useState("");
   const [file, setFile] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
-  const [propertyDetails, setPropertyDetails] = useState({ property: "", unit: "" });
+  const [propertyDetails, setPropertyDetails] = useState({ 
+    property: "", 
+    unit: "",
+    propertyName: ""
+  });
   const [selectedProperty, setSelectedProperty] = useState("All Properties");
   const [properties, setProperties] = useState([]);
   const [filterStatus, setFilterStatus] = useState("All");
@@ -97,9 +101,15 @@ const TenantMaintenance = () => {
         const userDoc = await getDoc(doc(db, "users", user.uid));
         if (userDoc.exists()) {
           const userData = userDoc.data();
+          
+          // Fetch property details
+          const propertyDoc = await getDoc(doc(db, "properties", userData.propertyId));
+          const propertyName = propertyDoc.exists() ? propertyDoc.data().name : "Unknown Property";
+          
           setPropertyDetails({
             property: userData.propertyId || "Unknown Property",
             unit: userData.unit || "Unknown Unit",
+            propertyName: propertyName
           });
         }
       } catch (error) {
@@ -173,8 +183,11 @@ const TenantMaintenance = () => {
         issue: newIssue,
         status: "Pending",
         createdAt: serverTimestamp(),
-        property: propertyDetails.property,
+        propertyId: propertyDetails.property,
+        propertyName: propertyDetails.propertyName,
         unit: propertyDetails.unit,
+        tenantName: user.displayName || "Unknown Tenant",
+        tenantEmail: user.email
       });
 
       setSuccessMessage("Maintenance request submitted successfully!");
@@ -340,7 +353,7 @@ const TenantMaintenance = () => {
               >
                 <ListItemText
                   primary={req.issue}
-                  secondary={`Property: ${req.property} | Unit: ${req.unit} | Submitted: ${req.submittedAt}`}
+                  secondary={`Property: ${req.propertyName} | Unit: ${req.unit} | Submitted: ${req.submittedAt}`}
                 />
                 <Chip
                   label={req.status}
@@ -372,6 +385,17 @@ const TenantMaintenance = () => {
       <Dialog open={openDialog} onClose={handleCloseDialog}>
         <DialogTitle>Request Maintenance</DialogTitle>
         <DialogContent>
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="subtitle1" gutterBottom>
+              Property Information
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Property: {propertyDetails.propertyName}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Unit: {propertyDetails.unit}
+            </Typography>
+          </Box>
           <TextField
             label="Describe the issue"
             fullWidth
@@ -396,17 +420,19 @@ const TenantMaintenance = () => {
           <Box
             sx={{
               p: 4,
-              backgroundColor: "#f0f4f8", // Light and dull background
+              backgroundColor: "#f0f4f8",
               mx: "auto",
               my: "20%",
               width: 400,
               borderRadius: 2,
             }}
           >
-            <Typography variant="h6">{selectedRequest?.issue}</Typography>
-            <Typography variant="body2">
-              Property: {selectedRequest?.property} | Unit: {selectedRequest?.unit}
-            </Typography>
+            <Typography variant="h6" gutterBottom>{selectedRequest?.issue}</Typography>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle2" color="text.secondary">Property Information</Typography>
+              <Typography variant="body2">Property: {selectedRequest?.propertyName}</Typography>
+              <Typography variant="body2">Unit: {selectedRequest?.unit}</Typography>
+            </Box>
             <Typography variant="body2">
               Submitted: {selectedRequest?.submittedAt}
             </Typography>

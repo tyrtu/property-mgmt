@@ -468,120 +468,83 @@ const MaintenanceRequests = () => {
 
   const columns = [
     {
-      field: 'title',
-      headerName: 'Request',
-      width: 220,
-      renderCell: (params) => (
-        <Typography variant="body1" sx={{ fontWeight: 500 }}>
-          {params.value}
-        </Typography>
-      ),
+      field: 'issue',
+      headerName: 'Issue',
+      flex: 1,
+      minWidth: 200,
     },
     {
-      field: 'property',
+      field: 'propertyName',
       headerName: 'Property',
-      width: 160,
-      renderCell: (params) => (
-        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          {params.value}
-        </Typography>
-      ),
+      flex: 1,
+      minWidth: 150,
     },
     {
-      field: 'date',
-      headerName: 'Date',
-      width: 180,
-      renderCell: (params) => (
-        <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
-          {params.value}
-        </Typography>
-      ),
+      field: 'unit',
+      headerName: 'Unit',
+      flex: 1,
+      minWidth: 100,
+    },
+    {
+      field: 'tenantName',
+      headerName: 'Tenant',
+      flex: 1,
+      minWidth: 150,
     },
     {
       field: 'status',
       headerName: 'Status',
-      width: 180,
-      renderCell: (params) => {
-        const statusColors = {
-          Pending: { color: 'orange', icon: <PendingIcon /> },
-          'In Progress': { color: 'blue', icon: <InProgressIcon /> },
-          Completed: { color: 'green', icon: <CompletedIcon /> },
-        };
-        return (
-          <Select
-            value={params.value}
-            size="small"
-            sx={{
-              minWidth: 130,
-              backgroundColor: statusColors[params.value]?.color + '1A',
-              borderRadius: 1,
-            }}
-            onChange={(e) => handleStatusChange(params.row.id, e.target.value)}
-          >
-            <MenuItem value="Pending">
-              <PendingIcon sx={{ color: 'orange', mr: 1 }} />
-              Pending
-            </MenuItem>
-            <MenuItem value="In Progress">
-              <InProgressIcon sx={{ color: 'blue', mr: 1 }} />
-              In Progress
-            </MenuItem>
-            <MenuItem value="Completed">
-              <CompletedIcon sx={{ color: 'green', mr: 1 }} />
-              Completed
-            </MenuItem>
-          </Select>
-        );
-      },
+      flex: 1,
+      minWidth: 120,
+      renderCell: (params) => (
+        <Chip
+          label={params.value}
+          color={
+            params.value === 'Resolved'
+              ? 'success'
+              : params.value === 'In Progress'
+              ? 'warning'
+              : 'error'
+          }
+        />
+      ),
     },
     {
-      field: 'priority',
-      headerName: 'Priority',
-      width: 120,
-      renderCell: (params) => {
-        const priorityColors = {
-          Low: { color: 'green', icon: <ArrowDownward /> },
-          Medium: { color: 'orange', icon: <ArrowDownward /> },
-          High: { color: 'red', icon: <ArrowDownward /> },
-        };
-        return (
-          <Chip
-            label={params.value}
-            sx={{ backgroundColor: priorityColors[params.value]?.color + '1A' }}
-            size="small"
-          />
-        );
+      field: 'createdAt',
+      headerName: 'Submitted',
+      flex: 1,
+      minWidth: 150,
+      valueFormatter: (params) => {
+        if (params.value) {
+          return new Date(params.value.seconds * 1000).toLocaleDateString();
+        }
+        return '';
       },
-    },
-    {
-      field: 'image',
-      headerName: 'Image',
-      width: 160,
-      renderCell: (params) =>
-        params.value ? (
-          <img
-            src={params.value}
-            alt="Maintenance issue"
-            style={{
-              width: 60,
-              height: 60,
-              borderRadius: 5,
-              border: '1px solid #ddd',
-              objectFit: 'cover',
-            }}
-          />
-        ) : (
-          <Chip label="No Image" color="default" size="small" />
-        ),
     },
     {
       field: 'actions',
       headerName: 'Actions',
-      width: 120,
+      flex: 1,
+      minWidth: 120,
       renderCell: (params) => (
-        <IconButton onClick={() => setViewRequest(params.row)}>
-          <Visibility />
-        </IconButton>
+        <Box>
+          <Tooltip title="View Details">
+            <IconButton
+              onClick={() => setViewRequest(params.row)}
+              color="primary"
+            >
+              <Visibility />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Update Status">
+            <IconButton
+              onClick={() => handleStatusChange(params.row.id, 'In Progress')}
+              color="primary"
+            >
+              <InProgressIcon />
+            </IconButton>
+          </Tooltip>
+        </Box>
       ),
     },
   ];
