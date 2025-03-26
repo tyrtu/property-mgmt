@@ -16,6 +16,10 @@ import {
   Container,
   Grid,
   Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
@@ -44,12 +48,16 @@ const TenantRegister = () => {
   const [selectedProperty, setSelectedProperty] = useState("");
   const [units, setUnits] = useState([]);
   const [selectedUnit, setSelectedUnit] = useState("");
+  const { signup, signInWithGoogle } = useAuth();
+  const [emergencyContact, setEmergencyContact] = useState("");
+
+  const [googleDialogOpen, setGoogleDialogOpen] = useState(false);
+  const [googleUser, setGoogleUser] = useState(null);
 
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
-  const { signup, signInWithGoogle } = useAuth();
 
   useEffect(() => {
     const fetchProperties = async () => {
@@ -134,8 +142,34 @@ const TenantRegister = () => {
         throw new Error("Please select a property and unit");
       }
 
-      await signInWithGoogle(selectedProperty, selectedUnit);
+      const user = await signInWithGoogle(selectedProperty, selectedUnit);
+      setGoogleUser(user);
+      setGoogleDialogOpen(true);
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSubmit = async () => {
+    try {
+      setError("");
+      setLoading(true);
+
+      if (!phone || !emergencyContact) {
+        throw new Error("Please fill in all required fields");
+      }
+
+      // Update the user document with additional information
+      await updateDoc(doc(db, "users", googleUser.uid), {
+        phone,
+        emergencyContact,
+        updatedAt: new Date().toISOString(),
+      });
+
       setSuccess("Registration successful! Please verify your email before logging in.");
+      setGoogleDialogOpen(false);
       setTimeout(() => navigate("/tenant/login"), 4000);
     } catch (error) {
       setError(error.message);
@@ -306,6 +340,20 @@ const TenantRegister = () => {
                   sx: { borderRadius: 1.5 }
                 }}
               />
+              <TextField 
+                label="Emergency Contact" 
+                type="text" 
+                fullWidth 
+                required 
+                value={emergencyContact} 
+                onChange={(e) => setEmergencyContact(e.target.value)} 
+                helperText="Name and phone number of emergency contact"
+                sx={{ mb: 2.5 }}
+                variant="outlined"
+                InputProps={{
+                  sx: { borderRadius: 1.5 }
+                }}
+              />
 
               {/* Property Dropdown */}
               <TextField 
@@ -392,7 +440,7 @@ const TenantRegister = () => {
                   fullWidth
                   variant="outlined"
                   startIcon={<GoogleIcon />}
-                  onClick={handleGoogleSignIn}
+                  onClick={() => setGoogleDialogOpen(true)}
                   disabled={loading || !selectedProperty || !selectedUnit}
                   sx={{
                     mb: 2,
@@ -464,6 +512,54 @@ const TenantRegister = () => {
           </Box>
         </Paper>
       </Container>
+
+      {/* Google Sign-up Dialog */}
+      <Dialog 
+        open={googleDialogOpen} 
+        onClose={() => setGoogleDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Complete Your Registration</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Please provide your contact information to complete your registration.
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                label="Phone Number"
+                fullWidth
+                required
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                sx={{ mb: 2 }}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Emergency Contact"
+                fullWidth
+                required
+                value={emergencyContact}
+                onChange={(e) => setEmergencyContact(e.target.value)}
+                helperText="Name and phone number of emergency contact"
+                sx={{ mb: 2 }}
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setGoogleDialogOpen(false)}>Cancel</Button>
+          <Button 
+            onClick={handleGoogleSubmit} 
+            variant="contained"
+            disabled={loading}
+          >
+            {loading ? <CircularProgress size={24} /> : "Complete Registration"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Error Snackbar */}
       <Snackbar 
