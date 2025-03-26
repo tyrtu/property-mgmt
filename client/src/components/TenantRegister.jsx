@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import {
   Box,
@@ -15,15 +14,19 @@ import {
   useTheme,
   useMediaQuery,
   Container,
+  Grid,
+  Divider,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
+import GoogleIcon from '@mui/icons-material/Google';
 import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
 } from "firebase/auth";
 import { setDoc, doc, collection, getDocs, updateDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
+import { useAuth } from '../contexts/AuthContext';
 
 const TenantRegister = () => {
   const [name, setName] = useState("");
@@ -95,50 +98,46 @@ const TenantRegister = () => {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError("");
-    setSuccess("");
-
-    if (!name || !email || !phone || !password || !confirmPassword || !selectedProperty || !selectedUnit) {
-      setError("Please fill in all fields.");
-      setLoading(false);
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      setLoading(false);
-      return;
-    }
+    setLoading(true);
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
+      if (!selectedProperty || !selectedUnit) {
+        throw new Error("Please select a property and unit");
+      }
 
-      // Save tenant data in Firestore
-      await setDoc(doc(db, "users", user.uid), {
-        uid: user.uid,
-        name,
+      await signup(
         email,
+        password,
+        name,
         phone,
-        role: "tenant",
-        propertyId: selectedProperty,
-        unitId: selectedUnit,
-        createdAt: new Date().toISOString(),
-      });
-
-      // Mark the unit as occupied
-      await updateDoc(doc(db, "properties", selectedProperty, "units", selectedUnit), {
-        occupied: true,
-        tenantId: user.uid,
-      });
-
-      await sendEmailVerification(user);
+        selectedProperty,
+        selectedUnit
+      );
 
       setSuccess("Registration successful! Please verify your email before logging in.");
       setTimeout(() => navigate("/tenant/login"), 4000);
     } catch (err) {
       setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setError("");
+      setLoading(true);
+
+      if (!selectedProperty || !selectedUnit) {
+        throw new Error("Please select a property and unit");
+      }
+
+      await signInWithGoogle(selectedProperty, selectedUnit);
+      setSuccess("Registration successful! Please verify your email before logging in.");
+      setTimeout(() => navigate("/tenant/login"), 4000);
+    } catch (error) {
+      setError(error.message);
     } finally {
       setLoading(false);
     }
@@ -382,6 +381,31 @@ const TenantRegister = () => {
                   sx: { borderRadius: 1.5 }
                 }}
               />
+
+              <Grid item xs={12}>
+                <Divider sx={{ my: 2 }}>OR</Divider>
+              </Grid>
+
+              <Grid item xs={12}>
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  startIcon={<GoogleIcon />}
+                  onClick={handleGoogleSignIn}
+                  disabled={loading || !selectedProperty || !selectedUnit}
+                  sx={{
+                    mb: 2,
+                    borderColor: '#DB4437',
+                    color: '#DB4437',
+                    '&:hover': {
+                      borderColor: '#DB4437',
+                      backgroundColor: 'rgba(219, 68, 55, 0.04)',
+                    },
+                  }}
+                >
+                  Sign up with Google
+                </Button>
+              </Grid>
 
               <Button 
                 type="submit" 

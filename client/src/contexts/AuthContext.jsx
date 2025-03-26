@@ -4,10 +4,18 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  updateProfile
+  updateProfile,
+  GoogleAuthProvider,
+  signInWithPopup,
+  sendEmailVerification
 } from 'firebase/auth';
+import { 
+  doc, 
+  setDoc, 
+  getDoc,
+  updateDoc 
+} from 'firebase/firestore';
 import { auth, db } from '../firebase';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
 
 const AuthContext = createContext();
 
@@ -20,22 +28,66 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   // Sign up function
-  async function signup(email, password, name, role) {
+  async function signup(email, password, name, phone, propertyId, unitId) {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      await updateProfile(userCredential.user, {
-        displayName: name
-      });
+      const user = userCredential.user;
 
-      // Create user document in Firestore
-      await setDoc(doc(db, 'users', userCredential.user.uid), {
+      // Save tenant data in Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
         name,
         email,
-        role,
-        createdAt: new Date(),
+        phone,
+        role: "tenant",
+        propertyId,
+        unitId,
+        createdAt: new Date().toISOString(),
       });
 
-      return userCredential.user;
+      // Mark the unit as occupied
+      await updateDoc(doc(db, "properties", propertyId, "units", unitId), {
+        occupied: true,
+        tenantId: user.uid,
+      });
+
+      await sendEmailVerification(user);
+      return user;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Google Sign in function
+  async function signInWithGoogle(propertyId, unitId) {
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      
+      // Check if user document exists
+      const userDoc = await getDoc(doc(db, 'users', result.user.uid));
+      
+      if (!userDoc.exists()) {
+        // Create new user document with property and unit info
+        await setDoc(doc(db, 'users', result.user.uid), {
+          uid: result.user.uid,
+          name: result.user.displayName,
+          email: result.user.email,
+          role: 'tenant',
+          propertyId,
+          unitId,
+          createdAt: new Date().toISOString(),
+          photoURL: result.user.photoURL,
+        });
+
+        // Mark the unit as occupied
+        await updateDoc(doc(db, "properties", propertyId, "units", unitId), {
+          occupied: true,
+          tenantId: result.user.uid,
+        });
+      }
+
+      return result.user;
     } catch (error) {
       throw error;
     }
@@ -100,7 +152,8 @@ export function AuthProvider({ children }) {
     signup,
     login,
     logout,
-    updateUserProfile
+    updateUserProfile,
+    signInWithGoogle
   };
 
   return (

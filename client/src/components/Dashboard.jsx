@@ -467,8 +467,8 @@ const Dashboard = () => {
                   fontWeight: 600,
                   letterSpacing: '0.5px'
                 }}>
-                  Financial Overview
-                </Typography>
+                Financial Overview
+              </Typography>
                 <Select
                   value={timePeriod}
                   onChange={(e) => setTimePeriod(e.target.value)}
@@ -522,38 +522,38 @@ const Dashboard = () => {
 
         {/* Enhanced Notifications Section */}
         <Grid container spacing={3} sx={{ mt: 2 }}>
-          <Grid item xs={12} md={4}>
-            <Card sx={{ 
-              height: { xs: 300, md: 400 },
+        <Grid item xs={12} md={4}>
+          <Card sx={{ 
+            height: { xs: 300, md: 400 },
               bgcolor: darkModeCardBg,
-              borderRadius: 2,
+            borderRadius: 2,
               boxShadow: darkMode 
-                ? '0 4px 20px rgba(0,0,0,0.5)' 
-                : '0 4px 20px rgba(0,0,0,0.1)',
+              ? '0 4px 20px rgba(0,0,0,0.5)' 
+              : '0 4px 20px rgba(0,0,0,0.1)',
               transition: 'all 0.3s ease',
-              '&:hover': {
-                transform: 'translateY(-4px)',
+            '&:hover': { 
+              transform: 'translateY(-4px)', 
                 boxShadow: darkMode 
-                  ? '0 8px 30px rgba(0,0,0,0.7)' 
-                  : '0 8px 30px rgba(0,0,0,0.15)'
-              }
-            }}>
-              <CardContent sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
-                <Box sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
+                ? '0 8px 30px rgba(0,0,0,0.7)' 
+                : '0 8px 30px rgba(0,0,0,0.15)' 
+            }
+          }}>
+            <CardContent sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
                   mb: 3, 
-                  gap: 1 
-                }}>
+                gap: 1 
+              }}>
                   <NotificationsIcon sx={{ color: darkMode ? 'primary.light' : 'primary.main' }} />
-                  <Typography variant="h6" sx={{ 
-                    fontWeight: 600, 
-                    color: darkModeText,
-                    letterSpacing: '0.5px'
-                  }}>
-                    Recent Notifications
-                  </Typography>
-                </Box>
+                <Typography variant="h6" sx={{ 
+                  fontWeight: 600, 
+                  color: darkModeText,
+                  letterSpacing: '0.5px'
+                }}>
+                  Recent Notifications
+                </Typography>
+              </Box>
                 <List dense sx={{ 
                   overflow: 'auto', 
                   flexGrow: 1,
@@ -566,51 +566,51 @@ const Dashboard = () => {
                     }
                   }
                 }}>
-                  {mockNotifications.map((note) => (
-                    <ListItem 
-                      key={note.id} 
-                      sx={{ 
+                {mockNotifications.map((note) => (
+                  <ListItem 
+                    key={note.id} 
+                    sx={{ 
                         bgcolor: note.priority === 'high' 
                           ? darkMode ? 'error.dark' : 'error.light'
                           : darkMode ? 'rgba(255,255,255,0.05)' : 'action.hover'
-                      }}
-                    >
-                      <ListItemIcon sx={{ minWidth: 36 }}>
-                        {note.priority === 'high' ? 
-                          <WarningIcon fontSize="small" color="error" /> : 
-                          <InfoIcon fontSize="small" color="info" />
-                        }
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={
-                          <Typography variant="body2" sx={{ 
-                            fontWeight: 500, 
-                            color: darkModeText 
-                          }}>
-                            {note.title}
-                          </Typography>
-                        }
-                        secondary={
+                    }}
+                  >
+                    <ListItemIcon sx={{ minWidth: 36 }}>
+                      {note.priority === 'high' ? 
+                        <WarningIcon fontSize="small" color="error" /> : 
+                        <InfoIcon fontSize="small" color="info" />
+                      }
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={
+                        <Typography variant="body2" sx={{ 
+                          fontWeight: 500, 
+                          color: darkModeText 
+                        }}>
+                          {note.title}
+                        </Typography>
+                      }
+                      secondary={
                           <Box component="span" sx={{ 
                             display: 'flex', 
                             justifyContent: 'space-between',
                             color: darkModeSecondaryText
                           }}>
                             <Typography variant="caption">
-                              {new Date(note.date).toLocaleDateString()}
-                            </Typography>
+                            {new Date(note.date).toLocaleDateString()}
+                          </Typography>
                             <Typography variant="caption">
-                              {note.priority}
-                            </Typography>
-                          </Box>
-                        }
-                      />
-                    </ListItem>
-                  ))}
-                </List>
-              </CardContent>
-            </Card>
-          </Grid>
+                            {note.priority}
+                          </Typography>
+                        </Box>
+                      }
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            </CardContent>
+          </Card>
+        </Grid>
 
           {/* Enhanced Property List Section */}
           <Grid item xs={12} md={8}>
@@ -621,11 +621,11 @@ const Dashboard = () => {
                 ? '0 4px 20px rgba(0,0,0,0.5)' 
                 : '0 4px 20px rgba(0,0,0,0.1)',
               transition: 'all 0.3s ease',
-              '&:hover': {
-                transform: 'translateY(-4px)',
+              '&:hover': { 
+                transform: 'translateY(-4px)', 
                 boxShadow: darkMode 
                   ? '0 8px 30px rgba(0,0,0,0.7)' 
-                  : '0 8px 30px rgba(0,0,0,0.15)'
+                  : '0 8px 30px rgba(0,0,0,0.15)' 
               }
             }}>
               <CardContent sx={{ p: 3 }}>
@@ -635,13 +635,13 @@ const Dashboard = () => {
                   alignItems: 'center',
                   mb: 3 
                 }}>
-                  <Typography variant="h6" sx={{ 
-                    fontWeight: 600, 
-                    color: darkModeText,
-                    letterSpacing: '0.5px'
-                  }}>
-                    Property List
-                  </Typography>
+                <Typography variant="h6" sx={{ 
+                  fontWeight: 600, 
+                  color: darkModeText,
+                  letterSpacing: '0.5px'
+                }}>
+                  Property List
+                </Typography>
                   <TextField
                     size="small"
                     placeholder="Search properties..."
@@ -750,11 +750,11 @@ const Dashboard = () => {
                 ? '0 4px 20px rgba(0,0,0,0.5)' 
                 : '0 4px 20px rgba(0,0,0,0.1)',
               transition: 'all 0.3s ease',
-              '&:hover': {
-                transform: 'translateY(-4px)',
+              '&:hover': { 
+                transform: 'translateY(-4px)', 
                 boxShadow: darkMode 
                   ? '0 8px 30px rgba(0,0,0,0.7)' 
-                  : '0 8px 30px rgba(0,0,0,0.15)'
+                  : '0 8px 30px rgba(0,0,0,0.15)' 
               }
             }}>
               <CardContent sx={{ p: 3 }}>

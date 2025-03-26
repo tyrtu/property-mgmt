@@ -238,7 +238,7 @@ const TenantMaintenance = () => {
               }}
             >
               Submit Maintenance Request
-            </Typography>
+        </Typography>
             <Tooltip title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>
               <IconButton 
                 onClick={toggleDarkMode} 
@@ -252,7 +252,7 @@ const TenantMaintenance = () => {
                 {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
               </IconButton>
             </Tooltip>
-          </Box>
+      </Box>
 
           {/* Property and Unit Information */}
           <Card sx={{ 
@@ -263,11 +263,11 @@ const TenantMaintenance = () => {
           }}>
             <Typography 
               variant="h6" 
-              sx={{ 
+            sx={{
                 mb: 2,
                 color: darkMode ? '#fff' : '#000'
-              }}
-            >
+            }}
+          >
               Property Information
             </Typography>
             <Grid container spacing={2}>
@@ -290,7 +290,7 @@ const TenantMaintenance = () => {
                 >
                   {unitDetails?.propertyName || 'Not assigned'}
                 </Typography>
-              </Grid>
+        </Grid>
               <Grid item xs={12} sm={6}>
                 <Typography 
                   variant="body2" 
@@ -303,14 +303,14 @@ const TenantMaintenance = () => {
                 </Typography>
                 <Typography 
                   variant="body1" 
-                  sx={{ 
+            sx={{
                     color: darkMode ? '#fff' : '#000',
                     fontWeight: 500
-                  }}
-                >
+            }}
+          >
                   {unitDetails?.number || 'Not assigned'}
-                </Typography>
-              </Grid>
+            </Typography>
+        </Grid>
             </Grid>
           </Card>
 
@@ -373,14 +373,14 @@ const TenantMaintenance = () => {
                     },
                   }}
                 />
-              </Grid>
+      </Grid>
 
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
                   <InputLabel sx={{ color: darkMode ? '#aaa' : '#666' }}>
                     Priority
                   </InputLabel>
-                  <Select
+          <Select
                     value={newRequest.priority}
                     onChange={(e) => setNewRequest(prev => ({ ...prev, priority: e.target.value }))}
                     label="Priority"
@@ -401,8 +401,8 @@ const TenantMaintenance = () => {
                     <MenuItem value="Low">Low</MenuItem>
                     <MenuItem value="Medium">Medium</MenuItem>
                     <MenuItem value="High">High</MenuItem>
-                  </Select>
-                </FormControl>
+          </Select>
+        </FormControl>
               </Grid>
 
               <Grid item xs={12} sm={6}>
@@ -465,7 +465,7 @@ const TenantMaintenance = () => {
                     >
                       <CloseIcon />
                     </IconButton>
-                  </Box>
+      </Box>
                 </Grid>
               )}
 
@@ -484,7 +484,7 @@ const TenantMaintenance = () => {
                   }}
                 >
                   {loading ? 'Submitting...' : 'Submit Request'}
-                </Button>
+      </Button>
               </Grid>
             </Grid>
           </form>
@@ -542,7 +542,7 @@ const TenantMaintenance = () => {
               {requests.map((request) => (
                 <Card 
                   key={request.id}
-                  sx={{ 
+                sx={{
                     p: 2,
                     bgcolor: darkMode ? '#333' : '#fff',
                     borderRadius: 2,
@@ -556,7 +556,7 @@ const TenantMaintenance = () => {
                     display: 'flex', 
                     justifyContent: 'space-between', 
                     alignItems: 'flex-start',
-                    mb: 2,
+                  mb: 2,
                     flexWrap: 'wrap',
                     gap: 1
                   }}>
@@ -571,9 +571,9 @@ const TenantMaintenance = () => {
                     >
                       {request.issue}
                     </Typography>
-                    <Chip
+                <Chip
                       label={request.status}
-                      color={
+                  color={
                         request.status === 'Completed'
                           ? 'success'
                           : request.status === 'In Progress'
@@ -585,8 +585,8 @@ const TenantMaintenance = () => {
                         textTransform: 'capitalize',
                         fontWeight: 500,
                       }}
-                    />
-                  </Box>
+          />
+        </Box>
                   <Grid container spacing={2}>
                     <Grid item xs={12} sm={6}>
                       <Typography 
@@ -632,13 +632,13 @@ const TenantMaintenance = () => {
                     <Grid item xs={12}>
                       <Typography 
                         variant="body2" 
-                        sx={{ 
+            sx={{
                           color: darkMode ? '#aaa' : '#666',
                           mb: 0.5
                         }}
                       >
                         Description
-                      </Typography>
+            </Typography>
                       <Typography 
                         variant="body2" 
                         sx={{ 
@@ -647,7 +647,7 @@ const TenantMaintenance = () => {
                         }}
                       >
                         {request.description}
-                      </Typography>
+            </Typography>
                     </Grid>
                     {request.image && (
                       <Grid item xs={12}>
@@ -659,7 +659,7 @@ const TenantMaintenance = () => {
                           }}
                         >
                           Image
-                        </Typography>
+            </Typography>
                         <img
                           src={request.image}
                           alt="Maintenance issue"

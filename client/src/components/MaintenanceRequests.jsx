@@ -515,11 +515,11 @@ const MaintenanceRequests = () => {
       flex: 1,
       minWidth: 120,
       renderCell: (params) => (
-        <Select
-          value={params.value}
+          <Select
+            value={params.value}
           onChange={(e) => handleStatusChange(params.row.id, e.target.value)}
-          size="small"
-          sx={{
+            size="small"
+            sx={{
             minWidth: 120,
             '& .MuiSelect-select': {
               py: 0.5,
@@ -529,7 +529,7 @@ const MaintenanceRequests = () => {
           <MenuItem value="Pending">Pending</MenuItem>
           <MenuItem value="In Progress">In Progress</MenuItem>
           <MenuItem value="Completed">Completed</MenuItem>
-        </Select>
+          </Select>
       ),
     },
     {
@@ -565,8 +565,8 @@ const MaintenanceRequests = () => {
               onClick={() => setViewRequest(params.row)}
               color="primary"
             >
-              <Visibility />
-            </IconButton>
+          <Visibility />
+        </IconButton>
           </Tooltip>
           <Tooltip title="Delete Request">
             <IconButton
@@ -1013,30 +1013,30 @@ const MaintenanceRequests = () => {
               </Box>
             ) : (
               // Desktop view with DataGrid
-              <DataGrid
-                rows={rows}
-                columns={columns}
-                slots={{ toolbar: GridToolbar }}
-                pageSizeOptions={[10, 25, 50]}
+            <DataGrid
+              rows={rows}
+              columns={columns}
+              slots={{ toolbar: GridToolbar }}
+              pageSizeOptions={[10, 25, 50]}
                 autoHeight
                 disableRowSelectionOnClick
-                sx={{
-                  '& .MuiDataGrid-columnHeaders': {
-                    backgroundColor: darkMode ? '#333' : 'primary.light',
-                    fontSize: 16,
-                    color: darkMode ? '#fff' : '#000',
-                  },
-                  '& .MuiDataGrid-row:nth-of-type(odd)': {
-                    backgroundColor: darkMode ? '#1e1e1e' : 'action.hover',
-                  },
+              sx={{
+                '& .MuiDataGrid-columnHeaders': {
+                  backgroundColor: darkMode ? '#333' : 'primary.light',
+                  fontSize: 16,
                   color: darkMode ? '#fff' : '#000',
+                },
+                '& .MuiDataGrid-row:nth-of-type(odd)': {
+                  backgroundColor: darkMode ? '#1e1e1e' : 'action.hover',
+                },
+                color: darkMode ? '#fff' : '#000',
                   '& .MuiDataGrid-cell': {
                     whiteSpace: 'normal',
                     lineHeight: 'normal',
                     padding: '8px',
                   },
-                }}
-              />
+              }}
+            />
             )}
           </Box>
 
@@ -1171,10 +1171,10 @@ const MaintenanceRequests = () => {
                 }}>
                   <Typography variant="h6" gutterBottom sx={{ color: darkMode ? '#fff' : '#000' }}>
                     Basic Information
-                  </Typography>
+            </Typography>
                   <Typography variant="body2" sx={{ mb: 1 }}>
                     <strong>Issue:</strong> {viewRequest.issue}
-                  </Typography>
+            </Typography>
                   <Typography variant="body2" sx={{ mb: 1 }}>
                     <strong>Property:</strong> {viewRequest.propertyName}
                   </Typography>
@@ -1196,14 +1196,14 @@ const MaintenanceRequests = () => {
                     Status Information
                   </Typography>
                   <Typography variant="body2" sx={{ mb: 1 }}>
-                    <strong>Status:</strong> {viewRequest.status}
-                  </Typography>
+              <strong>Status:</strong> {viewRequest.status}
+            </Typography>
                   <Typography variant="body2" sx={{ mb: 1 }}>
-                    <strong>Priority:</strong> {viewRequest.priority}
-                  </Typography>
+              <strong>Priority:</strong> {viewRequest.priority}
+            </Typography>
                   <Typography variant="body2" sx={{ mb: 1 }}>
                     <strong>Submitted:</strong> {viewRequest.createdAt ? new Date(viewRequest.createdAt).toLocaleDateString() : ''}
-                  </Typography>
+            </Typography>
                 </Card>
               </Grid>
               <Grid item xs={12}>
@@ -1214,7 +1214,7 @@ const MaintenanceRequests = () => {
                   <Typography variant="h6" gutterBottom sx={{ color: darkMode ? '#fff' : '#000' }}>
                     Description
                   </Typography>
-                  <Typography variant="body2">
+                <Typography variant="body2">
                     {viewRequest.description}
                   </Typography>
                 </Card>
@@ -1227,21 +1227,21 @@ const MaintenanceRequests = () => {
                   }}>
                     <Typography variant="h6" gutterBottom sx={{ color: darkMode ? '#fff' : '#000' }}>
                       Attached Image
-                    </Typography>
-                    <img
-                      src={viewRequest.image}
-                      alt="Maintenance issue"
-                      style={{
-                        width: '100%',
-                        maxHeight: 300,
+                </Typography>
+                <img
+                  src={viewRequest.image}
+                  alt="Maintenance issue"
+                  style={{
+                    width: '100%',
+                    maxHeight: 300,
                         borderRadius: 8,
-                        objectFit: 'cover',
+                    objectFit: 'cover',
                         boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                      }}
-                    />
+                  }}
+                />
                   </Card>
                 </Grid>
-              )}
+            )}
             </Grid>
           </DialogContent>
           <DialogActions sx={{ 
