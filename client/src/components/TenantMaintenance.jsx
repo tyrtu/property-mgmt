@@ -30,6 +30,7 @@ import {
   Modal,
   Container,
   Card,
+  CardContent,
 } from "@mui/material";
 import {
   Construction as ConstructionIcon,
@@ -44,6 +45,8 @@ import {
   LightMode as LightModeIcon,
   DarkMode as DarkModeIcon,
   Close as CloseIcon,
+  Build as BuildIcon,
+  Info as InfoIcon,
 } from "@mui/icons-material";
 import {
   collection,
@@ -60,6 +63,7 @@ import { auth, db } from "../firebase";
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '@mui/material/styles';
 import { useMediaQuery } from '@mui/material';
+import { format } from 'date-fns';
 
 const TenantMaintenance = () => {
   const { currentUser } = useAuth();
@@ -84,6 +88,8 @@ const TenantMaintenance = () => {
   const [success, setSuccess] = useState('');
   const [userDetails, setUserDetails] = useState(null);
   const [unitDetails, setUnitDetails] = useState(null);
+  const [maintenanceRequests, setMaintenanceRequests] = useState([]);
+  const [tenantData, setTenantData] = useState(null);
 
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
@@ -129,27 +135,58 @@ const TenantMaintenance = () => {
     fetchUserAndUnitDetails();
   }, [currentUser]);
 
+  // Fetch tenant data
+  useEffect(() => {
+    const fetchTenantData = async () => {
+      try {
+        const user = auth.currentUser;
+        if (user) {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          if (userDoc.exists()) {
+            setTenantData(userDoc.data());
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching tenant data:', error);
+      }
+    };
+
+    fetchTenantData();
+  }, []);
+
   // Fetch maintenance requests
   useEffect(() => {
-    if (!currentUser?.uid) return;
+    let unsubscribe = () => {};
+    const fetchMaintenanceRequests = async () => {
+      try {
+        const user = auth.currentUser;
+        if (user && tenantData) {
+          let q = query(
+            collection(db, "maintenanceRequests"),
+            where("userId", "==", user.uid),
+            where("propertyId", "==", tenantData.propertyId),
+            where("unitId", "==", tenantData.unitId),
+            orderBy("createdAt", "desc")
+          );
+          
+          unsubscribe = onSnapshot(q, (snapshot) => {
+            const requests = snapshot.docs.map(doc => ({
+              id: doc.id,
+              ...doc.data(),
+              createdAt: doc.data().createdAt?.toDate()
+            }));
+            setMaintenanceRequests(requests);
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching maintenance requests:", error);
+        setError("Failed to fetch maintenance requests");
+      }
+    };
 
-    const q = query(
-      collection(db, 'maintenanceRequests'),
-      where('tenantId', '==', currentUser.uid),
-      orderBy('createdAt', 'desc')
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const requestsData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate(),
-      }));
-      setRequests(requestsData);
-    });
-
+    fetchMaintenanceRequests();
     return () => unsubscribe();
-  }, [currentUser]);
+  }, [tenantData]);
 
   // Handle form submission
   const handleSubmit = async (e) => {
@@ -159,21 +196,37 @@ const TenantMaintenance = () => {
     setSuccess('');
 
     try {
-      // Validate required fields
-      if (!newRequest.issue || !newRequest.description) {
-        throw new Error('Please fill in all required fields');
+      const user = auth.currentUser;
+      if (!user) {
+        throw new Error('User not found');
       }
 
-      // Add timestamp and status
-      const requestData = {
-        ...newRequest,
+      // Get user data to get property and unit information
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      if (!userDoc.exists()) {
+        throw new Error('User data not found');
+      }
+
+      const userData = userDoc.data();
+
+      const maintenanceRequest = {
+        userId: user.uid,
+        tenantName: userData.name,
+        propertyId: userData.propertyId,
+        propertyName: userData.propertyName,
+        unitId: userData.unitId,
+        unit: userData.unit,
+        issue: newRequest.issue,
+        description: newRequest.description,
+        status: 'pending',
+        priority: newRequest.priority,
         createdAt: new Date(),
-        status: 'Pending',
+        updatedAt: new Date(),
       };
 
-      await addDoc(collection(db, 'maintenanceRequests'), requestData);
-      
-      // Reset form
+      await addDoc(collection(db, 'maintenanceRequests'), maintenanceRequest);
+      setSuccess('Maintenance request submitted successfully');
+      setOpenDialog(false);
       setNewRequest({
         issue: '',
         description: '',
@@ -187,10 +240,9 @@ const TenantMaintenance = () => {
         tenantEmail: currentUser.email || '',
       });
       setImagePreview(null);
-      setSuccess('Maintenance request submitted successfully');
     } catch (error) {
-      console.error('Error submitting request:', error);
-      setError(error.message || 'Error submitting request');
+      console.error('Error submitting maintenance request:', error);
+      setError('Failed to submit maintenance request');
     } finally {
       setLoading(false);
     }
@@ -208,6 +260,26 @@ const TenantMaintenance = () => {
   // Toggle dark mode
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
+  };
+
+  const getStatusColor = (status) => {
+    switch (status.toLowerCase()) {
+      case 'pending': return 'warning';
+      case 'in progress': return 'info';
+      case 'resolved': return 'success';
+      case 'overdue': return 'error';
+      default: return 'default';
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    switch (status.toLowerCase()) {
+      case 'pending': return <WarningIcon color="warning" />;
+      case 'in progress': return <BuildIcon color="info" />;
+      case 'resolved': return <CheckCircleIcon color="success" />;
+      case 'overdue': return <WarningIcon color="error" />;
+      default: return <CheckCircleIcon color="disabled" />;
+    }
   };
 
   return (
@@ -238,7 +310,7 @@ const TenantMaintenance = () => {
               }}
             >
               Submit Maintenance Request
-        </Typography>
+            </Typography>
             <Tooltip title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>
               <IconButton 
                 onClick={toggleDarkMode} 
@@ -252,7 +324,7 @@ const TenantMaintenance = () => {
                 {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
               </IconButton>
             </Tooltip>
-      </Box>
+          </Box>
 
           {/* Property and Unit Information */}
           <Card sx={{ 
@@ -290,7 +362,7 @@ const TenantMaintenance = () => {
                 >
                   {unitDetails?.propertyName || 'Not assigned'}
                 </Typography>
-        </Grid>
+              </Grid>
               <Grid item xs={12} sm={6}>
                 <Typography 
                   variant="body2" 
@@ -310,7 +382,7 @@ const TenantMaintenance = () => {
           >
                   {unitDetails?.number || 'Not assigned'}
             </Typography>
-        </Grid>
+              </Grid>
             </Grid>
           </Card>
 
@@ -373,7 +445,7 @@ const TenantMaintenance = () => {
                     },
                   }}
                 />
-      </Grid>
+              </Grid>
 
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
@@ -465,7 +537,7 @@ const TenantMaintenance = () => {
                     >
                       <CloseIcon />
                     </IconButton>
-      </Box>
+                  </Box>
                 </Grid>
               )}
 
@@ -484,7 +556,7 @@ const TenantMaintenance = () => {
                   }}
                 >
                   {loading ? 'Submitting...' : 'Submit Request'}
-      </Button>
+                </Button>
               </Grid>
             </Grid>
           </form>
@@ -539,7 +611,7 @@ const TenantMaintenance = () => {
               gap: 2,
               px: { xs: 0, sm: 1 }
             }}>
-              {requests.map((request) => (
+              {maintenanceRequests.map((request) => (
                 <Card 
                   key={request.id}
                 sx={{
@@ -573,13 +645,7 @@ const TenantMaintenance = () => {
                     </Typography>
                 <Chip
                       label={request.status}
-                  color={
-                        request.status === 'Completed'
-                          ? 'success'
-                          : request.status === 'In Progress'
-                          ? 'primary'
-                          : 'warning'
-                      }
+                  color={getStatusColor(request.status)}
                       size="small"
                       sx={{
                         textTransform: 'capitalize',
@@ -605,7 +671,7 @@ const TenantMaintenance = () => {
                           fontWeight: 500
                         }}
                       >
-                        {request.createdAt?.toLocaleDateString()}
+                        {format(request.createdAt, 'MMM dd, yyyy h:mm a')}
                       </Typography>
                     </Grid>
                     <Grid item xs={12} sm={6}>
