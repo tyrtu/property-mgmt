@@ -1,6 +1,19 @@
 import React, { useState, useEffect, useRef } from "react";
 import { db, auth } from "../firebase";
 import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
+import {
+  Box,
+  Paper,
+  IconButton,
+  Typography,
+  TextField,
+  Button,
+  Fab,
+  CircularProgress,
+  useTheme,
+  alpha
+} from '@mui/material';
+import { Chat as ChatIcon, Close as CloseIcon, Send as SendIcon } from '@mui/icons-material';
 
 const Chatbot = () => {
   const [messages, setMessages] = useState([
@@ -10,6 +23,7 @@ const Chatbot = () => {
   const [loading, setLoading] = useState(false);
   const [isChatVisible, setIsChatVisible] = useState(false);
   const messagesEndRef = useRef(null);
+  const theme = useTheme();
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -348,157 +362,173 @@ const Chatbot = () => {
   };
 
   return (
-    <div style={{ position: "fixed", bottom: "20px", right: "20px", zIndex: 1000 }}>
-      {!isChatVisible && (
-        <button
+    <Box
+      sx={{
+        position: "fixed",
+        bottom: { xs: 16, md: 24 },
+        right: { xs: 16, md: 24 },
+        zIndex: theme.zIndex.drawer + 1,
+      }}
+    >
+      {!isChatVisible ? (
+        <Fab
+          color="primary"
           onClick={toggleChat}
-          style={{
-            padding: "15px",
-            background: "#007bff",
-            color: "white",
-            border: "none",
-            borderRadius: "50%",
-            cursor: "pointer",
-            boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "20px",
+          sx={{
+            width: 56,
+            height: 56,
+            boxShadow: theme.shadows[8],
+            '&:hover': {
+              transform: 'scale(1.05)',
+              boxShadow: theme.shadows[12],
+            },
+            transition: 'all 0.3s ease',
           }}
         >
-          💬
-        </button>
-      )}
-      {isChatVisible && (
-        <div
-          style={{
-            width: "90%",
-            maxWidth: "400px",
-            border: "1px solid #ddd",
-            padding: "10px",
-            borderRadius: "10px",
-            background: "white",
-            boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-            display: "flex",
-            flexDirection: "column",
-            maxHeight: "80vh",
+          <ChatIcon />
+        </Fab>
+      ) : (
+        <Paper
+          elevation={6}
+          sx={{
+            width: { xs: '100vw', sm: 400 },
+            maxWidth: '100%',
+            height: { xs: '80vh', sm: 600 },
+            maxHeight: '80vh',
+            display: 'flex',
+            flexDirection: 'column',
+            borderRadius: 2,
+            overflow: 'hidden',
+            bgcolor: 'background.paper',
+            position: { xs: 'fixed', sm: 'static' },
+            bottom: { xs: 0, sm: 'auto' },
+            right: { xs: 0, sm: 'auto' },
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "10px",
+          {/* Header */}
+          <Box
+            sx={{
+              p: 2,
+              bgcolor: 'primary.main',
+              color: 'primary.contrastText',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
             }}
           >
-            <h3 style={{ margin: 0, fontSize: "18px", color: "#007bff" }}>Chat Support</h3>
-            <button
+            <Typography variant="h6" component="div" sx={{ fontWeight: 500 }}>
+              Chat Support
+            </Typography>
+            <IconButton
               onClick={toggleChat}
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                fontSize: "18px",
-                color: "#666",
-              }}
+              size="small"
+              sx={{ color: 'inherit' }}
             >
-              ✕
-            </button>
-          </div>
-          <div
-            style={{
+              <CloseIcon />
+            </IconButton>
+          </Box>
+
+          {/* Messages Container */}
+          <Box
+            sx={{
               flex: 1,
-              overflowY: "auto",
-              padding: "10px",
-              background: "#f9f9f9",
-              borderRadius: "5px",
-              marginBottom: "10px",
+              overflowY: 'auto',
+              p: 2,
+              bgcolor: alpha(theme.palette.background.default, 0.98),
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 1,
             }}
           >
             {messages.map((msg, index) => (
-              <div
+              <Box
                 key={index}
-                style={{
-                  textAlign: msg.role === "user" ? "right" : "left",
-                  padding: "8px",
-                  marginBottom: "8px",
-                  background: msg.role === "user" ? "#007bff" : "#e0e0e0",
-                  color: msg.role === "user" ? "white" : "black",
-                  borderRadius: "10px",
-                  maxWidth: "80%",
-                  marginLeft: msg.role === "user" ? "auto" : "0",
-                  wordWrap: "break-word",
+                sx={{
+                  maxWidth: '80%',
+                  alignSelf: msg.role === "user" ? "flex-end" : "flex-start",
+                  animation: 'fadeIn 0.3s ease-in-out',
                 }}
               >
-                {msg.content}
-              </div>
+                <Paper
+                  elevation={1}
+                  sx={{
+                    p: 1.5,
+                    bgcolor: msg.role === "user" 
+                      ? 'primary.main'
+                      : alpha(theme.palette.grey[100], theme.palette.mode === 'dark' ? 0.1 : 1),
+                    color: msg.role === "user"
+                      ? 'primary.contrastText'
+                      : 'text.primary',
+                    borderRadius: 2,
+                    wordBreak: 'break-word',
+                  }}
+                >
+                  <Typography variant="body2">
+                    {msg.content}
+                  </Typography>
+                </Paper>
+              </Box>
             ))}
             {loading && (
-              <div style={{ textAlign: "center", margin: "10px 0" }}>
-                <div
-                  style={{
-                    display: "inline-block",
-                    width: "20px",
-                    height: "20px",
-                    border: "3px solid #f3f3f3",
-                    borderTop: "3px solid #007bff",
-                    borderRadius: "50%",
-                    animation: "spin 1s linear infinite",
-                  }}
-                ></div>
-              </div>
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+                <CircularProgress size={24} />
+              </Box>
             )}
             <div ref={messagesEndRef} />
-          </div>
-          <div style={{ display: "flex", gap: "10px" }}>
-            <input
-              type="text"
+          </Box>
+
+          {/* Input Area */}
+          <Box
+            sx={{
+              p: 2,
+              bgcolor: 'background.paper',
+              borderTop: 1,
+              borderColor: 'divider',
+              display: 'flex',
+              gap: 1,
+            }}
+          >
+            <TextField
+              fullWidth
+              size="small"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Type a message..."
-              style={{
-                flex: 1,
-                padding: "8px",
-                borderRadius: "5px",
-                border: "1px solid #ddd",
-                outline: "none",
-              }}
               disabled={loading}
               onKeyDown={(e) => e.key === "Enter" && !loading && sendMessage()}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                },
+              }}
             />
-            <button
+            <Button
+              variant="contained"
               onClick={sendMessage}
               disabled={loading || !input.trim()}
-              style={{
-                padding: "8px 15px",
-                background: loading ? "#ccc" : "#007bff",
-                color: "white",
-                border: "none",
-                borderRadius: "5px",
-                cursor: loading ? "not-allowed" : "pointer",
+              sx={{
+                minWidth: 'auto',
+                px: 2,
+                borderRadius: 2,
+                '&:disabled': {
+                  bgcolor: 'action.disabledBackground',
+                },
               }}
             >
-              Send
-            </button>
-          </div>
-        </div>
+              <SendIcon />
+            </Button>
+          </Box>
+        </Paper>
       )}
       <style>
         {`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-          @media (max-width: 480px) {
-            div {
-              right: 10px;
-              bottom: 10px;
-            }
+          @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
           }
         `}
       </style>
-    </div>
+    </Box>
   );
 };
 
