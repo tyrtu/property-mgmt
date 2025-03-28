@@ -138,6 +138,7 @@ const TenantManagement = () => {
   const [tenants, setTenants] = useState([]);
   const [filteredTenants, setFilteredTenants] = useState([]);
   const [properties, setProperties] = useState([]);
+  const [units, setUnits] = useState({});
   const [openDialog, setOpenDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProperty, setSelectedProperty] = useState('all');
@@ -162,6 +163,28 @@ const TenantManagement = () => {
 
   // Colors for charts
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
+
+  // Fetch units dynamically from Firebase
+  useEffect(() => {
+    const fetchUnits = async () => {
+      const propertiesSnapshot = await getDocs(collection(db, 'properties'));
+      const unitsMap = {};
+
+      for (const propertyDoc of propertiesSnapshot.docs) {
+        const unitsSnapshot = await getDocs(collection(db, 'properties', propertyDoc.id, 'units'));
+        unitsSnapshot.docs.forEach(unitDoc => {
+          unitsMap[unitDoc.id] = {
+            number: unitDoc.data().number,
+            propertyId: propertyDoc.id
+          };
+        });
+      }
+
+      setUnits(unitsMap);
+    };
+
+    fetchUnits();
+  }, []);
 
   // Fetch tenants from Firestore
   useEffect(() => {
@@ -565,7 +588,7 @@ const TenantManagement = () => {
                   </Typography>
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                     <Apartment sx={{ verticalAlign: 'middle', mr: 1, fontSize: 16 }} />
-                    Unit: {tenant.unitNumber || 'Not assigned'}
+                    Unit {tenant.unitId ? units[tenant.unitId]?.number : ''}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     <Phone sx={{ verticalAlign: 'middle', mr: 1, fontSize: 16 }} />
@@ -834,12 +857,13 @@ const TenantManagement = () => {
                   <Stack spacing={1.5}>
                     <Box>
                       <Typography variant="subtitle2" color="text.secondary">
-                        Property
+                        Property Details
                       </Typography>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Home fontSize="small" />
                         <Typography>
                           {properties.find(p => p.id === viewTenant.propertyId)?.name || viewTenant.propertyId}
+                          {viewTenant.unitId ? ` - Unit ${units[viewTenant.unitId]?.number}` : ''}
                         </Typography>
                       </Box>
                     </Box>
