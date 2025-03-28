@@ -346,6 +346,19 @@ const TenantManagement = () => {
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Tooltip title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>
+              <IconButton 
+                onClick={toggleDarkMode} 
+                sx={{ 
+                  color: darkMode ? '#fff' : '#000',
+                  '&:hover': {
+                    bgcolor: darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)'
+                  }
+                }}
+              >
+                {darkMode ? <LightMode /> : <DarkMode />}
+              </IconButton>
+            </Tooltip>
             <Button variant="contained" startIcon={<Group />}>
               Add Tenant
             </Button>
@@ -513,14 +526,32 @@ const TenantManagement = () => {
         <Grid container spacing={3} sx={{ mb: 3 }}>
           {filteredTenants.map((tenant) => (
             <Grid item xs={12} sm={6} md={4} key={tenant.id}>
-              <Card sx={{ p: 2, backgroundColor: darkMode ? '#333' : '#fff' }}>
+              <Card sx={{ 
+                p: 2, 
+                backgroundColor: darkMode ? '#252525' : '#fff',
+                '&:hover': {
+                  boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+                  transform: 'translateY(-2px)',
+                  transition: 'all 0.3s ease'
+                }
+              }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Avatar src={`https://i.pravatar.cc/80?u=${tenant.id}`}>
-                    {tenant.name[0]}
+                  <Avatar 
+                    src={`https://i.pravatar.cc/80?u=${tenant.id}`}
+                    sx={{ 
+                      width: 56, 
+                      height: 56,
+                      bgcolor: darkMode ? 'primary.dark' : 'primary.main' 
+                    }}
+                  >
+                    {tenant.firstName?.[0]}{tenant.lastName?.[0]}
                   </Avatar>
                   <Box>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 600, color: darkMode ? '#fff' : '#000' }}>
-                      {tenant.name}
+                    <Typography variant="subtitle1" sx={{ 
+                      fontWeight: 600, 
+                      color: darkMode ? '#fff' : '#000'
+                    }}>
+                      {tenant.firstName} {tenant.lastName}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       {tenant.email}
@@ -528,30 +559,57 @@ const TenantManagement = () => {
                   </Box>
                 </Box>
                 <Box sx={{ mt: 2 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                    <Home sx={{ verticalAlign: 'middle', mr: 1, fontSize: 16 }} />
+                    {properties.find(p => p.id === tenant.propertyId)?.name || 'Property not assigned'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                    <Apartment sx={{ verticalAlign: 'middle', mr: 1, fontSize: 16 }} />
+                    Unit: {tenant.unitNumber || 'Not assigned'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    <Phone sx={{ verticalAlign: 'middle', mr: 1, fontSize: 16 }} />
+                    {tenant.phone || 'No phone number'}
+                  </Typography>
+                </Box>
+                <Box sx={{ mt: 2 }}>
                   <Chip
-                    label={tenant.paymentStatus}
+                    label={tenant.status || 'Status not set'}
                     color={
-                      tenant.paymentStatus === 'Paid'
-                        ? 'success'
-                        : tenant.paymentStatus === 'Pending'
-                        ? 'warning'
-                        : 'error'
+                      tenant.status === 'Active' ? 'success' :
+                      tenant.status === 'Pending' ? 'warning' :
+                      'error'
                     }
                     size="small"
+                    sx={{ mr: 1 }}
                   />
                 </Box>
                 <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
                   <Button
                     variant="outlined"
-                    color="primary"
+                    size="small"
                     onClick={() => handleViewTenant(tenant.id)}
+                    sx={{
+                      color: darkMode ? '#fff' : 'primary.main',
+                      borderColor: darkMode ? '#fff' : 'primary.main',
+                      '&:hover': {
+                        borderColor: darkMode ? '#fff' : 'primary.main',
+                        backgroundColor: darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(25,118,210,0.04)'
+                      }
+                    }}
                   >
                     View More
                   </Button>
                   <Button
                     variant="outlined"
                     color="error"
-                    onClick={() => handleDeleteTenant(tenant.id)}
+                    size="small"
+                    onClick={() => setConfirmDelete(tenant.id)}
+                    sx={{
+                      '&:hover': {
+                        backgroundColor: darkMode ? 'rgba(244,67,54,0.1)' : 'rgba(244,67,54,0.04)'
+                      }
+                    }}
                   >
                     Delete
                   </Button>

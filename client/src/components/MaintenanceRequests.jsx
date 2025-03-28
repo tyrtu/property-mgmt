@@ -34,6 +34,7 @@ import {
   FormControlLabel,
   Grid,
   Stack,
+  LinearProgress,
 } from '@mui/material';
 import {
   HourglassEmpty as PendingIcon,
@@ -47,6 +48,7 @@ import {
   FilterList,
   Analytics,
   Delete,
+  Build,
 } from '@mui/icons-material';
 import { collection, query, orderBy, onSnapshot, updateDoc, doc, getDocs, deleteDoc, addDoc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -756,15 +758,127 @@ const MaintenanceRequests = () => {
       <Container maxWidth="xl" sx={{ py: 4 }}>
         <Card sx={{ p: 3, mb: 3, backgroundColor: darkMode ? '#1e1e1e' : '#fff' }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="h4" sx={{ fontWeight: 700, color: darkMode ? '#fff' : '#000' }}>
-              Maintenance Requests
-            </Typography>
+            <Box>
+              <Typography variant="h4" sx={{ 
+                fontWeight: 700, 
+                color: darkMode ? '#fff' : '#000',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1
+              }}>
+                <Build sx={{ fontSize: '2rem' }} />
+                Maintenance Requests
+              </Typography>
+              <Typography variant="subtitle1" color="text.secondary">
+                {rows.length} requests • Last updated: {new Date().toLocaleDateString()}
+              </Typography>
+            </Box>
             <Tooltip title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>
               <IconButton onClick={toggleDarkMode} color="inherit">
                 {darkMode ? <LightMode /> : <DarkMode />}
               </IconButton>
             </Tooltip>
           </Box>
+
+          {/* Summary Cards */}
+          <Grid container spacing={3} sx={{ my: 3 }}>
+            <Grid item xs={12} sm={6} md={3}>
+              <Card sx={{ 
+                p: 2, 
+                height: '100%',
+                backgroundColor: darkMode ? '#252525' : '#fff',
+                borderLeft: '4px solid #4CAF50'
+              }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  <Build color="success" sx={{ mr: 1 }} />
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Total Requests
+                  </Typography>
+                </Box>
+                <Typography variant="h4" sx={{ mt: 1 }}>
+                  {rows.length}
+                </Typography>
+                <LinearProgress 
+                  variant="determinate" 
+                  value={100} 
+                  color="success"
+                  sx={{ height: 6, mt: 2 }}
+                />
+              </Card>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Card sx={{ 
+                p: 2, 
+                height: '100%',
+                backgroundColor: darkMode ? '#252525' : '#fff',
+                borderLeft: '4px solid #FFC107'
+              }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  <Build color="warning" sx={{ mr: 1 }} />
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Pending
+                  </Typography>
+                </Box>
+                <Typography variant="h4" sx={{ mt: 1 }}>
+                  {rows.filter(row => row.status === 'Pending').length}
+                </Typography>
+                <LinearProgress 
+                  variant="determinate" 
+                  value={rows.length > 0 ? (rows.filter(row => row.status === 'Pending').length / rows.length) * 100 : 0} 
+                  color="warning"
+                  sx={{ height: 6, mt: 2 }}
+                />
+              </Card>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Card sx={{ 
+                p: 2, 
+                height: '100%',
+                backgroundColor: darkMode ? '#252525' : '#fff',
+                borderLeft: '4px solid #2196F3'
+              }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  <Build color="primary" sx={{ mr: 1 }} />
+                  <Typography variant="subtitle2" color="text.secondary">
+                    In Progress
+                  </Typography>
+                </Box>
+                <Typography variant="h4" sx={{ mt: 1 }}>
+                  {rows.filter(row => row.status === 'In Progress').length}
+                </Typography>
+                <LinearProgress 
+                  variant="determinate" 
+                  value={rows.length > 0 ? (rows.filter(row => row.status === 'In Progress').length / rows.length) * 100 : 0} 
+                  color="primary"
+                  sx={{ height: 6, mt: 2 }}
+                />
+              </Card>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Card sx={{ 
+                p: 2, 
+                height: '100%',
+                backgroundColor: darkMode ? '#252525' : '#fff',
+                borderLeft: '4px solid #9C27B0'
+              }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  <Build color="secondary" sx={{ mr: 1 }} />
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Completed
+                  </Typography>
+                </Box>
+                <Typography variant="h4" sx={{ mt: 1 }}>
+                  {rows.filter(row => row.status === 'Completed').length}
+                </Typography>
+                <LinearProgress 
+                  variant="determinate" 
+                  value={rows.length > 0 ? (rows.filter(row => row.status === 'Completed').length / rows.length) * 100 : 0} 
+                  color="secondary"
+                  sx={{ height: 6, mt: 2 }}
+                />
+              </Card>
+            </Grid>
+          </Grid>
 
           {/* Search & Filters */}
           <Box sx={{ display: 'flex', gap: 2, my: 3, flexDirection: isSmallScreen ? 'column' : 'row' }}>
@@ -1018,23 +1132,37 @@ const MaintenanceRequests = () => {
               columns={columns}
               slots={{ toolbar: GridToolbar }}
               pageSizeOptions={[10, 25, 50]}
-                autoHeight
-                disableRowSelectionOnClick
+              autoHeight
+              disableRowSelectionOnClick
               sx={{
                 '& .MuiDataGrid-columnHeaders': {
                   backgroundColor: darkMode ? '#333' : 'primary.light',
                   fontSize: 16,
                   color: darkMode ? '#fff' : '#000',
+                  borderBottom: `1px solid ${darkMode ? '#555' : '#e0e0e0'}`,
                 },
                 '& .MuiDataGrid-row:nth-of-type(odd)': {
                   backgroundColor: darkMode ? '#1e1e1e' : 'action.hover',
                 },
                 color: darkMode ? '#fff' : '#000',
-                  '& .MuiDataGrid-cell': {
-                    whiteSpace: 'normal',
-                    lineHeight: 'normal',
-                    padding: '8px',
-                  },
+                '& .MuiDataGrid-cell': {
+                  whiteSpace: 'normal',
+                  lineHeight: 'normal',
+                  padding: '8px',
+                  borderColor: darkMode ? '#333' : '#e0e0e0',
+                  backgroundColor: darkMode ? '#252525' : '#fff',
+                },
+                '& .MuiDataGrid-columnHeader': {
+                  borderColor: darkMode ? '#333' : '#e0e0e0',
+                  backgroundColor: darkMode ? '#333' : 'primary.light',
+                },
+                '& .MuiDataGrid-virtualScroller': {
+                  backgroundColor: darkMode ? '#252525' : '#fff',
+                },
+                '& .MuiDataGrid-footerContainer': {
+                  backgroundColor: darkMode ? '#333' : '#f5f5f5',
+                  borderTop: `1px solid ${darkMode ? '#555' : '#e0e0e0'}`,
+                },
               }}
             />
             )}

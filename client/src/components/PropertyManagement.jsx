@@ -26,8 +26,14 @@ import {
   MenuItem,
   Switch,
   CircularProgress,
+  Container,
+  IconButton,
+  Tooltip,
+  LinearProgress,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
-import { Add, Edit, Delete, Search, Apartment, Home, Hotel, MeetingRoom } from '@mui/icons-material';
+import { Add, Edit, Delete, Search, Apartment, Home, Hotel, MeetingRoom, LightMode as LightModeIcon, DarkMode as DarkModeIcon } from '@mui/icons-material';
 import Navigation from './Navigation';
 import useAutoLogout from '../hooks/useAutoLogout';
 import { db } from '../firebase';
@@ -41,13 +47,17 @@ import {
   query,
   where,
 } from 'firebase/firestore';
-import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, Legend, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 
 const PropertyManagement = () => {
   const [properties, setProperties] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+  const isXSmallScreen = useMediaQuery(theme.breakpoints.down('xs'));
   const [propertyDetails, setPropertyDetails] = useState({
     id: null,
     propertyNo: null,
@@ -259,62 +269,185 @@ const PropertyManagement = () => {
 
   const COLORS = ['#0088FE', '#00C49F'];
 
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+  };
+
   return (
-    <Box sx={{ minHeight: '100vh', backgroundColor: 'background.default' }}>
+    <Box sx={{ 
+      minHeight: '100vh', 
+      bgcolor: darkMode ? '#121212' : '#f5f5f5',
+      pt: 0
+    }}>
       <Navigation />
-      <Box sx={{ p: 3, height: '100vh' }}>
-        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h4">Property Management</Typography>
-          <Button variant="contained" startIcon={<Add />} onClick={() => setOpenDialog(true)}>
-            Add Property
-          </Button>
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        {/* Header Section */}
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          mb: 4,
+          flexDirection: isXSmallScreen ? 'column' : 'row',
+          gap: isXSmallScreen ? 2 : 0
+        }}>
+          <Box>
+            <Typography variant="h4" sx={{ 
+              fontWeight: 700,
+              color: darkMode ? '#fff' : '#000',
+              fontSize: { xs: '1.5rem', sm: '2rem' }
+            }}>
+              <Apartment sx={{ verticalAlign: 'middle', mr: 1 }} />
+              Properties
+            </Typography>
+            <Typography variant="subtitle1" color="text.secondary">
+              {properties.length} properties • Last updated: {new Date().toLocaleDateString()}
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Tooltip title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>
+              <IconButton 
+                onClick={toggleDarkMode} 
+                sx={{ 
+                  color: darkMode ? '#fff' : '#000',
+                  '&:hover': {
+                    bgcolor: darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)'
+                  }
+                }}
+              >
+                {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
+              </IconButton>
+            </Tooltip>
+            <Button
+              variant="contained"
+              startIcon={<Add />}
+              onClick={() => setOpenDialog(true)}
+              sx={{
+                textTransform: 'none',
+                borderRadius: 2,
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+              }}
+            >
+              Add Property
+            </Button>
+          </Box>
         </Box>
 
         {/* Summary Cards */}
         <Grid container spacing={3} sx={{ mb: 3 }}>
-          <Grid item xs={12} md={4}>
-            <Card sx={{ p: 2, bgcolor: '#f5d0db', borderRadius: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Home sx={{ fontSize: 40, color: '#af89f0' }} />
-                <Box>
-                  <Typography variant="h6">Total Properties</Typography>
-                  <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                    {properties.length}
-                  </Typography>
-                </Box>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card sx={{ 
+              p: 2, 
+              height: '100%',
+              backgroundColor: darkMode ? '#252525' : '#fff',
+              borderLeft: '4px solid #4CAF50'
+            }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <Home color="success" sx={{ mr: 1 }} />
+                <Typography variant="subtitle2" color="text.secondary">
+                  Total Properties
+                </Typography>
               </Box>
+              <Typography variant="h4" sx={{ mt: 1 }}>
+                {properties.length}
+              </Typography>
+              <LinearProgress 
+                variant="determinate" 
+                value={100} 
+                color="success"
+                sx={{ height: 6, mt: 2 }}
+              />
             </Card>
           </Grid>
-          <Grid item xs={12} md={4}>
-            <Card sx={{ p: 2, bgcolor: '#f0f4c3', borderRadius: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Hotel sx={{ fontSize: 40, color: '#8bc34a' }} />
-                <Box>
-                  <Typography variant="h6">Occupied Units</Typography>
-                  <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                    {properties.reduce((acc, property) => acc + property.occupiedUnits, 0)}
-                  </Typography>
-                </Box>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card sx={{ 
+              p: 2, 
+              height: '100%',
+              backgroundColor: darkMode ? '#252525' : '#fff',
+              borderLeft: '4px solid #2196F3'
+            }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <Hotel color="primary" sx={{ mr: 1 }} />
+                <Typography variant="subtitle2" color="text.secondary">
+                  Occupied Units
+                </Typography>
               </Box>
+              <Typography variant="h4" sx={{ mt: 1 }}>
+                {properties.reduce((acc, property) => acc + property.occupiedUnits, 0)}
+              </Typography>
+              <LinearProgress 
+                variant="determinate" 
+                value={properties.length > 0 ? 
+                  (properties.reduce((acc, property) => acc + property.occupiedUnits, 0) / 
+                  properties.reduce((acc, property) => acc + property.totalUnits, 0) * 100) : 0} 
+                color="primary"
+                sx={{ height: 6, mt: 2 }}
+              />
             </Card>
           </Grid>
-          <Grid item xs={12} md={4}>
-            <Card sx={{ p: 2, bgcolor: '#ffccbc', borderRadius: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <MeetingRoom sx={{ fontSize: 40, color: '#ff5722' }} />
-                <Box>
-                  <Typography variant="h6">Vacant Units</Typography>
-                  <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                    {properties.reduce((acc, property) => acc + (property.totalUnits - property.occupiedUnits), 0)}
-                  </Typography>
-                </Box>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card sx={{ 
+              p: 2, 
+              height: '100%',
+              backgroundColor: darkMode ? '#252525' : '#fff',
+              borderLeft: '4px solid #FFC107'
+            }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <MeetingRoom color="warning" sx={{ mr: 1 }} />
+                <Typography variant="subtitle2" color="text.secondary">
+                  Vacant Units
+                </Typography>
               </Box>
+              <Typography variant="h4" sx={{ mt: 1 }}>
+                {properties.reduce((acc, property) => acc + (property.totalUnits - property.occupiedUnits), 0)}
+              </Typography>
+              <LinearProgress 
+                variant="determinate" 
+                value={properties.length > 0 ? 
+                  (properties.reduce((acc, property) => acc + (property.totalUnits - property.occupiedUnits), 0) / 
+                  properties.reduce((acc, property) => acc + property.totalUnits, 0) * 100) : 0} 
+                color="warning"
+                sx={{ height: 6, mt: 2 }}
+              />
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card sx={{ 
+              p: 2, 
+              height: '100%',
+              backgroundColor: darkMode ? '#252525' : '#fff',
+              borderLeft: '4px solid #9C27B0'
+            }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <Apartment color="secondary" sx={{ mr: 1 }} />
+                <Typography variant="subtitle2" color="text.secondary">
+                  Total Units
+                </Typography>
+              </Box>
+              <Typography variant="h4" sx={{ mt: 1 }}>
+                {properties.reduce((acc, property) => acc + property.totalUnits, 0)}
+              </Typography>
+              <LinearProgress 
+                variant="determinate" 
+                value={100} 
+                color="secondary"
+                sx={{ height: 6, mt: 2 }}
+              />
             </Card>
           </Grid>
         </Grid>
 
         {/* Property List Table */}
-        <TableContainer component={Paper}>
+        <TableContainer component={Paper} sx={{ 
+          backgroundColor: darkMode ? '#252525' : '#fff',
+          '& .MuiTableCell-root': {
+            color: darkMode ? '#fff' : 'inherit',
+            borderColor: darkMode ? '#333' : 'inherit'
+          },
+          '& .MuiTableHead-root .MuiTableCell-root': {
+            backgroundColor: darkMode ? '#333' : '#f5f5f5',
+            color: darkMode ? '#fff' : 'inherit'
+          }
+        }}>
           <Table>
             <TableHead>
               <TableRow>
@@ -379,15 +512,24 @@ const PropertyManagement = () => {
 
         {/* Property Details Section */}
         <Box sx={{ mt: 4 }}>
-          <Typography variant="h5" sx={{ mb: 2 }}>Property Details</Typography>
+          <Typography variant="h5" sx={{ mb: 2, color: darkMode ? '#fff' : 'inherit' }}>Property Details</Typography>
           <FormControl fullWidth sx={{ mb: 3 }}>
-            <InputLabel>Select Property</InputLabel>
+            <InputLabel sx={{ color: darkMode ? '#aaa' : 'inherit' }}>Select Property</InputLabel>
             <Select
               value={selectedProperty ? selectedProperty.id : ''}
               onChange={(e) => {
                 const property = properties.find((p) => p.id === e.target.value);
                 if (property) {
                   handleViewDetails(property);
+                }
+              }}
+              sx={{
+                color: darkMode ? '#fff' : 'inherit',
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: darkMode ? '#666' : 'inherit'
+                },
+                '&:hover .MuiOutlinedInput-notchedOutline': {
+                  borderColor: darkMode ? '#888' : 'inherit'
                 }
               }}
             >
@@ -404,7 +546,22 @@ const PropertyManagement = () => {
               <CircularProgress />
             </Box>
           ) : selectedProperty ? (
-            <Card sx={{ p: 3, borderRadius: 2 }}>
+            <Card sx={{ 
+              p: 3, 
+              borderRadius: 2,
+              backgroundColor: darkMode ? '#252525' : '#fff',
+              '& .MuiTypography-root': {
+                color: darkMode ? '#fff' : 'inherit'
+              },
+              '& .MuiTableCell-root': {
+                color: darkMode ? '#fff' : 'inherit',
+                borderColor: darkMode ? '#333' : 'inherit'
+              },
+              '& .MuiTableHead-root .MuiTableCell-root': {
+                backgroundColor: darkMode ? '#333' : '#f5f5f5',
+                color: darkMode ? '#fff' : 'inherit'
+              }
+            }}>
               <Grid container spacing={3}>
                 <Grid item xs={12} md={6}>
                   <Typography variant="h6">
@@ -429,7 +586,17 @@ const PropertyManagement = () => {
                   <Box sx={{ mt: 2 }}>
                     <Typography variant="subtitle1">Units:</Typography>
                     {selectedProperty.units && selectedProperty.units.length > 0 ? (
-                      <TableContainer component={Paper}>
+                      <TableContainer component={Paper} sx={{ 
+                        backgroundColor: darkMode ? '#252525' : '#fff',
+                        '& .MuiTableCell-root': {
+                          color: darkMode ? '#fff' : 'inherit',
+                          borderColor: darkMode ? '#333' : 'inherit'
+                        },
+                        '& .MuiTableHead-root .MuiTableCell-root': {
+                          backgroundColor: darkMode ? '#333' : '#f5f5f5',
+                          color: darkMode ? '#fff' : 'inherit'
+                        }
+                      }}>
                         <Table size="small">
                           <TableHead>
                             <TableRow>
@@ -476,7 +643,7 @@ const PropertyManagement = () => {
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip
+                      <RechartsTooltip
                         contentStyle={{
                           backgroundColor: '#fff',
                           border: '1px solid #ddd',
@@ -597,7 +764,7 @@ const PropertyManagement = () => {
             </Button>
           </DialogActions>
         </Dialog>
-      </Box>
+      </Container>
     </Box>
   );
 };

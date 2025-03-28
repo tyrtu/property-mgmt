@@ -483,6 +483,19 @@ const RentPayment = () => {
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Tooltip title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>
+              <IconButton 
+                onClick={toggleDarkMode} 
+                sx={{ 
+                  color: darkMode ? '#fff' : '#000',
+                  '&:hover': {
+                    bgcolor: darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)'
+                  }
+                }}
+              >
+                {darkMode ? <LightMode /> : <DarkMode />}
+              </IconButton>
+            </Tooltip>
             <Button variant="contained" startIcon={<Receipt />}>
               Quick Payment
             </Button>
@@ -738,22 +751,39 @@ const RentPayment = () => {
                   checkboxSelection
                   onRowSelectionModelChange={(newSelection) => setSelectedRows(newSelection)}
                   sx={{
-                    '& .MuiDataGrid-columnHeaders': {
-                      backgroundColor: darkMode ? '#333' : 'primary.main',
-                      color: darkMode ? '#fff' : '#fff',
+                    border: 'none',
+                    '& .MuiDataGrid-main, & .MuiDataGrid-virtualScroller, & .MuiDataGrid-virtualScrollerRenderZone, & .MuiDataGrid-virtualScrollerContent, & .MuiDataGrid-footerContainer, & .MuiDataGrid-columnHeaders': {
+                      backgroundColor: darkMode ? '#252525' : '#fff'
+                    },
+                    '& .MuiDataGrid-row': {
+                      backgroundColor: darkMode ? '#252525' : '#fff',
+                      '&:hover': {
+                        backgroundColor: darkMode ? '#333' : '#f5f5f5'
+                      }
                     },
                     '& .MuiDataGrid-cell': {
-                      borderBottomColor: darkMode ? '#333' : 'divider',
+                      backgroundColor: darkMode ? '#252525' : '#fff',
+                      color: darkMode ? '#fff' : 'inherit',
+                      borderBottom: `1px solid ${darkMode ? '#333' : '#f0f0f0'}`
                     },
-                    '& .MuiDataGrid-row:hover': {
-                      backgroundColor: darkMode ? alpha('#333', 0.5) : 'action.hover',
+                    '& .MuiDataGrid-columnHeaders': {
+                      backgroundColor: darkMode ? '#333' : 'primary.main',
+                      color: '#fff',
+                      borderBottom: `1px solid ${darkMode ? '#333' : '#e0e0e0'}`
                     },
                     '& .MuiDataGrid-footerContainer': {
-                      borderTopColor: darkMode ? '#333' : 'divider',
+                      borderTop: `1px solid ${darkMode ? '#333' : '#e0e0e0'}`,
+                      backgroundColor: darkMode ? '#333' : '#f5f5f5'
+                    },
+                    '& .MuiTablePagination-root': {
+                      color: darkMode ? '#fff' : 'inherit'
+                    },
+                    '& .MuiDataGrid-selectedRowCount': {
+                      color: darkMode ? '#fff' : 'inherit'
                     },
                     '& .MuiCheckbox-root': {
-                      color: darkMode ? '#fff' : undefined,
-                    },
+                      color: darkMode ? '#fff' : 'inherit'
+                    }
                   }}
                 />
               </Box>

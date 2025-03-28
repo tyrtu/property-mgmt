@@ -95,7 +95,7 @@ const TrendIndicator = ({ trend }) => (
 );
 
 // Enhanced Metric Card Component
-const MetricCard = ({ title, value, color = 'primary', trend, icon: Icon }) => (
+const MetricCard = ({ title, value, color = 'primary', trend, icon: Icon, darkMode }) => (
   <Grid item xs={12} sm={6} md={3}>
     <Card sx={{ 
       height: '100%',
@@ -103,13 +103,14 @@ const MetricCard = ({ title, value, color = 'primary', trend, icon: Icon }) => (
       flexDirection: 'column',
       p: 2,
       borderRadius: 2,
-      boxShadow: (theme) => theme.palette.mode === 'dark' 
+      backgroundColor: darkMode ? '#252525' : '#fff',
+      boxShadow: darkMode 
         ? '0 4px 20px rgba(0,0,0,0.5)' 
         : '0 4px 20px rgba(0,0,0,0.1)',
       transition: 'transform 0.3s, box-shadow 0.3s',
       '&:hover': { 
         transform: 'translateY(-4px)', 
-        boxShadow: (theme) => theme.palette.mode === 'dark' 
+        boxShadow: darkMode 
           ? '0 8px 30px rgba(0,0,0,0.7)' 
           : '0 8px 30px rgba(0,0,0,0.15)' 
       }
@@ -405,36 +406,42 @@ const Dashboard = () => {
             trend="+2.1%" 
             icon={ApartmentIcon} 
             color="primary" 
+            darkMode={darkMode}
           />
           <MetricCard 
             title="Occupied Units" 
             value={metrics.occupiedUnits} 
             icon={PeopleIcon} 
             color="success" 
+            darkMode={darkMode}
           />
           <MetricCard 
             title="Vacancy Rate" 
             value={`${metrics.vacancyRate}%`} 
             icon={HomeWorkIcon} 
             color="warning" 
+            darkMode={darkMode}
           />
           <MetricCard 
             title="Monthly Income" 
             value={`$${metrics.monthlyIncome.toLocaleString()}`} 
             icon={MonetizationOnIcon} 
             color="info" 
+            darkMode={darkMode}
           />
           <MetricCard 
             title="Net Operating Income" 
             value={`$${metrics.noi.toLocaleString()}`} 
             icon={MonetizationOnIcon} 
             color="success" 
+            darkMode={darkMode}
           />
           <MetricCard 
             title="Cash Flow" 
             value={`$${metrics.cashFlow.toLocaleString()}`} 
             icon={MonetizationOnIcon} 
             color="info" 
+            darkMode={darkMode}
           />
         </Grid>
 
