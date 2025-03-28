@@ -306,19 +306,33 @@ const Chatbot = () => {
               const json = JSON.parse(line.replace("data: ", "").trim());
               const delta = json.choices?.[0]?.delta?.content || "";
               
-              // Clean the delta of any think tags before adding to full response
-              const cleanedDelta = delta.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
-              fullResponse += cleanedDelta;
+              fullResponse += delta;
               
-              // Update the messages state with cleaned response
-              setMessages((prev) => {
-                const newMessages = [...prev];
-                newMessages[newMessages.length - 1] = {
-                  role: "assistant",
-                  content: fullResponse,
-                };
-                return newMessages;
-              });
+              if (done || lines.length === 1) {
+                const cleanedResponse = fullResponse.replace(/<think>[\s\S]*?<\/think>/g, "");
+                assistantReply = cleanedResponse;
+                
+                setMessages((prev) => {
+                  const newMessages = [...prev];
+                  newMessages[newMessages.length - 1] = {
+                    role: "assistant",
+                    content: assistantReply,
+                  };
+                  return newMessages;
+                });
+              } else {
+                const cleanedDelta = delta.replace(/<think>[\s\S]*?<\/think>/g, "");
+                assistantReply += cleanedDelta;
+                
+                setMessages((prev) => {
+                  const newMessages = [...prev];
+                  newMessages[newMessages.length - 1] = {
+                    role: "assistant",
+                    content: assistantReply,
+                  };
+                  return newMessages;
+                });
+              }
             } catch (error) {
               console.error("Error parsing stream chunk:", error);
             }
@@ -326,8 +340,7 @@ const Chatbot = () => {
         }
       }
       
-      // Final cleanup of any remaining think tags
-      const finalCleanedResponse = fullResponse.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
+      const finalCleanedResponse = fullResponse.replace(/<think>[\s\S]*?<\/think>/g, "");
       setMessages((prev) => {
         const newMessages = [...prev];
         newMessages[newMessages.length - 1] = {
@@ -336,7 +349,6 @@ const Chatbot = () => {
         };
         return newMessages;
       });
-      
     } catch (error) {
       console.error("Error:", error);
       setMessages((prev) => [
