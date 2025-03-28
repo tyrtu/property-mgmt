@@ -752,37 +752,83 @@ const RentPayment = () => {
                   onRowSelectionModelChange={(newSelection) => setSelectedRows(newSelection)}
                   sx={{
                     border: 'none',
-                    '& .MuiDataGrid-main, & .MuiDataGrid-virtualScroller, & .MuiDataGrid-virtualScrollerRenderZone, & .MuiDataGrid-virtualScrollerContent, & .MuiDataGrid-footerContainer, & .MuiDataGrid-columnHeaders': {
-                      backgroundColor: darkMode ? '#252525' : '#fff'
-                    },
-                    '& .MuiDataGrid-row': {
-                      backgroundColor: darkMode ? '#252525' : '#fff',
-                      '&:hover': {
-                        backgroundColor: darkMode ? '#333' : '#f5f5f5'
-                      }
-                    },
-                    '& .MuiDataGrid-cell': {
+                    backgroundColor: darkMode ? '#252525' : '#fff',
+                    '& .MuiDataGrid-main': {
                       backgroundColor: darkMode ? '#252525' : '#fff',
                       color: darkMode ? '#fff' : 'inherit',
-                      borderBottom: `1px solid ${darkMode ? '#333' : '#f0f0f0'}`
                     },
                     '& .MuiDataGrid-columnHeaders': {
                       backgroundColor: darkMode ? '#333' : 'primary.main',
                       color: '#fff',
-                      borderBottom: `1px solid ${darkMode ? '#333' : '#e0e0e0'}`
+                      borderBottom: `1px solid ${darkMode ? '#333' : '#e0e0e0'}`,
+                    },
+                    '& .MuiDataGrid-columnHeadersInner': {
+                      backgroundColor: darkMode ? '#333' : 'primary.main',
+                    },
+                    '& .MuiDataGrid-columnHeader': {
+                      backgroundColor: darkMode ? '#333' : 'primary.main',
+                    },
+                    '& .MuiDataGrid-cell': {
+                      borderBottomColor: darkMode ? '#333' : 'divider',
+                      backgroundColor: darkMode ? '#252525' : '#fff',
+                      color: darkMode ? '#fff' : 'inherit',
+                    },
+                    '& .MuiDataGrid-row': {
+                      backgroundColor: darkMode ? '#252525' : '#fff',
+                      '&:hover': {
+                        backgroundColor: darkMode ? '#333' : '#f5f5f5',
+                      },
                     },
                     '& .MuiDataGrid-footerContainer': {
                       borderTop: `1px solid ${darkMode ? '#333' : '#e0e0e0'}`,
-                      backgroundColor: darkMode ? '#333' : '#f5f5f5'
+                      backgroundColor: darkMode ? '#333' : '#f5f5f5',
                     },
                     '& .MuiTablePagination-root': {
-                      color: darkMode ? '#fff' : 'inherit'
+                      color: darkMode ? '#fff' : 'inherit',
                     },
                     '& .MuiDataGrid-selectedRowCount': {
-                      color: darkMode ? '#fff' : 'inherit'
+                      color: darkMode ? '#fff' : 'inherit',
                     },
                     '& .MuiCheckbox-root': {
-                      color: darkMode ? '#fff' : 'inherit'
+                      color: darkMode ? '#fff' : 'inherit',
+                    },
+                    '& .MuiDataGrid-virtualScroller': {
+                      backgroundColor: darkMode ? '#252525' : '#fff',
+                      '&::-webkit-scrollbar': {
+                        width: '8px',
+                        height: '8px',
+                      },
+                      '&::-webkit-scrollbar-thumb': {
+                        backgroundColor: darkMode ? '#555' : '#ccc',
+                        borderRadius: '4px',
+                      },
+                      '&::-webkit-scrollbar-track': {
+                        backgroundColor: darkMode ? '#252525' : '#f5f5f5',
+                      },
+                    },
+                    '& .MuiDataGrid-virtualScrollerContent': {
+                      backgroundColor: darkMode ? '#252525' : '#fff',
+                    },
+                    '& .MuiDataGrid-virtualScrollerRenderZone': {
+                      backgroundColor: darkMode ? '#252525' : '#fff',
+                    },
+                    '& .MuiDataGrid-row--lastVisible': {
+                      backgroundColor: darkMode ? '#252525' : '#fff',
+                    },
+                    '& .MuiDataGrid-overlay': {
+                      backgroundColor: darkMode ? '#252525' : '#fff',
+                    },
+                    '& .MuiDataGrid-scrollArea': {
+                      backgroundColor: darkMode ? '#252525' : '#fff',
+                    },
+                    '& .MuiDataGrid-scrollArea--left, & .MuiDataGrid-scrollArea--right': {
+                      backgroundColor: darkMode ? '#252525' : '#fff',
+                    },
+                    '& .MuiDataGrid-virtualScroller > div': {
+                      backgroundColor: darkMode ? '#252525' : '#fff',
+                    },
+                    '& .MuiDataGrid-virtualScrollerContent > div': {
+                      backgroundColor: darkMode ? '#252525' : '#fff',
                     }
                   }}
                 />
