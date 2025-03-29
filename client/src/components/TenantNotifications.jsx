@@ -24,6 +24,10 @@ import {
   Switch,
   Pagination,
   Badge,
+  Chip,
+  useTheme,
+  Card,
+  CardContent
 } from "@mui/material";
 import {
   Warning as WarningIcon,
@@ -37,6 +41,11 @@ import {
   Email as EmailIcon,
   Notifications as NotificationsIcon,
   Error as ErrorIcon,
+  CheckCircle as CheckCircleIcon,
+  DarkMode,
+  LightMode,
+  MarkEmailRead as MarkReadIcon,
+  AccessTime as TimeIcon,
 } from "@mui/icons-material";
 import {
   collection,
@@ -47,8 +56,12 @@ import {
   doc,
   updateDoc,
   deleteDoc,
+  getDocs,
+  Timestamp,
 } from "firebase/firestore";
 import { auth, db } from "../firebase";
+import { format } from 'date-fns';
+import { useAuth } from '../contexts/AuthContext';
 
 const TenantNotifications = () => {
   const [notifications, setNotifications] = useState([]);
@@ -65,6 +78,32 @@ const TenantNotifications = () => {
     emailAlerts: true,
     pushNotifications: true,
   });
+  const [darkMode, setDarkMode] = useState(false);
+  const { currentUser } = useAuth();
+  const theme = useTheme();
+
+  const notificationTypes = {
+    payment: {
+      icon: <InfoIcon />,
+      color: '#2196F3',
+      label: 'Payment'
+    },
+    maintenance: {
+      icon: <WarningIcon />,
+      color: '#FFA726',
+      label: 'Maintenance'
+    },
+    alert: {
+      icon: <ErrorIcon />,
+      color: '#F44336',
+      label: 'Alert'
+    },
+    info: {
+      icon: <InfoIcon />,
+      color: '#4CAF50',
+      label: 'Info'
+    }
+  };
 
   // Fetch notifications from Firestore
   useEffect(() => {
@@ -84,24 +123,17 @@ const TenantNotifications = () => {
           orderBy("createdAt", sortOrder)
         );
 
-        unsubscribeNotifications = onSnapshot(
-          q,
-          (snapshot) => {
-            const notes = snapshot.docs.map((doc) => ({
-              id: doc.id,
-              ...doc.data(),
-              createdAt: doc.data().createdAt?.toDate(),
-            }));
+        const querySnapshot = await getDocs(q);
+        const notificationsData = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+          createdAt: doc.data().createdAt?.toDate() || new Date(),
+        }));
 
-            if (isMounted) {
-              setNotifications(notes);
-              setLoading(false);
-            }
-          },
-          (error) => {
-            if (isMounted) setError("Failed to load notifications");
-          }
-        );
+        if (isMounted) {
+          setNotifications(notificationsData);
+          setLoading(false);
+        }
       } catch (err) {
         if (isMounted) {
           setError(err.message);
@@ -113,20 +145,22 @@ const TenantNotifications = () => {
     fetchNotifications();
     return () => {
       isMounted = false;
-      unsubscribeNotifications();
     };
   }, [sortOrder]);
 
   // Mark a notification as read
   const handleMarkRead = async (notificationId) => {
     try {
-      const notificationRef = doc(db, "notifications", notificationId);
-      await updateDoc(notificationRef, { isRead: true });
+      await updateDoc(doc(db, "notifications", notificationId), {
+        isRead: true,
+        updatedAt: Timestamp.now()
+      });
       setNotifications((prev) =>
         prev.map((note) => (note.id === notificationId ? { ...note, isRead: true } : note))
       );
     } catch (error) {
       console.error("Error marking notification read:", error);
+      setError("Failed to mark notification as read");
     }
   };
 
@@ -137,6 +171,7 @@ const TenantNotifications = () => {
       setNotifications((prev) => prev.filter((note) => note.id !== notificationId));
     } catch (error) {
       console.error("Error deleting notification:", error);
+      setError("Failed to delete notification");
     }
   };
 
@@ -150,6 +185,7 @@ const TenantNotifications = () => {
       setNotifications((prev) => prev.map((note) => ({ ...note, isRead: true })));
     } catch (error) {
       console.error("Error marking all notifications read:", error);
+      setError("Failed to mark all notifications as read");
     }
   };
 
@@ -163,6 +199,7 @@ const TenantNotifications = () => {
       setNotifications([]);
     } catch (error) {
       console.error("Error deleting all notifications:", error);
+      setError("Failed to delete all notifications");
     }
   };
 
@@ -193,14 +230,60 @@ const TenantNotifications = () => {
     setModalOpen(true);
   };
 
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+  };
+
+  if (loading) {
+    return (
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        backgroundColor: darkMode ? '#121212' : '#f5f5f5'
+      }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   return (
-    <Box sx={{ p: 3, maxWidth: 1200, mx: "auto" }}>
+    <Box sx={{ 
+      backgroundColor: darkMode ? '#121212' : '#f5f5f5',
+      minHeight: '100vh',
+      p: 3,
+      color: darkMode ? '#fff' : 'text.primary'
+    }}>
       {/* Header */}
-      <Box display="flex" alignItems="center" justifyContent="space-between" mb={3}>
-        <Typography variant="h4" sx={{ color: "primary.main" }}>
-          <BellIcon sx={{ fontSize: 35, mr: 1, color: "primary.main" }} /> Notifications
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        mb: 4
+      }}>
+        <Typography variant="h4" sx={{ 
+          display: 'flex', 
+          alignItems: 'center',
+          color: darkMode ? '#fff' : 'text.primary'
+        }}>
+          <NotificationsIcon sx={{ mr: 2, fontSize: 40 }} />
+          Notifications
         </Typography>
-        <Box display="flex" gap={2}>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Tooltip title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>
+            <IconButton 
+              onClick={toggleDarkMode}
+              sx={{ 
+                color: darkMode ? '#fff' : '#000',
+                '&:hover': {
+                  bgcolor: darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)'
+                }
+              }}
+            >
+              {darkMode ? <LightMode /> : <DarkMode />}
+            </IconButton>
+          </Tooltip>
           <TextField
             placeholder="Search notifications..."
             value={searchQuery}
@@ -224,51 +307,24 @@ const TenantNotifications = () => {
         </Box>
       </Box>
 
-      {/* Analytics Section */}
-      <Grid container spacing={3} mb={4}>
-        <Grid item xs={12} md={4}>
-          <Paper
-            sx={{
+      {/* Notification Summary */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        {Object.entries(notificationTypes).map(([type, { label, color }]) => (
+          <Grid item xs={12} sm={6} md={3} key={type}>
+            <Paper sx={{ 
               p: 2,
-              textAlign: "center",
-              backgroundColor: "#f0f4f8", // Light and dull background
-            }}
-          >
-            <NotificationsIcon sx={{ fontSize: 40, mb: 1, color: "primary.main" }} />
-            <Typography variant="h6">Total Notifications</Typography>
-            <Typography variant="h4">{notifications.length}</Typography>
-          </Paper>
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <Paper
-            sx={{
-              p: 2,
-              textAlign: "center",
-              backgroundColor: "#f0f4f8", // Light and dull background
-            }}
-          >
-            <ErrorIcon sx={{ fontSize: 40, mb: 1, color: "warning.main" }} />
-            <Typography variant="h6">Unread Notifications</Typography>
-            <Typography variant="h4">
-              {notifications.filter((note) => !note.isRead).length}
-            </Typography>
-          </Paper>
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <Paper
-            sx={{
-              p: 2,
-              textAlign: "center",
-              backgroundColor: "#f0f4f8", // Light and dull background
-            }}
-          >
-            <WarningIcon sx={{ fontSize: 40, mb: 1, color: "error.main" }} />
-            <Typography variant="h6">Alerts</Typography>
-            <Typography variant="h4">
-              {notifications.filter((note) => note.type === "alert").length}
-            </Typography>
-          </Paper>
-        </Grid>
+              backgroundColor: darkMode ? '#252525' : '#fff',
+              borderLeft: `4px solid ${color}`
+            }}>
+              <Typography variant="subtitle2" color="text.secondary">
+                {label} Notifications
+              </Typography>
+              <Typography variant="h4" sx={{ mt: 1 }}>
+                {notifications.filter(n => n.type === type).length}
+              </Typography>
+            </Paper>
+          </Grid>
+        ))}
       </Grid>
 
       {/* Bulk Actions */}
@@ -292,79 +348,99 @@ const TenantNotifications = () => {
         </Button>
       </Box>
 
+      {/* Error Alert */}
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
+
       {/* Notifications List */}
-      {loading && (
-        <Box display="flex" justifyContent="center" py={5}>
-          <CircularProgress />
-        </Box>
-      )}
+      <Grid container spacing={3}>
+        {currentNotifications.map((notification) => (
+          <Grid item xs={12} md={6} key={notification.id}>
+            <Card sx={{ 
+              backgroundColor: darkMode ? '#252525' : '#fff',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+              transition: 'transform 0.2s',
+              opacity: notification.isRead ? 0.8 : 1,
+              '&:hover': {
+                transform: 'translateY(-4px)'
+              }
+            }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    {notificationTypes[notification.type]?.icon}
+                    <Typography variant="h6" component="div">
+                      {notification.title}
+                    </Typography>
+                  </Box>
+                  <Chip
+                    size="small"
+                    label={notification.isRead ? 'Read' : 'Unread'}
+                    color={notification.isRead ? 'default' : 'primary'}
+                  />
+                </Box>
 
-      {error && <Alert severity="error">{error}</Alert>}
+                <Typography variant="body1" sx={{ mb: 2 }}>
+                  {notification.message}
+                </Typography>
 
-      {filteredNotifications.length === 0 && !loading && (
-        <Box textAlign="center" py={5}>
-          <BellIcon color="primary" sx={{ fontSize: 60 }} />
-          <Typography>No notifications found.</Typography>
-        </Box>
-      )}
-
-      <List>
-        {currentNotifications.map((note) => (
-          <React.Fragment key={note.id}>
-            <ListItem
-              sx={{
-                background: note.isRead ? "#f5f5f5" : "#fff",
-                cursor: "pointer",
-                transition: "transform 0.2s, box-shadow 0.2s",
-                "&:hover": {
-                  transform: "scale(1.02)",
-                  boxShadow: 3,
-                },
-              }}
-              onClick={() => handleModalOpen(note)}
-            >
-              <ListItemIcon>
-                <Badge
-                  color={note.type === "alert" ? "error" : "info"}
-                  badgeContent={note.type === "alert" ? "!" : "i"}
-                >
-                  {note.type === "alert" ? <WarningIcon /> : <InfoIcon />}
-                </Badge>
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  <Typography sx={{ fontWeight: note.isRead ? "normal" : "bold" }}>
-                    {note.message}
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <TimeIcon sx={{ mr: 1, fontSize: 'small', color: 'text.secondary' }} />
+                  <Typography variant="body2" color="text.secondary">
+                    {format(notification.createdAt, 'MMM dd, yyyy HH:mm')}
                   </Typography>
-                }
-                secondary={new Date(note.createdAt).toLocaleString()}
-              />
-              <Tooltip title="Mark as Read">
-                <IconButton
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleMarkRead(note.id);
-                  }}
-                  disabled={note.isRead}
-                >
-                  <DoneIcon color={note.isRead ? "disabled" : "primary"} />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="Delete">
-                <IconButton
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete(note.id);
-                  }}
-                >
-                  <DeleteIcon color="error" />
-                </IconButton>
-              </Tooltip>
-            </ListItem>
-            <Divider />
-          </React.Fragment>
+                </Box>
+
+                <Divider sx={{ my: 2 }} />
+
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                  {!notification.isRead && (
+                    <Tooltip title="Mark as read">
+                      <IconButton 
+                        size="small" 
+                        onClick={() => handleMarkRead(notification.id)}
+                        sx={{ color: theme.palette.primary.main }}
+                      >
+                        <MarkReadIcon />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                  <Tooltip title="Delete">
+                    <IconButton 
+                      size="small" 
+                      onClick={() => handleDelete(notification.id)}
+                      sx={{ color: theme.palette.error.main }}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
         ))}
-      </List>
+      </Grid>
+
+      {notifications.length === 0 && !loading && (
+        <Box sx={{ 
+          textAlign: 'center', 
+          py: 8,
+          backgroundColor: darkMode ? '#252525' : '#fff',
+          borderRadius: 2,
+          mt: 4
+        }}>
+          <NotificationsIcon sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
+          <Typography variant="h6" color="text.secondary">
+            No notifications yet
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            You'll see your notifications here when they arrive
+          </Typography>
+        </Box>
+      )}
 
       {/* Pagination */}
       <Box display="flex" justifyContent="center" mt={3}>
