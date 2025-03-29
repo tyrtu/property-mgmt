@@ -31,6 +31,8 @@ import {
   Container,
   Card,
   CardContent,
+  Divider,
+  LinearProgress,
 } from "@mui/material";
 import {
   Construction as ConstructionIcon,
@@ -47,6 +49,18 @@ import {
   Close as CloseIcon,
   Build as BuildIcon,
   Info as InfoIcon,
+  PriorityHigh as UrgentIcon,
+  Pending as PendingIcon,
+  Schedule as ScheduledIcon,
+  Cancel as CancelledIcon,
+  Image as ImageIcon,
+  Timeline as TimelineIcon,
+  LocationOn as LocationIcon,
+  Category as CategoryIcon,
+  Description as DescriptionIcon,
+  Person as PersonIcon,
+  Phone as PhoneIcon,
+  Email as EmailIcon,
 } from "@mui/icons-material";
 import {
   collection,
@@ -58,28 +72,29 @@ import {
   serverTimestamp,
   doc,
   getDoc,
+  getDocs,
+  updateDoc,
 } from "firebase/firestore";
 import { auth, db } from "../firebase";
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '@mui/material/styles';
 import { useMediaQuery } from '@mui/material';
 import { format } from 'date-fns';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { storage } from '../firebase';
+import { Timestamp } from 'firebase/firestore';
 
 const TenantMaintenance = () => {
   const { currentUser } = useAuth();
   const [requests, setRequests] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [newRequest, setNewRequest] = useState({
-    issue: '',
+    title: '',
     description: '',
-    priority: 'Medium',
-    image: null,
-    unitId: '',
-    unitNumber: '',
-    propertyName: '',
-    tenantName: '',
-    tenantId: '',
-    tenantEmail: '',
+    category: '',
+    priority: 'Normal',
+    images: [],
+    location: '',
   });
   const [imagePreview, setImagePreview] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
@@ -90,9 +105,31 @@ const TenantMaintenance = () => {
   const [unitDetails, setUnitDetails] = useState(null);
   const [maintenanceRequests, setMaintenanceRequests] = useState([]);
   const [tenantData, setTenantData] = useState(null);
+  const [imageUploadProgress, setImageUploadProgress] = useState(0);
 
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+
+  const categories = [
+    'Plumbing',
+    'Electrical',
+    'HVAC',
+    'Appliance',
+    'Structural',
+    'Pest Control',
+    'Landscaping',
+    'Other'
+  ];
+
+  const priorities = ['Low', 'Normal', 'High', 'Urgent'];
+
+  const statusColors = {
+    Pending: '#FFA726',
+    'In Progress': '#29B6F6',
+    Scheduled: '#66BB6A',
+    Completed: '#4CAF50',
+    Cancelled: '#EF5350'
+  };
 
   // Fetch user and unit details when component mounts
   useEffect(() => {
@@ -159,102 +196,108 @@ const TenantMaintenance = () => {
     let unsubscribe = () => {};
     const fetchMaintenanceRequests = async () => {
       try {
+        setLoading(true);
         const user = auth.currentUser;
-        if (user && tenantData) {
-          let q = query(
-            collection(db, "maintenanceRequests"),
-            where("userId", "==", user.uid),
-            where("propertyId", "==", tenantData.propertyId),
-            where("unitId", "==", tenantData.unitId),
-            orderBy("createdAt", "desc")
-          );
-          
-          unsubscribe = onSnapshot(q, (snapshot) => {
-            const requests = snapshot.docs.map(doc => ({
-              id: doc.id,
-              ...doc.data(),
-              createdAt: doc.data().createdAt?.toDate()
-            }));
-            setMaintenanceRequests(requests);
-          });
+        if (!user) {
+          setError('Please login to view maintenance requests');
+          return;
         }
-      } catch (error) {
-        console.error("Error fetching maintenance requests:", error);
-        setError("Failed to fetch maintenance requests");
+
+        const q = query(
+          collection(db, 'maintenanceRequests'),
+          where('userId', '==', user.uid),
+          orderBy('createdAt', 'desc')
+        );
+
+        const querySnapshot = await getDocs(q);
+        const requestsData = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          createdAt: doc.data().createdAt?.toDate() || new Date()
+        }));
+
+        setRequests(requestsData);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching maintenance requests:', err);
+        setError('Failed to load maintenance requests');
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchMaintenanceRequests();
     return () => unsubscribe();
-  }, [tenantData]);
+  }, []);
 
   // Handle form submission
-  const handleSubmit = async (e) => {
+  const handleSubmitRequest = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
-    setSuccess('');
-
     try {
       const user = auth.currentUser;
       if (!user) {
-        throw new Error('User not found');
+        setError('Please login to submit a request');
+        return;
       }
 
-      // Get user data to get property and unit information
-      const userDoc = await getDoc(doc(db, 'users', user.uid));
-      if (!userDoc.exists()) {
-        throw new Error('User data not found');
-      }
-
-      const userData = userDoc.data();
-
-      const maintenanceRequest = {
+      const requestData = {
         userId: user.uid,
-        tenantName: userData.name,
-        propertyId: userData.propertyId,
-        propertyName: userData.propertyName,
-        unitId: userData.unitId,
-        unit: userData.unit,
-        issue: newRequest.issue,
+        title: newRequest.title,
         description: newRequest.description,
-        status: 'pending',
+        category: newRequest.category,
         priority: newRequest.priority,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        location: newRequest.location,
+        status: 'Pending',
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+        comments: [],
+        timeline: [{
+          status: 'Pending',
+          timestamp: Timestamp.now(),
+          note: 'Request submitted'
+        }]
       };
 
-      await addDoc(collection(db, 'maintenanceRequests'), maintenanceRequest);
-      setSuccess('Maintenance request submitted successfully');
+      const docRef = await addDoc(collection(db, 'maintenanceRequests'), requestData);
+      
+      // Upload images if any
+      if (newRequest.images.length > 0) {
+        const imageUrls = await Promise.all(
+          newRequest.images.map(async (image) => {
+            const storageRef = ref(storage, `maintenance/${docRef.id}/${image.name}`);
+            await uploadBytes(storageRef, image);
+            return getDownloadURL(storageRef);
+          })
+        );
+
+        await updateDoc(doc(db, 'maintenanceRequests', docRef.id), {
+          imageUrls: imageUrls
+        });
+      }
+
       setOpenDialog(false);
       setNewRequest({
-        issue: '',
+        title: '',
         description: '',
-        priority: 'Medium',
-        image: null,
-        unitId: unitDetails?.id || '',
-        unitNumber: unitDetails?.number || '',
-        propertyName: unitDetails?.propertyName || '',
-        tenantName: userDetails?.name || '',
-        tenantId: currentUser.uid,
-        tenantEmail: currentUser.email || '',
+        category: '',
+        priority: 'Normal',
+        images: [],
+        location: '',
       });
-      setImagePreview(null);
-    } catch (error) {
-      console.error('Error submitting maintenance request:', error);
+      fetchMaintenanceRequests();
+    } catch (err) {
+      console.error('Error submitting maintenance request:', err);
       setError('Failed to submit maintenance request');
-    } finally {
-      setLoading(false);
     }
   };
 
   // Handle image upload
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setNewRequest(prev => ({ ...prev, image: file }));
-      setImagePreview(URL.createObjectURL(file));
-    }
+    const files = Array.from(e.target.files);
+    setNewRequest(prev => ({
+      ...prev,
+      images: [...prev.images, ...files]
+    }));
   };
 
   // Toggle dark mode
@@ -273,478 +316,296 @@ const TenantMaintenance = () => {
   };
 
   const getStatusIcon = (status) => {
-    switch (status.toLowerCase()) {
-      case 'pending': return <WarningIcon color="warning" />;
-      case 'in progress': return <BuildIcon color="info" />;
-      case 'resolved': return <CheckCircleIcon color="success" />;
-      case 'overdue': return <WarningIcon color="error" />;
-      default: return <CheckCircleIcon color="disabled" />;
+    switch (status) {
+      case 'Completed':
+        return <CheckCircleIcon sx={{ color: statusColors.Completed }} />;
+      case 'In Progress':
+        return <BuildIcon sx={{ color: statusColors['In Progress'] }} />;
+      case 'Scheduled':
+        return <ScheduledIcon sx={{ color: statusColors.Scheduled }} />;
+      case 'Cancelled':
+        return <CancelledIcon sx={{ color: statusColors.Cancelled }} />;
+      default:
+        return <PendingIcon sx={{ color: statusColors.Pending }} />;
     }
   };
 
+  if (loading) {
+    return (
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        backgroundColor: darkMode ? '#121212' : '#f5f5f5'
+      }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ 
-      minHeight: '100vh', 
-      bgcolor: darkMode ? '#121212' : '#f5f5f5',
-      py: { xs: 2, sm: 4 }
+      backgroundColor: darkMode ? '#121212' : '#f5f5f5',
+      minHeight: '100vh',
+      p: 3,
+      color: darkMode ? '#fff' : 'text.primary'
     }}>
-      <Container maxWidth="lg">
-        <Card sx={{ 
-          p: { xs: 2, sm: 4 },
-          bgcolor: darkMode ? '#1e1e1e' : '#fff',
-          borderRadius: 2,
-          boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+      {/* Header */}
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        mb: 4
+      }}>
+        <Typography variant="h4" sx={{ 
+          display: 'flex', 
+          alignItems: 'center',
+          color: darkMode ? '#fff' : 'text.primary'
         }}>
-          <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center',
-            mb: 4
-          }}>
-            <Typography 
-              variant="h4" 
+          <BuildIcon sx={{ mr: 2, fontSize: 40 }} />
+          Maintenance Requests
+        </Typography>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Tooltip title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>
+            <IconButton 
+              onClick={toggleDarkMode}
               sx={{ 
-                fontWeight: 700,
                 color: darkMode ? '#fff' : '#000',
-                fontSize: { xs: '1.5rem', sm: '2rem' }
+                '&:hover': {
+                  bgcolor: darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)'
+                }
               }}
             >
-              Submit Maintenance Request
-            </Typography>
-            <Tooltip title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>
-              <IconButton 
-                onClick={toggleDarkMode} 
-                sx={{ 
-                  color: darkMode ? '#fff' : '#000',
-                  '&:hover': {
-                    bgcolor: darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)'
-                  }
-                }}
-              >
-                {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
-              </IconButton>
-            </Tooltip>
-          </Box>
-
-          {/* Property and Unit Information */}
-          <Card sx={{ 
-            p: 2, 
-            mb: 3,
-            bgcolor: darkMode ? '#333' : '#f5f5f5',
-            borderRadius: 2
-          }}>
-            <Typography 
-              variant="h6" 
-            sx={{
-                mb: 2,
-                color: darkMode ? '#fff' : '#000'
-            }}
+              {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
+            </IconButton>
+          </Tooltip>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setOpenDialog(true)}
           >
-              Property Information
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <Typography 
-                  variant="body2" 
-                  sx={{ 
-                    color: darkMode ? '#aaa' : '#666',
-                    mb: 0.5
-                  }}
-                >
-                  Property
-                </Typography>
-                <Typography 
-                  variant="body1" 
-                  sx={{ 
-                    color: darkMode ? '#fff' : '#000',
-                    fontWeight: 500
-                  }}
-                >
-                  {unitDetails?.propertyName || 'Not assigned'}
-                </Typography>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography 
-                  variant="body2" 
-                  sx={{ 
-                    color: darkMode ? '#aaa' : '#666',
-                    mb: 0.5
-                  }}
-                >
-                  Unit Number
-                </Typography>
-                <Typography 
-                  variant="body1" 
-            sx={{
-                    color: darkMode ? '#fff' : '#000',
-                    fontWeight: 500
-            }}
-          >
-                  {unitDetails?.number || 'Not assigned'}
-            </Typography>
-              </Grid>
-            </Grid>
-          </Card>
-
-          {/* Maintenance Request Form */}
-          <form onSubmit={handleSubmit}>
-            <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Issue Title"
-                  value={newRequest.issue}
-                  onChange={(e) => setNewRequest(prev => ({ ...prev, issue: e.target.value }))}
-                  required
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      bgcolor: darkMode ? '#333' : '#fff',
-                      '& fieldset': {
-                        borderColor: darkMode ? '#555' : '#ccc',
-                      },
-                      '&:hover fieldset': {
-                        borderColor: darkMode ? '#666' : '#999',
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: 'primary.main',
-                      },
-                      color: darkMode ? '#fff' : '#000',
-                    },
-                    '& .MuiInputLabel-root': {
-                      color: darkMode ? '#aaa' : '#666',
-                    },
-                  }}
-                />
-              </Grid>
-
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Description"
-                  multiline
-                  rows={4}
-                  value={newRequest.description}
-                  onChange={(e) => setNewRequest(prev => ({ ...prev, description: e.target.value }))}
-                  required
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      bgcolor: darkMode ? '#333' : '#fff',
-                      '& fieldset': {
-                        borderColor: darkMode ? '#555' : '#ccc',
-                      },
-                      '&:hover fieldset': {
-                        borderColor: darkMode ? '#666' : '#999',
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: 'primary.main',
-                      },
-                      color: darkMode ? '#fff' : '#000',
-                    },
-                    '& .MuiInputLabel-root': {
-                      color: darkMode ? '#aaa' : '#666',
-                    },
-                  }}
-                />
-              </Grid>
-
-              <Grid item xs={12} sm={6}>
-                <FormControl fullWidth>
-                  <InputLabel sx={{ color: darkMode ? '#aaa' : '#666' }}>
-                    Priority
-                  </InputLabel>
-          <Select
-                    value={newRequest.priority}
-                    onChange={(e) => setNewRequest(prev => ({ ...prev, priority: e.target.value }))}
-                    label="Priority"
-                    sx={{
-                      bgcolor: darkMode ? '#333' : '#fff',
-                      '& .MuiOutlinedInput-notchedOutline': {
-                        borderColor: darkMode ? '#555' : '#ccc',
-                      },
-                      '&:hover .MuiOutlinedInput-notchedOutline': {
-                        borderColor: darkMode ? '#666' : '#999',
-                      },
-                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                        borderColor: 'primary.main',
-                      },
-                      color: darkMode ? '#fff' : '#000',
-                    }}
-                  >
-                    <MenuItem value="Low">Low</MenuItem>
-                    <MenuItem value="Medium">Medium</MenuItem>
-                    <MenuItem value="High">High</MenuItem>
-          </Select>
-        </FormControl>
-              </Grid>
-
-              <Grid item xs={12} sm={6}>
-                <Button
-                  component="label"
-                  variant="outlined"
-                  fullWidth
-                  sx={{
-                    height: '56px',
-                    borderColor: darkMode ? '#555' : '#ccc',
-                    color: darkMode ? '#fff' : '#000',
-                    '&:hover': {
-                      borderColor: darkMode ? '#666' : '#999',
-                    },
-                  }}
-                >
-                  Upload Image
-                  <input
-                    type="file"
-                    hidden
-                    accept="image/*"
-                    onChange={handleImageChange}
-                  />
-                </Button>
-              </Grid>
-
-              {imagePreview && (
-                <Grid item xs={12}>
-                  <Box sx={{ 
-                    position: 'relative',
-                    width: '100%',
-                    maxWidth: 300,
-                    mx: 'auto'
-                  }}>
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      style={{
-                        width: '100%',
-                        height: 'auto',
-                        borderRadius: 8,
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                      }}
-                    />
-                    <IconButton
-                      onClick={() => {
-                        setImagePreview(null);
-                        setNewRequest(prev => ({ ...prev, image: null }));
-                      }}
-                      sx={{
-                        position: 'absolute',
-                        top: 8,
-                        right: 8,
-                        bgcolor: 'rgba(0,0,0,0.5)',
-                        color: '#fff',
-                        '&:hover': {
-                          bgcolor: 'rgba(0,0,0,0.7)',
-                        },
-                      }}
-                    >
-                      <CloseIcon />
-                    </IconButton>
-                  </Box>
-                </Grid>
-              )}
-
-              <Grid item xs={12}>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  fullWidth
-                  disabled={loading}
-                  sx={{
-                    py: 1.5,
-                    fontSize: '1rem',
-                    textTransform: 'none',
-                    borderRadius: 2,
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                  }}
-                >
-                  {loading ? 'Submitting...' : 'Submit Request'}
-                </Button>
-              </Grid>
-            </Grid>
-          </form>
-
-          {/* Error and Success Messages */}
-          {error && (
-            <Alert 
-              severity="error" 
-              sx={{ 
-                mt: 2,
-                bgcolor: darkMode ? 'rgba(211, 47, 47, 0.1)' : 'rgba(211, 47, 47, 0.04)',
-                color: darkMode ? '#ff8a8a' : '#d32f2f',
-                '& .MuiAlert-icon': {
-                  color: darkMode ? '#ff8a8a' : '#d32f2f',
-                },
-              }}
-            >
-              {error}
-            </Alert>
-          )}
-          {success && (
-            <Alert 
-              severity="success" 
-              sx={{ 
-                mt: 2,
-                bgcolor: darkMode ? 'rgba(46, 125, 50, 0.1)' : 'rgba(46, 125, 50, 0.04)',
-                color: darkMode ? '#81c784' : '#2e7d32',
-                '& .MuiAlert-icon': {
-                  color: darkMode ? '#81c784' : '#2e7d32',
-                },
-              }}
-            >
-              {success}
-            </Alert>
-          )}
-
-          {/* Previous Requests */}
-          <Box sx={{ mt: 6 }}>
-            <Typography 
-              variant="h5" 
-              sx={{ 
-                mb: 3,
-                color: darkMode ? '#fff' : '#000',
-                fontSize: { xs: '1.25rem', sm: '1.5rem' }
-              }}
-            >
-              Previous Requests
-            </Typography>
-            <Box sx={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              gap: 2,
-              px: { xs: 0, sm: 1 }
-            }}>
-              {maintenanceRequests.map((request) => (
-                <Card 
-                  key={request.id}
-                sx={{
-                    p: 2,
-                    bgcolor: darkMode ? '#333' : '#fff',
-                    borderRadius: 2,
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                    '&:hover': {
-                      bgcolor: darkMode ? '#3a3a3a' : '#f5f5f5',
-                    }
-                  }}
-                >
-                  <Box sx={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'flex-start',
-                  mb: 2,
-                    flexWrap: 'wrap',
-                    gap: 1
-                  }}>
-                    <Typography 
-                      variant="subtitle1" 
-                      sx={{ 
-                        fontWeight: 'bold',
-                        color: darkMode ? '#fff' : '#000',
-                        flex: 1,
-                        minWidth: '200px'
-                      }}
-                    >
-                      {request.issue}
-                    </Typography>
-                <Chip
-                      label={request.status}
-                  color={getStatusColor(request.status)}
-                      size="small"
-                      sx={{
-                        textTransform: 'capitalize',
-                        fontWeight: 500,
-                      }}
-          />
+            New Request
+          </Button>
         </Box>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6}>
-                      <Typography 
-                        variant="body2" 
-                        sx={{ 
-                          color: darkMode ? '#aaa' : '#666',
-                          mb: 0.5
-                        }}
-                      >
-                        Submitted
-                      </Typography>
-                      <Typography 
-                        variant="body2" 
-                        sx={{ 
-                          color: darkMode ? '#fff' : '#000',
-                          fontWeight: 500
-                        }}
-                      >
-                        {format(request.createdAt, 'MMM dd, yyyy h:mm a')}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <Typography 
-                        variant="body2" 
-                        sx={{ 
-                          color: darkMode ? '#aaa' : '#666',
-                          mb: 0.5
-                        }}
-                      >
-                        Priority
-                      </Typography>
-                      <Typography 
-                        variant="body2" 
-                        sx={{ 
-                          color: darkMode ? '#fff' : '#000',
-                          fontWeight: 500,
-                          textTransform: 'capitalize'
-                        }}
-                      >
-                        {request.priority}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <Typography 
-                        variant="body2" 
-            sx={{
-                          color: darkMode ? '#aaa' : '#666',
-                          mb: 0.5
-                        }}
-                      >
-                        Description
-            </Typography>
-                      <Typography 
-                        variant="body2" 
-                        sx={{ 
-                          color: darkMode ? '#fff' : '#000',
-                          whiteSpace: 'pre-wrap'
-                        }}
-                      >
-                        {request.description}
-            </Typography>
-                    </Grid>
-                    {request.image && (
-                      <Grid item xs={12}>
-                        <Typography 
-                          variant="body2" 
-                          sx={{ 
-                            color: darkMode ? '#aaa' : '#666',
-                            mb: 0.5
-                          }}
-                        >
-                          Image
-            </Typography>
-                        <img
-                          src={request.image}
-                          alt="Maintenance issue"
-                          style={{
-                            width: '100%',
-                            maxWidth: 300,
-                            borderRadius: 8,
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                          }}
-                        />
-                      </Grid>
-                    )}
-                  </Grid>
-                </Card>
-              ))}
-            </Box>
-          </Box>
-        </Card>
-      </Container>
+      </Box>
+
+      {/* Status Summary */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        {Object.entries(statusColors).map(([status, color]) => (
+          <Grid item xs={12} sm={6} md={2.4} key={status}>
+            <Paper sx={{ 
+              p: 2,
+              backgroundColor: darkMode ? '#252525' : '#fff',
+              borderLeft: `4px solid ${color}`
+            }}>
+              <Typography variant="subtitle2" color="text.secondary">
+                {status}
+              </Typography>
+              <Typography variant="h4" sx={{ mt: 1 }}>
+                {requests.filter(req => req.status === status).length}
+              </Typography>
+            </Paper>
+          </Grid>
+        ))}
+      </Grid>
+
+      {/* Error Alert */}
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
+
+      {/* Maintenance Requests Grid */}
+      <Grid container spacing={3}>
+        {requests.map((request) => (
+          <Grid item xs={12} md={6} lg={4} key={request.id}>
+            <Card sx={{ 
+              height: '100%',
+              backgroundColor: darkMode ? '#252525' : '#fff',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+              transition: 'transform 0.2s',
+              '&:hover': {
+                transform: 'translateY(-4px)'
+              }
+            }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                  <Typography variant="h6" component="div" sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center',
+                    color: darkMode ? '#fff' : 'text.primary'
+                  }}>
+                    <CategoryIcon sx={{ mr: 1, color: theme.palette.primary.main }} />
+                    {request.issue}
+                  </Typography>
+                  <Chip
+                    icon={getStatusIcon(request.status)}
+                    label={request.status}
+                    sx={{
+                      backgroundColor: `${statusColors[request.status]}20`,
+                      color: statusColors[request.status],
+                      '& .MuiChip-icon': {
+                        color: statusColors[request.status]
+                      }
+                    }}
+                  />
+                </Box>
+
+                <Typography variant="body1" sx={{ mb: 2, color: darkMode ? '#fff' : 'text.primary' }}>
+                  {request.issue}
+                </Typography>
+
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <LocationIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                  <Typography variant="body2" color="text.secondary">
+                    {request.location}
+                  </Typography>
+                </Box>
+
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <TimelineIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                  <Typography variant="body2" color="text.secondary">
+                    Submitted: {format(request.createdAt, 'MMM dd, yyyy')}
+                  </Typography>
+                </Box>
+
+                {request.priority === 'Urgent' && (
+                  <Chip
+                    icon={<UrgentIcon />}
+                    label="Urgent"
+                    color="error"
+                    size="small"
+                    sx={{ mb: 2 }}
+                  />
+                )}
+
+                <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+                  {request.imageUrls?.length > 0 && (
+                    <Tooltip title={`${request.imageUrls.length} images attached`}>
+                      <Badge badgeContent={request.imageUrls.length} color="primary">
+                        <IconButton size="small">
+                          <ImageIcon />
+                        </IconButton>
+                      </Badge>
+                    </Tooltip>
+                  )}
+                  {request.comments?.length > 0 && (
+                    <Tooltip title={`${request.comments.length} comments`}>
+                      <Badge badgeContent={request.comments.length} color="primary">
+                        <IconButton size="small">
+                          <CommentIcon />
+                        </IconButton>
+                      </Badge>
+                    </Tooltip>
+                  )}
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+
+      {/* New Request Dialog */}
+      <Dialog 
+        open={openDialog} 
+        onClose={() => setOpenDialog(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>New Maintenance Request</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Title"
+                value={newRequest.title}
+                onChange={(e) => setNewRequest({ ...newRequest, title: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Description"
+                multiline
+                rows={4}
+                value={newRequest.description}
+                onChange={(e) => setNewRequest({ ...newRequest, description: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <InputLabel>Category</InputLabel>
+                <Select
+                  value={newRequest.category}
+                  label="Category"
+                  onChange={(e) => setNewRequest({ ...newRequest, category: e.target.value })}
+                >
+                  {categories.map((category) => (
+                    <MenuItem key={category} value={category}>{category}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <InputLabel>Priority</InputLabel>
+                <Select
+                  value={newRequest.priority}
+                  label="Priority"
+                  onChange={(e) => setNewRequest({ ...newRequest, priority: e.target.value })}
+                >
+                  {priorities.map((priority) => (
+                    <MenuItem key={priority} value={priority}>{priority}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Location"
+                value={newRequest.location}
+                onChange={(e) => setNewRequest({ ...newRequest, location: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <Button
+                component="label"
+                variant="outlined"
+                startIcon={<AttachFileIcon />}
+                sx={{ mr: 2 }}
+              >
+                Attach Images
+                <input
+                  type="file"
+                  hidden
+                  multiple
+                  accept="image/*"
+                  onChange={handleImageChange}
+                />
+              </Button>
+              {newRequest.images.length > 0 && (
+                <Typography variant="body2" sx={{ mt: 1 }}>
+                  {newRequest.images.length} images selected
+                </Typography>
+              )}
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
+          <Button 
+            variant="contained" 
+            onClick={handleSubmitRequest}
+            disabled={!newRequest.title || !newRequest.category}
+          >
+            Submit Request
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
