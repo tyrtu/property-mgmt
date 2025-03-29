@@ -467,16 +467,29 @@ const TenantPaymentHistory = () => {
       </Grid>
 
       {/* Filters Section */}
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" sx={{ mb: 2 }}>Filters</Typography>
+      <Paper sx={{ 
+        p: 3, 
+        mb: 3,
+        backgroundColor: darkMode ? '#252525' : '#fff'
+      }}>
+        <Typography variant="h6" sx={{ mb: 2, color: darkMode ? '#fff' : 'text.primary' }}>Filters</Typography>
         <Grid container spacing={2}>
           <Grid item xs={12} md={3}>
             <FormControl fullWidth>
-              <InputLabel>Status</InputLabel>
+              <InputLabel sx={{ color: darkMode ? 'rgba(255, 255, 255, 0.6)' : 'inherit' }}>Status</InputLabel>
               <Select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
                 label="Status"
+                sx={{
+                  color: darkMode ? '#fff' : 'inherit',
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: darkMode ? 'rgba(255, 255, 255, 0.23)' : 'inherit'
+                  },
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: darkMode ? 'rgba(255, 255, 255, 0.5)' : 'inherit'
+                  }
+                }}
               >
                 {getUniqueValues('status').map(status => (
                   <MenuItem key={status} value={status}>{status}</MenuItem>
@@ -486,11 +499,20 @@ const TenantPaymentHistory = () => {
           </Grid>
           <Grid item xs={12} md={3}>
             <FormControl fullWidth>
-              <InputLabel>Category</InputLabel>
+              <InputLabel sx={{ color: darkMode ? 'rgba(255, 255, 255, 0.6)' : 'inherit' }}>Category</InputLabel>
               <Select
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
                 label="Category"
+                sx={{
+                  color: darkMode ? '#fff' : 'inherit',
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: darkMode ? 'rgba(255, 255, 255, 0.23)' : 'inherit'
+                  },
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: darkMode ? 'rgba(255, 255, 255, 0.5)' : 'inherit'
+                  }
+                }}
               >
                 {getUniqueValues('category').map(category => (
                   <MenuItem key={category} value={category}>{category}</MenuItem>
@@ -500,11 +522,20 @@ const TenantPaymentHistory = () => {
           </Grid>
           <Grid item xs={12} md={3}>
             <FormControl fullWidth>
-              <InputLabel>Property</InputLabel>
+              <InputLabel sx={{ color: darkMode ? 'rgba(255, 255, 255, 0.6)' : 'inherit' }}>Property</InputLabel>
               <Select
                 value={filterProperty}
                 onChange={(e) => setFilterProperty(e.target.value)}
                 label="Property"
+                sx={{
+                  color: darkMode ? '#fff' : 'inherit',
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: darkMode ? 'rgba(255, 255, 255, 0.23)' : 'inherit'
+                  },
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: darkMode ? 'rgba(255, 255, 255, 0.5)' : 'inherit'
+                  }
+                }}
               >
                 {getUniqueValues('property').map(property => (
                   <MenuItem key={property} value={property}>{property}</MenuItem>
@@ -520,7 +551,21 @@ const TenantPaymentHistory = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               InputProps={{
-                startAdornment: <SearchIcon sx={{ mr: 1 }} />
+                startAdornment: <SearchIcon sx={{ mr: 1, color: darkMode ? 'rgba(255, 255, 255, 0.6)' : 'inherit' }} />
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  color: darkMode ? '#fff' : 'inherit',
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: darkMode ? 'rgba(255, 255, 255, 0.23)' : 'inherit'
+                  },
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: darkMode ? 'rgba(255, 255, 255, 0.5)' : 'inherit'
+                  }
+                },
+                '& .MuiInputLabel-root': {
+                  color: darkMode ? 'rgba(255, 255, 255, 0.6)' : 'inherit'
+                }
               }}
             />
           </Grid>
@@ -528,7 +573,11 @@ const TenantPaymentHistory = () => {
       </Paper>
 
       {/* Data Grid */}
-      <Paper sx={{ p: 2, height: 600 }}>
+      <Paper sx={{ 
+        p: 2, 
+        height: 600,
+        backgroundColor: darkMode ? '#252525' : '#fff'
+      }}>
         <DataGrid
           rows={filteredPayments}
           columns={columns}
@@ -543,12 +592,77 @@ const TenantPaymentHistory = () => {
           }}
           onSortModelChange={(model) => setSortModel(model)}
           sx={{
+            border: 'none',
+            backgroundColor: darkMode ? '#252525' : '#fff',
+            '& .MuiDataGrid-main': {
+              backgroundColor: darkMode ? '#252525' : '#fff',
+              color: darkMode ? '#fff' : 'inherit',
+            },
+            '& .MuiDataGrid-columnHeaders': {
+              backgroundColor: darkMode ? '#333' : 'primary.main',
+              color: '#fff',
+              borderBottom: `1px solid ${darkMode ? '#333' : '#e0e0e0'}`,
+            },
+            '& .MuiDataGrid-columnHeadersInner': {
+              backgroundColor: darkMode ? '#333' : 'primary.main',
+            },
+            '& .MuiDataGrid-columnHeader': {
+              backgroundColor: darkMode ? '#333' : 'primary.main',
+            },
+            '& .MuiDataGrid-virtualScroller': {
+              backgroundColor: darkMode ? '#252525' : '#fff',
+              '&::-webkit-scrollbar': {
+                width: '8px',
+                height: '8px',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                backgroundColor: darkMode ? '#555' : '#ccc',
+                borderRadius: '4px',
+              },
+              '&::-webkit-scrollbar-track': {
+                backgroundColor: darkMode ? '#252525' : '#f5f5f5',
+              },
+            },
+            '& .MuiDataGrid-virtualScrollerContent': {
+              backgroundColor: darkMode ? '#252525' : '#fff',
+            },
+            '& .MuiDataGrid-virtualScrollerRenderZone': {
+              backgroundColor: darkMode ? '#252525' : '#fff',
+            },
             '& .MuiDataGrid-cell': {
               borderBottom: 'none',
+              color: darkMode ? '#fff' : 'inherit'
             },
-            '& .MuiDataGrid-row:hover': {
-              backgroundColor: 'action.hover',
+            '& .MuiDataGrid-row': {
+              backgroundColor: darkMode ? '#252525' : '#fff',
+              '&:hover': {
+                backgroundColor: darkMode ? '#333' : 'rgba(0, 0, 0, 0.04)'
+              }
             },
+            '& .MuiDataGrid-footerContainer': {
+              backgroundColor: darkMode ? '#252525' : '#fff',
+              color: darkMode ? '#fff' : 'inherit',
+              borderTop: darkMode ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid rgba(0, 0, 0, 0.12)'
+            },
+            '& .MuiCheckbox-root': {
+              color: darkMode ? '#fff' : 'inherit'
+            },
+            '& .MuiTablePagination-root': {
+              color: darkMode ? '#fff' : 'inherit'
+            },
+            '& .MuiButton-root': {
+              color: darkMode ? '#fff' : 'inherit'
+            },
+            '& .MuiIconButton-root': {
+              color: darkMode ? '#fff' : 'inherit'
+            },
+            '& .MuiDataGrid-toolbarContainer': {
+              backgroundColor: darkMode ? '#1e1e1e' : '#fff',
+              padding: '8px',
+              '& button': {
+                color: darkMode ? '#fff' : 'inherit'
+              }
+            }
           }}
         />
       </Paper>
