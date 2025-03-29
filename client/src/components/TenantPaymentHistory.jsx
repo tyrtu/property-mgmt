@@ -23,7 +23,9 @@ import {
   Tooltip,
   CircularProgress,
   Alert,
-  Pagination
+  Pagination,
+  useTheme,
+  useMediaQuery
 } from '@mui/material';
 import { 
   DataGrid, 
@@ -45,7 +47,9 @@ import {
   Search as SearchIcon,
   Print as PrintIcon,
   Download as DownloadIcon,
-  Info as InfoIcon
+  Info as InfoIcon,
+  DarkMode,
+  LightMode
 } from '@mui/icons-material';
 
 // API Configuration
@@ -83,6 +87,9 @@ const TenantPaymentHistory = () => {
   const [filterCategory, setFilterCategory] = useState('All');
   const [filterProperty, setFilterProperty] = useState('All');
   const [sortModel, setSortModel] = useState([{ field: 'dueDate', sort: 'desc' }]);
+  const [darkMode, setDarkMode] = useState(false);
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
   // Initialize with mock data
   useEffect(() => {
@@ -355,61 +362,106 @@ const TenantPaymentHistory = () => {
     .filter(p => p.status === 'Overdue')
     .reduce((sum, p) => sum + p.amount, 0);
 
+  // Toggle dark mode
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+  };
+
   return (
-    <Box sx={{ backgroundColor: 'background.default', minHeight: '100vh', p: 3 }}>
-      <Typography variant="h4" sx={{ mb: 3, display: 'flex', alignItems: 'center' }}>
-        <AttachMoneyIcon sx={{ mr: 2, fontSize: 40 }} />
-        Payment History
-      </Typography>
+    <Box sx={{ 
+      backgroundColor: darkMode ? '#121212' : '#f5f5f5', 
+      minHeight: '100vh', 
+      p: 3,
+      color: darkMode ? '#fff' : 'text.primary'
+    }}>
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        mb: 3
+      }}>
+        <Typography variant="h4" sx={{ display: 'flex', alignItems: 'center' }}>
+          <AttachMoneyIcon sx={{ mr: 2, fontSize: 40 }} />
+          Payment History
+        </Typography>
+        <Tooltip title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>
+          <IconButton 
+            onClick={toggleDarkMode} 
+            sx={{ 
+              color: darkMode ? '#fff' : '#000',
+              '&:hover': {
+                bgcolor: darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)'
+              }
+            }}
+          >
+            {darkMode ? <LightMode /> : <DarkMode />}
+          </IconButton>
+        </Tooltip>
+      </Box>
 
       {/* Analytics Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 3, borderRadius: 2, bgcolor: 'success.light' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <div>
-                <Typography variant="h6" color="text.secondary">Paid</Typography>
-                <Typography variant="h4">${totalPaid.toLocaleString()}</Typography>
-                <Typography variant="body2" sx={{ mt: 1 }}>
-                  {payments.filter(p => p.status === 'Paid').length} payments
-                </Typography>
-              </div>
-              <Avatar sx={{ bgcolor: 'success.main', width: 56, height: 56 }}>
-                <CheckCircleIcon fontSize="large" />
-              </Avatar>
+        <Grid item xs={12} sm={6} md={4}>
+          <Paper sx={{ 
+            p: 2, 
+            height: '100%',
+            backgroundColor: darkMode ? '#252525' : '#fff',
+            borderLeft: '4px solid #4CAF50'
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <CheckCircleIcon color="success" sx={{ mr: 1 }} />
+              <Typography variant="subtitle2" color="text.secondary">
+                Total Paid
+              </Typography>
             </Box>
+            <Typography variant="h4" sx={{ mt: 1 }}>
+              ${totalPaid.toLocaleString()}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              {payments.filter(p => p.status === 'Paid').length} payments
+            </Typography>
           </Paper>
         </Grid>
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 3, borderRadius: 2, bgcolor: 'warning.light' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <div>
-                <Typography variant="h6" color="text.secondary">Pending</Typography>
-                <Typography variant="h4">${totalPending.toLocaleString()}</Typography>
-                <Typography variant="body2" sx={{ mt: 1 }}>
-                  {payments.filter(p => p.status === 'Pending').length} payments
-                </Typography>
-              </div>
-              <Avatar sx={{ bgcolor: 'warning.main', width: 56, height: 56 }}>
-                <PendingIcon fontSize="large" />
-              </Avatar>
+        <Grid item xs={12} sm={6} md={4}>
+          <Paper sx={{ 
+            p: 2, 
+            height: '100%',
+            backgroundColor: darkMode ? '#252525' : '#fff',
+            borderLeft: '4px solid #FFC107'
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <PendingIcon color="warning" sx={{ mr: 1 }} />
+              <Typography variant="subtitle2" color="text.secondary">
+                Total Pending
+              </Typography>
             </Box>
+            <Typography variant="h4" sx={{ mt: 1 }}>
+              ${totalPending.toLocaleString()}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              {payments.filter(p => p.status === 'Pending').length} payments
+            </Typography>
           </Paper>
         </Grid>
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 3, borderRadius: 2, bgcolor: 'error.light' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <div>
-                <Typography variant="h6" color="text.secondary">Overdue</Typography>
-                <Typography variant="h4">${totalOverdue.toLocaleString()}</Typography>
-                <Typography variant="body2" sx={{ mt: 1 }}>
-                  {payments.filter(p => p.status === 'Overdue').length} payments
-                </Typography>
-              </div>
-              <Avatar sx={{ bgcolor: 'error.main', width: 56, height: 56 }}>
-                <HourglassIcon fontSize="large" />
-              </Avatar>
+        <Grid item xs={12} sm={6} md={4}>
+          <Paper sx={{ 
+            p: 2, 
+            height: '100%',
+            backgroundColor: darkMode ? '#252525' : '#fff',
+            borderLeft: '4px solid #F44336'
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <HourglassIcon color="error" sx={{ mr: 1 }} />
+              <Typography variant="subtitle2" color="text.secondary">
+                Total Overdue
+              </Typography>
             </Box>
+            <Typography variant="h4" sx={{ mt: 1 }}>
+              ${totalOverdue.toLocaleString()}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              {payments.filter(p => p.status === 'Overdue').length} payments
+            </Typography>
           </Paper>
         </Grid>
       </Grid>
