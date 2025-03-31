@@ -22,7 +22,19 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  TextField
+  TextField,
+  Tooltip,
+  Fade,
+  useTheme,
+  useMediaQuery,
+  Drawer,
+  AppBar,
+  Toolbar,
+  Menu,
+  MenuItem as MuiMenuItem,
+  ListItemIcon,
+  Fab,
+  Zoom
 } from "@mui/material";
 import { 
   AccountBalanceWallet, 
@@ -38,7 +50,24 @@ import {
   MoreVert,
   Search,
   FilterList,
-  Add
+  Add,
+  DarkMode,
+  LightMode,
+  Menu as MenuIcon,
+  Dashboard,
+  Person,
+  Settings,
+  Logout,
+  TrendingUp,
+  CalendarToday,
+  Description,
+  Help,
+  Star,
+  Speed,
+  Security,
+  WaterDrop,
+  Groups,
+  SportsTennis
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { doc, getDoc, collection, query, where, orderBy, onSnapshot } from "firebase/firestore";
@@ -47,6 +76,12 @@ import { format } from 'date-fns';
 
 const TenantDashboard = () => {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [darkMode, setDarkMode] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedTab, setSelectedTab] = useState('overview');
   const [tenantData, setTenantData] = useState({
     name: "Loading...",
     avatar: "https://i.pravatar.cc/150?img=3",
@@ -62,6 +97,38 @@ const TenantDashboard = () => {
   const [maintenanceRequests, setMaintenanceRequests] = useState([]);
   const [filterStatus, setFilterStatus] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Add new state for performance metrics
+  const [performanceMetrics, setPerformanceMetrics] = useState({
+    paymentHistory: 95,
+    maintenanceResponse: 88,
+    communicationScore: 92,
+    overallRating: 4.5
+  });
+
+  // Add new state for upcoming events
+  const [upcomingEvents, setUpcomingEvents] = useState([
+    {
+      id: 1,
+      title: 'Property Inspection',
+      date: new Date(2024, 3, 15),
+      type: 'inspection'
+    },
+    {
+      id: 2,
+      title: 'Lease Renewal',
+      date: new Date(2024, 11, 31),
+      type: 'lease'
+    }
+  ]);
+
+  // Add new state for property insights
+  const [propertyInsights] = useState({
+    energyUsage: 75,
+    waterUsage: 60,
+    communityScore: 85,
+    amenities: ['Pool', 'Gym', 'Parking', 'Security']
+  });
 
   // Fetch tenant data
   useEffect(() => {
@@ -183,84 +250,288 @@ const TenantDashboard = () => {
   const RecentActivityItem = ({ icon, title, description, time, action }) => (
     <ListItem
       secondaryAction={
-        <IconButton edge="end" onClick={action}>
+        <IconButton 
+          edge="end" 
+          onClick={action}
+          sx={{ color: darkMode ? '#fff' : 'inherit' }}
+        >
           <ArrowForward />
         </IconButton>
       }
       sx={{
         '&:hover': {
-          backgroundColor: 'action.hover',
+          backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.05)' : 'action.hover',
           cursor: 'pointer'
         }
       }}
     >
       <ListItemAvatar>
-        <Avatar sx={{ bgcolor: 'background.default' }}>
+        <Avatar sx={{ 
+          bgcolor: darkMode ? 'primary.dark' : 'background.default',
+          color: darkMode ? '#fff' : 'primary.main'
+        }}>
           {icon}
         </Avatar>
       </ListItemAvatar>
       <ListItemText
-        primary={title}
+        primary={
+          <Typography sx={{ color: darkMode ? '#fff' : 'text.primary' }}>
+            {title}
+          </Typography>
+        }
         secondary={
           <>
-            <Typography component="span" variant="body2" color="text.primary">
+            <Typography 
+              component="span" 
+              variant="body2" 
+              sx={{ color: darkMode ? '#aaa' : 'text.primary' }}
+            >
               {description}
             </Typography>
-            {time && ` — ${format(time, 'MMM dd, h:mm a')}`}
+            {time && (
+              <Typography 
+                component="span" 
+                variant="body2" 
+                sx={{ color: darkMode ? '#888' : 'text.secondary' }}
+              >
+                {` — ${format(time, 'MMM dd, h:mm a')}`}
+              </Typography>
+            )}
           </>
         }
       />
     </ListItem>
   );
 
-  return (
-    <Box sx={{ flexGrow: 1, p: 3 }}>
-      {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
+
+  const handleMenuClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+  };
+
+  // Add new component for performance metrics
+  const PerformanceMetricCard = ({ title, value, icon, color }) => (
+    <Card sx={{ 
+      height: '100%',
+      bgcolor: darkMode ? '#252525' : '#ffffff',
+      color: darkMode ? '#fff' : 'text.primary',
+      transition: 'transform 0.2s',
+      '&:hover': {
+        transform: 'translateY(-4px)'
+      }
+    }}>
+      <CardContent>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+          <Avatar sx={{ bgcolor: darkMode ? `${color}.dark` : `${color}.lighter`, mr: 2 }}>
+            {icon}
+          </Avatar>
+          <Typography variant="h6" sx={{ color: darkMode ? '#fff' : 'text.primary' }}>{title}</Typography>
+        </Box>
+        <Typography variant="h4" component="div" sx={{ mb: 1, color: darkMode ? '#fff' : 'text.primary' }}>
+          {value}
+        </Typography>
+        <LinearProgress 
+          variant="determinate" 
+          value={value} 
+          sx={{ 
+            height: 8, 
+            borderRadius: 4,
+            bgcolor: darkMode ? '#333' : `${color}.lighter`,
+            '& .MuiLinearProgress-bar': {
+              bgcolor: darkMode ? `${color}.light` : `${color}.main`
+            }
+          }}
+        />
+      </CardContent>
+    </Card>
+  );
+
+  // Add new component for event card
+  const EventCard = ({ event }) => (
+    <Card 
+      sx={{ 
+        mb: 2,
+        bgcolor: darkMode ? '#252525' : '#ffffff',
+        color: darkMode ? '#fff' : 'text.primary',
+        transition: 'all 0.2s',
+        '&:hover': {
+          transform: 'translateX(4px)',
+          boxShadow: 3
+        }
+      }}
+    >
+      <CardContent>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Avatar src={tenantData.avatar} sx={{ width: 56, height: 56, mr: 2 }} />
-          <Box>
-            <Typography variant="h4" fontWeight="bold">
-              Welcome back, {tenantData.name}
+          <Avatar sx={{ 
+            bgcolor: darkMode ? 'primary.dark' : 'primary.lighter',
+            color: darkMode ? '#fff' : 'primary.main',
+            mr: 2 
+          }}>
+            <CalendarToday />
+          </Avatar>
+          <Box sx={{ flexGrow: 1 }}>
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ color: darkMode ? '#fff' : 'text.primary' }}>
+              {event.title}
             </Typography>
-            <Typography variant="body1" color="text.secondary">
-              {tenantData.property} • {tenantData.unit}
+            <Typography variant="body2" sx={{ color: darkMode ? '#aaa' : 'text.secondary' }}>
+              {format(event.date, 'MMM dd, yyyy')}
             </Typography>
           </Box>
+          <Chip 
+            label={event.type} 
+            size="small" 
+            color="primary"
+            variant="outlined"
+            sx={{
+              borderColor: darkMode ? '#555' : undefined,
+              color: darkMode ? '#fff' : undefined,
+              '& .MuiChip-label': {
+                color: darkMode ? '#fff' : undefined
+              }
+            }}
+          />
         </Box>
-        <Button 
-          variant="contained" 
-          startIcon={<Notifications />}
-          onClick={() => navigate("/tenant/notifications")}
-        >
-          Notifications
-        </Button>
-      </Box>
+      </CardContent>
+    </Card>
+  );
+
+  return (
+    <Box sx={{ 
+      flexGrow: 1, 
+      p: { xs: 1, sm: 3 },
+      bgcolor: darkMode ? '#121212' : '#f5f5f5',
+      minHeight: '100vh',
+      color: darkMode ? '#fff' : 'text.primary'
+    }}>
+      {/* Enhanced Header */}
+      <AppBar 
+        position="static" 
+        elevation={0}
+        sx={{ 
+          mb: 3,
+          bgcolor: darkMode ? '#1e1e1e' : '#ffffff',
+          borderBottom: 1,
+          borderColor: darkMode ? '#333' : '#e0e0e0',
+          color: darkMode ? '#fff' : 'text.primary'
+        }}
+      >
+        <Toolbar>
+          {isMobile && (
+            <IconButton
+              sx={{ color: darkMode ? '#fff' : 'inherit' }}
+              edge="start"
+              onClick={handleDrawerToggle}
+            >
+              <MenuIcon />
+            </IconButton>
+          )}
+          <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
+            <Avatar 
+              src={tenantData.avatar} 
+              sx={{ 
+                width: { xs: 40, sm: 56 }, 
+                height: { xs: 40, sm: 56 }, 
+                mr: 2 
+              }} 
+            />
+            <Box>
+              <Typography 
+                variant={isMobile ? "h6" : "h4"} 
+                fontWeight="bold"
+                sx={{ 
+                  fontSize: { xs: '1.2rem', sm: '2rem' },
+                  color: darkMode ? '#fff' : 'text.primary'
+                }}
+              >
+                Welcome back, {tenantData.name}
+              </Typography>
+              <Typography 
+                variant="body1" 
+                sx={{ 
+                  fontSize: { xs: '0.8rem', sm: '1rem' },
+                  color: darkMode ? '#aaa' : 'text.secondary'
+                }}
+              >
+                {tenantData.property} • {tenantData.unit}
+              </Typography>
+            </Box>
+          </Box>
+          <Stack direction="row" spacing={2}>
+            <IconButton sx={{ color: darkMode ? '#fff' : 'inherit' }} onClick={toggleDarkMode}>
+              {darkMode ? <LightMode /> : <DarkMode />}
+            </IconButton>
+            <IconButton 
+              sx={{ color: darkMode ? '#fff' : 'inherit' }}
+              onClick={() => navigate("/tenant/notifications")}
+            >
+              <Badge badgeContent={notifications.length} color="primary">
+                <Notifications />
+              </Badge>
+            </IconButton>
+            <IconButton 
+              sx={{ color: darkMode ? '#fff' : 'inherit' }}
+              onClick={handleMenuClick}
+            >
+              <MoreVert />
+            </IconButton>
+          </Stack>
+        </Toolbar>
+      </AppBar>
 
       {/* Stats Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {/* Rent Card */}
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ height: '100%' }}>
+          <Card sx={{ 
+            height: '100%',
+            bgcolor: darkMode ? '#252525' : '#ffffff',
+            color: darkMode ? '#fff' : 'text.primary'
+          }}>
             <CardContent>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                <Typography color="text.secondary" gutterBottom>
+                <Typography sx={{ color: darkMode ? '#aaa' : 'text.secondary' }} gutterBottom>
                   Monthly Rent
                 </Typography>
-                <AccountBalanceWallet color="primary" />
+                <AccountBalanceWallet sx={{ color: darkMode ? '#fff' : 'primary.main' }} />
               </Box>
-              <Typography variant="h4" component="div">
+              <Typography variant="h4" sx={{ color: darkMode ? '#fff' : 'text.primary' }}>
                 ${tenantData.rentAmount}
               </Typography>
               <LinearProgress 
                 variant="determinate" 
                 value={tenantData.totalOutstanding > 0 ? 50 : 100} 
-                sx={{ height: 8, borderRadius: 4, mt: 2 }}
+                sx={{ 
+                  height: 8, 
+                  borderRadius: 4, 
+                  mt: 2,
+                  bgcolor: darkMode ? '#333' : 'primary.lighter',
+                  '& .MuiLinearProgress-bar': {
+                    bgcolor: darkMode ? 'primary.light' : 'primary.main'
+                  }
+                }}
               />
               <Button 
                 fullWidth 
                 variant="outlined" 
-                sx={{ mt: 2 }}
+                sx={{ 
+                  mt: 2,
+                  borderColor: darkMode ? '#555' : 'primary.main',
+                  color: darkMode ? '#fff' : 'primary.main',
+                  '&:hover': {
+                    borderColor: darkMode ? '#666' : 'primary.dark',
+                    bgcolor: darkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'
+                  }
+                }}
                 onClick={() => navigate("/tenant/payments")}
               >
                 Payment History
@@ -271,15 +542,19 @@ const TenantDashboard = () => {
 
         {/* Next Payment Card */}
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ height: '100%' }}>
+          <Card sx={{ 
+            height: '100%',
+            bgcolor: darkMode ? '#252525' : '#ffffff',
+            color: darkMode ? '#fff' : 'text.primary'
+          }}>
             <CardContent>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                <Typography color="text.secondary" gutterBottom>
+                <Typography sx={{ color: darkMode ? '#aaa' : 'text.secondary' }} gutterBottom>
                   Next Payment Due
                 </Typography>
-                <Payment color="secondary" />
+                <Payment sx={{ color: darkMode ? '#fff' : 'secondary.main' }} />
               </Box>
-              <Typography variant="h4" component="div">
+              <Typography variant="h4" sx={{ color: darkMode ? '#fff' : 'text.primary' }}>
                 {format(new Date(tenantData.nextPaymentDue), 'MMM dd')}
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
@@ -288,12 +563,24 @@ const TenantDashboard = () => {
                   size="small" 
                   color="warning" 
                   icon={<Warning fontSize="small" />}
+                  sx={{
+                    bgcolor: darkMode ? 'rgba(255, 152, 0, 0.1)' : undefined,
+                    '& .MuiChip-label': {
+                      color: darkMode ? '#ffa726' : undefined
+                    }
+                  }}
                 />
               </Box>
               <Button 
                 fullWidth 
                 variant="contained" 
-                sx={{ mt: 2 }}
+                sx={{ 
+                  mt: 2,
+                  bgcolor: darkMode ? 'primary.dark' : 'primary.main',
+                  '&:hover': {
+                    bgcolor: darkMode ? 'primary.main' : 'primary.dark'
+                  }
+                }}
                 onClick={() => navigate("/tenant/payments/make-payment")}
               >
                 Pay Now
@@ -304,13 +591,17 @@ const TenantDashboard = () => {
 
         {/* Lease Card */}
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ height: '100%' }}>
+          <Card sx={{ 
+            height: '100%',
+            bgcolor: darkMode ? '#252525' : '#ffffff',
+            color: darkMode ? '#fff' : 'text.primary'
+          }}>
             <CardContent>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                <Typography color="text.secondary" gutterBottom>
+                <Typography sx={{ color: darkMode ? '#aaa' : 'text.secondary' }} gutterBottom>
                   Lease Period
                 </Typography>
-                <Receipt color="success" />
+                <Receipt sx={{ color: darkMode ? '#fff' : 'success.main' }} />
               </Box>
               <Typography variant="h6" component="div">
                 {format(new Date(tenantData.leaseStart), 'MMM yyyy')} -{' '}
@@ -322,7 +613,15 @@ const TenantDashboard = () => {
               <Button 
                 fullWidth 
                 variant="outlined" 
-                sx={{ mt: 2 }}
+                sx={{ 
+                  mt: 2,
+                  borderColor: darkMode ? '#555' : 'success.main',
+                  color: darkMode ? '#fff' : 'success.main',
+                  '&:hover': {
+                    borderColor: darkMode ? '#666' : 'success.dark',
+                    bgcolor: darkMode ? 'rgba(0, 0, 0, 0.05)' : 'rgba(0, 0, 0, 0.05)'
+                  }
+                }}
                 onClick={() => navigate("/tenant/lease")}
               >
                 View Lease
@@ -333,13 +632,17 @@ const TenantDashboard = () => {
 
         {/* Maintenance Card */}
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ height: '100%' }}>
+          <Card sx={{ 
+            height: '100%',
+            bgcolor: darkMode ? '#252525' : '#ffffff',
+            color: darkMode ? '#fff' : 'text.primary'
+          }}>
             <CardContent>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                <Typography color="text.secondary" gutterBottom>
+                <Typography sx={{ color: darkMode ? '#aaa' : 'text.secondary' }} gutterBottom>
                   Maintenance
                 </Typography>
-                <Build color="action" />
+                <Build sx={{ color: darkMode ? '#fff' : 'action.main' }} />
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Typography variant="h4" component="div" sx={{ mr: 1 }}>
@@ -353,7 +656,13 @@ const TenantDashboard = () => {
                 fullWidth 
                 variant="contained" 
                 startIcon={<Add />}
-                sx={{ mt: 2 }}
+                sx={{ 
+                  mt: 2,
+                  bgcolor: darkMode ? 'primary.dark' : 'primary.main',
+                  '&:hover': {
+                    bgcolor: darkMode ? 'primary.main' : 'primary.dark'
+                  }
+                }}
                 onClick={() => navigate("/tenant/maintenance/new")}
               >
                 New Request
@@ -361,14 +670,242 @@ const TenantDashboard = () => {
             </CardContent>
           </Card>
         </Grid>
+
+        {/* Add new Performance Metrics */}
+        <Grid item xs={12}>
+          <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
+            Performance Metrics
+          </Typography>
+          <Grid container spacing={3}>
+            <Grid item xs={12} sm={6} md={3}>
+              <PerformanceMetricCard
+                title="Payment History"
+                value={performanceMetrics.paymentHistory}
+                icon={<TrendingUp />}
+                color="success"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <PerformanceMetricCard
+                title="Maintenance Response"
+                value={performanceMetrics.maintenanceResponse}
+                icon={<Speed />}
+                color="info"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <PerformanceMetricCard
+                title="Communication Score"
+                value={performanceMetrics.communicationScore}
+                icon={<Security />}
+                color="warning"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <PerformanceMetricCard
+                title="Overall Rating"
+                value={performanceMetrics.overallRating * 20}
+                icon={<Star />}
+                color="primary"
+              />
+            </Grid>
+          </Grid>
+        </Grid>
+
+        {/* Property Insights Section */}
+        <Grid item xs={12}>
+          <Typography 
+            variant="h6" 
+            fontWeight="bold" 
+            sx={{ 
+              mb: 2,
+              color: darkMode ? '#fff' : 'text.primary'
+            }}
+          >
+            Property Insights
+          </Typography>
+          <Grid container spacing={3}>
+            <Grid item xs={12} sm={6} md={3}>
+              <Card sx={{ 
+                height: '100%',
+                bgcolor: darkMode ? '#252525' : '#ffffff',
+                color: darkMode ? '#fff' : 'text.primary',
+                transition: 'transform 0.2s',
+                '&:hover': {
+                  transform: 'translateY(-4px)'
+                }
+              }}>
+                <CardContent>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <Avatar sx={{ bgcolor: 'success.lighter', mr: 2 }}>
+                      <TrendingUp />
+                    </Avatar>
+                    <Typography variant="h6" sx={{ color: darkMode ? '#fff' : 'text.primary' }}>
+                      Energy Usage
+                    </Typography>
+                  </Box>
+                  <Typography 
+                    variant="h4" 
+                    component="div" 
+                    sx={{ 
+                      mb: 1,
+                      color: darkMode ? '#fff' : 'text.primary'
+                    }}
+                  >
+                    {propertyInsights.energyUsage}%
+                  </Typography>
+                  <LinearProgress 
+                    variant="determinate" 
+                    value={propertyInsights.energyUsage} 
+                    sx={{ 
+                      height: 8, 
+                      borderRadius: 4,
+                      bgcolor: 'success.lighter',
+                      '& .MuiLinearProgress-bar': {
+                        bgcolor: 'success.main'
+                      }
+                    }}
+                  />
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Card sx={{ 
+                height: '100%',
+                bgcolor: darkMode ? '#252525' : '#ffffff',
+                color: darkMode ? '#fff' : 'text.primary',
+                transition: 'transform 0.2s',
+                '&:hover': {
+                  transform: 'translateY(-4px)'
+                }
+              }}>
+                <CardContent>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <Avatar sx={{ bgcolor: 'info.lighter', mr: 2 }}>
+                      <WaterDrop />
+                    </Avatar>
+                    <Typography variant="h6" sx={{ color: darkMode ? '#fff' : 'text.primary' }}>
+                      Water Usage
+                    </Typography>
+                  </Box>
+                  <Typography 
+                    variant="h4" 
+                    component="div" 
+                    sx={{ 
+                      mb: 1,
+                      color: darkMode ? '#fff' : 'text.primary'
+                    }}
+                  >
+                    {propertyInsights.waterUsage}%
+                  </Typography>
+                  <LinearProgress 
+                    variant="determinate" 
+                    value={propertyInsights.waterUsage} 
+                    sx={{ 
+                      height: 8, 
+                      borderRadius: 4,
+                      bgcolor: 'info.lighter',
+                      '& .MuiLinearProgress-bar': {
+                        bgcolor: 'info.main'
+                      }
+                    }}
+                  />
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Card sx={{ 
+                height: '100%',
+                bgcolor: darkMode ? '#252525' : '#ffffff',
+                color: darkMode ? '#fff' : 'text.primary',
+                transition: 'transform 0.2s',
+                '&:hover': {
+                  transform: 'translateY(-4px)'
+                }
+              }}>
+                <CardContent>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <Avatar sx={{ bgcolor: 'warning.lighter', mr: 2 }}>
+                      <Groups />
+                    </Avatar>
+                    <Typography variant="h6" sx={{ color: darkMode ? '#fff' : 'text.primary' }}>
+                      Community Score
+                    </Typography>
+                  </Box>
+                  <Typography 
+                    variant="h4" 
+                    component="div" 
+                    sx={{ 
+                      mb: 1,
+                      color: darkMode ? '#fff' : 'text.primary'
+                    }}
+                  >
+                    {propertyInsights.communityScore}%
+                  </Typography>
+                  <LinearProgress 
+                    variant="determinate" 
+                    value={propertyInsights.communityScore} 
+                    sx={{ 
+                      height: 8, 
+                      borderRadius: 4,
+                      bgcolor: 'warning.lighter',
+                      '& .MuiLinearProgress-bar': {
+                        bgcolor: 'warning.main'
+                      }
+                    }}
+                  />
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Card sx={{ 
+                height: '100%',
+                bgcolor: darkMode ? '#252525' : '#ffffff',
+                color: darkMode ? '#fff' : 'text.primary',
+                transition: 'transform 0.2s',
+                '&:hover': {
+                  transform: 'translateY(-4px)'
+                }
+              }}>
+                <CardContent>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <Avatar sx={{ bgcolor: 'primary.lighter', mr: 2 }}>
+                      <SportsTennis />
+                    </Avatar>
+                    <Typography variant="h6" sx={{ color: darkMode ? '#fff' : 'text.primary' }}>
+                      Available Amenities
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                    {propertyInsights.amenities.map((amenity, index) => (
+                      <Chip
+                        key={index}
+                        label={amenity}
+                        size="small"
+                        sx={{
+                          bgcolor: darkMode ? '#333' : 'primary.lighter',
+                          color: darkMode ? '#fff' : 'primary.main'
+                        }}
+                      />
+                    ))}
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+        </Grid>
       </Grid>
 
-      {/* Main Content */}
+      {/* Main Content with Enhanced Layout */}
       <Grid container spacing={3}>
         {/* Left Column */}
         <Grid item xs={12} md={8}>
           {/* Maintenance Requests Section */}
-          <Card sx={{ mb: 3 }}>
+          <Card sx={{ 
+            mb: 3,
+            bgcolor: darkMode ? '#252525' : '#ffffff',
+            color: darkMode ? '#fff' : 'text.primary'
+          }}>
             <CardContent>
               <Box sx={{ 
                 display: 'flex', 
@@ -376,7 +913,7 @@ const TenantDashboard = () => {
                 alignItems: 'center',
                 mb: 2
               }}>
-                <Typography variant="h6" fontWeight="bold">
+                <Typography variant="h6" fontWeight="bold" sx={{ color: darkMode ? '#fff' : 'text.primary' }}>
                   Maintenance Requests
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 1 }}>
@@ -384,17 +921,51 @@ const TenantDashboard = () => {
                     size="small"
                     placeholder="Search requests..."
                     InputProps={{
-                      startAdornment: <Search fontSize="small" />
+                      startAdornment: <Search fontSize="small" sx={{ color: darkMode ? '#aaa' : 'inherit' }} />,
+                      sx: {
+                        color: darkMode ? '#fff' : 'inherit',
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: darkMode ? '#555' : 'rgba(0, 0, 0, 0.23)'
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: darkMode ? '#666' : 'rgba(0, 0, 0, 0.87)'
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: darkMode ? 'primary.main' : 'primary.main'
+                        }
+                      }
                     }}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
+                    sx={{
+                      '& .MuiInputBase-input': {
+                        color: darkMode ? '#fff' : 'inherit'
+                      }
+                    }}
                   />
-                  <FormControl size="small" sx={{ minWidth: 120 }}>
-                    <InputLabel>Status</InputLabel>
+                  <FormControl 
+                    size="small" 
+                    sx={{ 
+                      minWidth: 120,
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: darkMode ? '#555' : 'rgba(0, 0, 0, 0.23)'
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: darkMode ? '#666' : 'rgba(0, 0, 0, 0.87)'
+                      }
+                    }}
+                  >
+                    <InputLabel sx={{ color: darkMode ? '#aaa' : 'inherit' }}>Status</InputLabel>
                     <Select
                       value={filterStatus}
                       onChange={(e) => setFilterStatus(e.target.value)}
                       label="Status"
+                      sx={{
+                        color: darkMode ? '#fff' : 'inherit',
+                        '& .MuiSvgIcon-root': {
+                          color: darkMode ? '#fff' : 'inherit'
+                        }
+                      }}
                     >
                       <MenuItem value="all">All</MenuItem>
                       <MenuItem value="Pending">Pending</MenuItem>
@@ -460,10 +1031,74 @@ const TenantDashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Recent Payments Section */}
-          <Card>
+          {/* Add Upcoming Events Section */}
+          <Card sx={{ 
+            mb: 3,
+            bgcolor: darkMode ? '#252525' : '#ffffff',
+            color: darkMode ? '#fff' : 'text.primary'
+          }}>
             <CardContent>
-              <Typography variant="h6" fontWeight="bold" gutterBottom>
+              <Typography variant="h6" fontWeight="bold" sx={{ color: darkMode ? '#fff' : 'text.primary' }} gutterBottom>
+                Upcoming Events
+              </Typography>
+              {upcomingEvents.map(event => (
+                <Card 
+                  key={event.id} 
+                  sx={{ 
+                    mb: 2,
+                    bgcolor: darkMode ? '#1e1e1e' : '#ffffff',
+                    color: darkMode ? '#fff' : 'text.primary',
+                    transition: 'all 0.2s',
+                    '&:hover': {
+                      transform: 'translateX(4px)',
+                      boxShadow: 3
+                    }
+                  }}
+                >
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <Avatar sx={{ 
+                        bgcolor: darkMode ? 'primary.dark' : 'primary.lighter',
+                        color: darkMode ? '#fff' : 'primary.main',
+                        mr: 2 
+                      }}>
+                        <CalendarToday />
+                      </Avatar>
+                      <Box sx={{ flexGrow: 1 }}>
+                        <Typography variant="subtitle1" fontWeight="bold" sx={{ color: darkMode ? '#fff' : 'text.primary' }}>
+                          {event.title}
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: darkMode ? '#aaa' : 'text.secondary' }}>
+                          {format(event.date, 'MMM dd, yyyy')}
+                        </Typography>
+                      </Box>
+                      <Chip 
+                        label={event.type} 
+                        size="small" 
+                        color="primary"
+                        variant="outlined"
+                        sx={{
+                          borderColor: darkMode ? '#555' : undefined,
+                          color: darkMode ? '#fff' : undefined,
+                          '& .MuiChip-label': {
+                            color: darkMode ? '#fff' : undefined
+                          }
+                        }}
+                      />
+                    </Box>
+                  </CardContent>
+                </Card>
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* Recent Payments Section */}
+          <Card sx={{ 
+            bgcolor: darkMode ? '#252525' : '#ffffff',
+            color: darkMode ? '#fff' : 'text.primary'
+          }}>
+            <CardContent>
+              <Typography variant="h6" fontWeight="bold" sx={{ color: darkMode ? '#fff' : 'text.primary' }} gutterBottom>
                 Recent Payments
               </Typography>
               <List>
@@ -503,7 +1138,15 @@ const TenantDashboard = () => {
               <Button 
                 fullWidth 
                 variant="outlined" 
-                sx={{ mt: 1 }}
+                sx={{ 
+                  mt: 1,
+                  borderColor: darkMode ? '#555' : 'primary.main',
+                  color: darkMode ? '#fff' : 'primary.main',
+                  '&:hover': {
+                    borderColor: darkMode ? '#666' : 'primary.dark',
+                    bgcolor: darkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'
+                  }
+                }}
                 onClick={() => navigate("/tenant/payments")}
               >
                 View All Payments
@@ -515,7 +1158,11 @@ const TenantDashboard = () => {
         {/* Right Column */}
         <Grid item xs={12} md={4}>
           {/* Recent Notifications */}
-          <Card sx={{ mb: 3 }}>
+          <Card sx={{ 
+            mb: 3,
+            bgcolor: darkMode ? '#252525' : '#ffffff',
+            color: darkMode ? '#fff' : 'text.primary'
+          }}>
             <CardContent>
               <Box sx={{ 
                 display: 'flex', 
@@ -523,7 +1170,7 @@ const TenantDashboard = () => {
                 alignItems: 'center',
                 mb: 2
               }}>
-                <Typography variant="h6" fontWeight="bold">
+                <Typography variant="h6" fontWeight="bold" sx={{ color: darkMode ? '#fff' : 'text.primary' }}>
                   Recent Notifications
                 </Typography>
                 <Badge 
@@ -549,12 +1196,21 @@ const TenantDashboard = () => {
                   ))}
                 </List>
               ) : (
-                <Paper sx={{ p: 3, textAlign: 'center' }}>
-                  <Notifications sx={{ fontSize: 60, color: 'text.disabled', mb: 2 }} />
-                  <Typography variant="h6" gutterBottom>
+                <Paper sx={{ 
+                  p: 3, 
+                  textAlign: 'center',
+                  bgcolor: darkMode ? '#1e1e1e' : '#ffffff',
+                  color: darkMode ? '#fff' : 'text.primary'
+                }}>
+                  <Notifications sx={{ 
+                    fontSize: 60, 
+                    color: darkMode ? '#555' : 'text.disabled', 
+                    mb: 2 
+                  }} />
+                  <Typography variant="h6" sx={{ color: darkMode ? '#fff' : 'text.primary' }} gutterBottom>
                     No Recent Notifications
                   </Typography>
-                  <Typography color="text.secondary">
+                  <Typography sx={{ color: darkMode ? '#aaa' : 'text.secondary' }}>
                     You're all caught up with notifications.
                   </Typography>
                 </Paper>
@@ -562,10 +1218,13 @@ const TenantDashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Quick Actions */}
-          <Card>
+          {/* Enhanced Quick Actions */}
+          <Card sx={{ 
+            bgcolor: darkMode ? '#252525' : '#ffffff',
+            color: darkMode ? '#fff' : 'text.primary'
+          }}>
             <CardContent>
-              <Typography variant="h6" fontWeight="bold" gutterBottom>
+              <Typography variant="h6" fontWeight="bold" sx={{ color: darkMode ? '#fff' : 'text.primary' }} gutterBottom>
                 Quick Actions
               </Typography>
               <Stack spacing={2}>
@@ -574,6 +1233,16 @@ const TenantDashboard = () => {
                   fullWidth 
                   startIcon={<Payment />}
                   onClick={() => navigate("/tenant/payments/make-payment")}
+                  sx={{
+                    bgcolor: darkMode ? 'primary.dark' : 'primary.main',
+                    color: '#fff',
+                    transition: 'all 0.2s',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: 3,
+                      bgcolor: darkMode ? 'primary.main' : 'primary.dark'
+                    }
+                  }}
                 >
                   Make Payment
                 </Button>
@@ -582,6 +1251,14 @@ const TenantDashboard = () => {
                   fullWidth 
                   startIcon={<Build />}
                   onClick={() => navigate("/tenant/maintenance/new")}
+                  sx={{
+                    borderColor: darkMode ? '#555' : 'primary.main',
+                    color: darkMode ? '#fff' : 'primary.main',
+                    '&:hover': {
+                      borderColor: darkMode ? '#666' : 'primary.dark',
+                      bgcolor: darkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'
+                    }
+                  }}
                 >
                   Request Maintenance
                 </Button>
@@ -590,6 +1267,14 @@ const TenantDashboard = () => {
                   fullWidth 
                   startIcon={<Event />}
                   onClick={() => navigate("/tenant/events")}
+                  sx={{
+                    borderColor: darkMode ? '#555' : 'primary.main',
+                    color: darkMode ? '#fff' : 'primary.main',
+                    '&:hover': {
+                      borderColor: darkMode ? '#666' : 'primary.dark',
+                      bgcolor: darkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'
+                    }
+                  }}
                 >
                   View Events
                 </Button>
@@ -598,6 +1283,14 @@ const TenantDashboard = () => {
                   fullWidth 
                   startIcon={<Receipt />}
                   onClick={() => navigate("/tenant/documents")}
+                  sx={{
+                    borderColor: darkMode ? '#555' : 'primary.main',
+                    color: darkMode ? '#fff' : 'primary.main',
+                    '&:hover': {
+                      borderColor: darkMode ? '#666' : 'primary.dark',
+                      bgcolor: darkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'
+                    }
+                  }}
                 >
                   View Documents
                 </Button>
@@ -606,6 +1299,89 @@ const TenantDashboard = () => {
           </Card>
         </Grid>
       </Grid>
+
+      {/* Mobile Navigation Drawer */}
+      <Drawer
+        variant="temporary"
+        anchor="left"
+        open={mobileOpen}
+        onClose={handleDrawerToggle}
+        ModalProps={{
+          keepMounted: true
+        }}
+        sx={{
+          display: { xs: 'block', sm: 'none' },
+          '& .MuiDrawer-paper': { 
+            boxSizing: 'border-box', 
+            width: 240,
+            bgcolor: darkMode ? '#1e1e1e' : 'background.paper',
+            color: darkMode ? '#fff' : 'text.primary'
+          }
+        }}
+      >
+        {/* Drawer content */}
+      </Drawer>
+
+      {/* User Menu */}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+        TransitionComponent={Fade}
+        TransitionProps={{ timeout: 200 }}
+        PaperProps={{
+          sx: {
+            bgcolor: darkMode ? '#1e1e1e' : '#ffffff',
+            color: darkMode ? '#fff' : 'text.primary',
+            '& .MuiMenuItem-root': {
+              color: darkMode ? '#fff' : 'text.primary'
+            },
+            '& .MuiListItemIcon-root': {
+              color: darkMode ? '#fff' : 'inherit'
+            }
+          }
+        }}
+      >
+        <MuiMenuItem onClick={() => { handleMenuClose(); navigate('/tenant/profile'); }}>
+          <ListItemIcon>
+            <Person fontSize="small" />
+          </ListItemIcon>
+          Profile
+        </MuiMenuItem>
+        <MuiMenuItem onClick={() => { handleMenuClose(); navigate('/tenant/settings'); }}>
+          <ListItemIcon>
+            <Settings fontSize="small" />
+          </ListItemIcon>
+          Settings
+        </MuiMenuItem>
+        <Divider />
+        <MuiMenuItem onClick={() => { handleMenuClose(); auth.signOut(); }}>
+          <ListItemIcon>
+            <Logout fontSize="small" />
+          </ListItemIcon>
+          Logout
+        </MuiMenuItem>
+      </Menu>
+
+      {/* Floating Action Button for Mobile */}
+      <Zoom in={isMobile}>
+        <Fab
+          color="primary"
+          sx={{ 
+            position: 'fixed', 
+            bottom: 16, 
+            right: 16,
+            bgcolor: darkMode ? 'primary.dark' : 'primary.main',
+            color: '#fff',
+            '&:hover': {
+              bgcolor: darkMode ? 'primary.main' : 'primary.dark'
+            }
+          }}
+          onClick={() => navigate("/tenant/maintenance/new")}
+        >
+          <Add />
+        </Fab>
+      </Zoom>
     </Box>
   );
 };
