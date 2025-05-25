@@ -30,7 +30,7 @@ import {
 } from "firebase/auth";
 import { setDoc, doc, collection, getDocs, updateDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../context/AuthContext';
 
 const TenantRegister = () => {
   const [name, setName] = useState("");

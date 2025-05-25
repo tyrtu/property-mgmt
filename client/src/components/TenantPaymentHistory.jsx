@@ -25,7 +25,10 @@ import {
   Alert,
   Pagination,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
+  Container,
+  Card,
+  CardContent
 } from '@mui/material';
 import { 
   DataGrid, 
@@ -51,6 +54,7 @@ import {
   DarkMode,
   LightMode
 } from '@mui/icons-material';
+import { useDarkMode } from '../context/DarkModeContext';
 
 // API Configuration
 const API_BASE_URL = "https://1605-102-0-11-254.ngrok-free.app";
@@ -76,6 +80,7 @@ const generateMockPayments = () => {
 };
 
 const TenantPaymentHistory = () => {
+  const { darkMode } = useDarkMode();
   const [payments, setPayments] = useState([]);
   const [filteredPayments, setFilteredPayments] = useState([]);
   const [openPaymentModal, setOpenPaymentModal] = useState(false);
@@ -87,7 +92,6 @@ const TenantPaymentHistory = () => {
   const [filterCategory, setFilterCategory] = useState('All');
   const [filterProperty, setFilterProperty] = useState('All');
   const [sortModel, setSortModel] = useState([{ field: 'dueDate', sort: 'desc' }]);
-  const [darkMode, setDarkMode] = useState(false);
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -364,132 +368,156 @@ const TenantPaymentHistory = () => {
 
   // Toggle dark mode
   const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
+    // This function is now empty as the dark mode is managed by the useDarkMode context
   };
 
   return (
     <Box sx={{ 
-      backgroundColor: darkMode ? '#121212' : '#f5f5f5', 
-      minHeight: '100vh', 
-      p: 3,
-      color: darkMode ? '#fff' : 'text.primary'
+      minHeight: '100vh',
+      bgcolor: darkMode ? '#121212' : '#f5f5f5',
+      color: darkMode ? '#fff' : 'text.primary',
+      transition: 'all 0.3s ease',
+      pb: { xs: 8, sm: 4 }
     }}>
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        mb: 3
-      }}>
-        <Typography variant="h4" sx={{ display: 'flex', alignItems: 'center' }}>
-          <AttachMoneyIcon sx={{ mr: 2, fontSize: 40 }} />
-          Payment History
-        </Typography>
-        <Tooltip title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>
-          <IconButton 
-            onClick={toggleDarkMode} 
-            sx={{ 
-              color: darkMode ? '#fff' : '#000',
-              '&:hover': {
-                bgcolor: darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)'
-              }
-            }}
-          >
-            {darkMode ? <LightMode /> : <DarkMode />}
-          </IconButton>
-        </Tooltip>
-      </Box>
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Grid container spacing={3}>
+          {/* Header */}
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            mb: 3,
+            gap: 2,
+            ml: 2
+          }}>
+            <PaymentIcon sx={{ 
+              fontSize: 40,
+              color: darkMode ? '#fff' : 'primary.main',
+              ml: 1
+            }} />
+            <Typography 
+              variant="h5" 
+              sx={{ 
+                fontWeight: 600,
+                color: darkMode ? '#fff' : 'text.primary'
+              }}
+            >
+        Payment History
+      </Typography>
+          </Box>
 
       {/* Analytics Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={6} md={4}>
-          <Paper sx={{ 
-            p: 2, 
-            height: '100%',
-            backgroundColor: darkMode ? '#252525' : '#fff',
-            borderLeft: '4px solid #4CAF50'
-          }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-              <CheckCircleIcon color="success" sx={{ mr: 1 }} />
-              <Typography variant="subtitle2" color="text.secondary">
-                Total Paid
-              </Typography>
-            </Box>
-            <Typography variant="h4" sx={{ mt: 1 }}>
-              ${totalPaid.toLocaleString()}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              {payments.filter(p => p.status === 'Paid').length} payments
-            </Typography>
+          <Grid container spacing={3} sx={{ mb: 4, px: 2 }}>
+            <Grid item xs={6} sm={6} md={3}>
+              <Paper sx={{ 
+                p: 2, 
+                height: '100%',
+                backgroundColor: darkMode ? '#252525' : '#fff',
+                borderLeft: '4px solid #4CAF50'
+              }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  <CheckCircleIcon color="success" sx={{ mr: 1 }} />
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Total Paid
+                  </Typography>
+                </Box>
+                <Typography variant="h4" sx={{ mt: 1 }}>
+                  ${totalPaid.toLocaleString()}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                  {payments.filter(p => p.status === 'Paid').length} payments
+                </Typography>
           </Paper>
         </Grid>
-        <Grid item xs={12} sm={6} md={4}>
-          <Paper sx={{ 
-            p: 2, 
-            height: '100%',
-            backgroundColor: darkMode ? '#252525' : '#fff',
-            borderLeft: '4px solid #FFC107'
-          }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-              <PendingIcon color="warning" sx={{ mr: 1 }} />
-              <Typography variant="subtitle2" color="text.secondary">
-                Total Pending
-              </Typography>
-            </Box>
-            <Typography variant="h4" sx={{ mt: 1 }}>
-              ${totalPending.toLocaleString()}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              {payments.filter(p => p.status === 'Pending').length} payments
-            </Typography>
+            <Grid item xs={6} sm={6} md={3}>
+              <Paper sx={{ 
+                p: 2, 
+                height: '100%',
+                backgroundColor: darkMode ? '#252525' : '#fff',
+                borderLeft: '4px solid #FFC107'
+              }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  <PendingIcon color="warning" sx={{ mr: 1 }} />
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Total Pending
+                  </Typography>
+                </Box>
+                <Typography variant="h4" sx={{ mt: 1 }}>
+                  ${totalPending.toLocaleString()}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                  {payments.filter(p => p.status === 'Pending').length} payments
+                </Typography>
           </Paper>
         </Grid>
-        <Grid item xs={12} sm={6} md={4}>
-          <Paper sx={{ 
-            p: 2, 
-            height: '100%',
-            backgroundColor: darkMode ? '#252525' : '#fff',
-            borderLeft: '4px solid #F44336'
-          }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-              <HourglassIcon color="error" sx={{ mr: 1 }} />
-              <Typography variant="subtitle2" color="text.secondary">
-                Total Overdue
-              </Typography>
+            <Grid item xs={6} sm={6} md={3}>
+              <Paper sx={{ 
+                p: 2, 
+                height: '100%',
+                backgroundColor: darkMode ? '#252525' : '#fff',
+                borderLeft: '4px solid #F44336'
+              }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  <HourglassIcon color="error" sx={{ mr: 1 }} />
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Total Overdue
+                  </Typography>
+                </Box>
+                <Typography variant="h4" sx={{ mt: 1 }}>
+                  ${totalOverdue.toLocaleString()}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                  {payments.filter(p => p.status === 'Overdue').length} payments
+                </Typography>
+              </Paper>
+            </Grid>
+            <Grid item xs={6} sm={6} md={3}>
+              <Paper sx={{ 
+                p: 2, 
+                height: '100%',
+                backgroundColor: darkMode ? '#252525' : '#fff',
+                borderLeft: '4px solid #2196F3'
+              }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  <AttachMoneyIcon color="info" sx={{ mr: 1 }} />
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Total Amount
+                  </Typography>
             </Box>
-            <Typography variant="h4" sx={{ mt: 1 }}>
-              ${totalOverdue.toLocaleString()}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              {payments.filter(p => p.status === 'Overdue').length} payments
-            </Typography>
+                <Typography variant="h4" sx={{ mt: 1 }}>
+                  ${(totalPaid + totalPending + totalOverdue).toLocaleString()}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                  {payments.length} total payments
+                </Typography>
           </Paper>
         </Grid>
       </Grid>
 
       {/* Filters Section */}
-      <Paper sx={{ 
-        p: 3, 
-        mb: 3,
-        backgroundColor: darkMode ? '#252525' : '#fff'
-      }}>
-        <Typography variant="h6" sx={{ mb: 2, color: darkMode ? '#fff' : 'text.primary' }}>Filters</Typography>
+          <Grid item xs={12}>
+            <Paper sx={{ 
+              p: { xs: 2, sm: 3 }, 
+              mb: 3,
+              backgroundColor: darkMode ? '#252525' : '#fff'
+            }}>
+              <Typography variant="h6" sx={{ mb: 2, color: darkMode ? '#fff' : 'text.primary' }}>Filters</Typography>
         <Grid container spacing={2}>
-          <Grid item xs={12} md={3}>
+                <Grid item xs={12} sm={6} md={3}>
             <FormControl fullWidth>
-              <InputLabel sx={{ color: darkMode ? 'rgba(255, 255, 255, 0.6)' : 'inherit' }}>Status</InputLabel>
+                    <InputLabel sx={{ color: darkMode ? 'rgba(255, 255, 255, 0.6)' : 'inherit' }}>Status</InputLabel>
               <Select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
                 label="Status"
-                sx={{
-                  color: darkMode ? '#fff' : 'inherit',
-                  '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: darkMode ? 'rgba(255, 255, 255, 0.23)' : 'inherit'
-                  },
-                  '&:hover .MuiOutlinedInput-notchedOutline': {
-                    borderColor: darkMode ? 'rgba(255, 255, 255, 0.5)' : 'inherit'
-                  }
-                }}
+                      sx={{
+                        color: darkMode ? '#fff' : 'inherit',
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: darkMode ? 'rgba(255, 255, 255, 0.23)' : 'inherit'
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: darkMode ? 'rgba(255, 255, 255, 0.5)' : 'inherit'
+                        }
+                      }}
               >
                 {getUniqueValues('status').map(status => (
                   <MenuItem key={status} value={status}>{status}</MenuItem>
@@ -497,22 +525,22 @@ const TenantPaymentHistory = () => {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} md={3}>
+                <Grid item xs={12} sm={6} md={3}>
             <FormControl fullWidth>
-              <InputLabel sx={{ color: darkMode ? 'rgba(255, 255, 255, 0.6)' : 'inherit' }}>Category</InputLabel>
+                    <InputLabel sx={{ color: darkMode ? 'rgba(255, 255, 255, 0.6)' : 'inherit' }}>Category</InputLabel>
               <Select
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
                 label="Category"
-                sx={{
-                  color: darkMode ? '#fff' : 'inherit',
-                  '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: darkMode ? 'rgba(255, 255, 255, 0.23)' : 'inherit'
-                  },
-                  '&:hover .MuiOutlinedInput-notchedOutline': {
-                    borderColor: darkMode ? 'rgba(255, 255, 255, 0.5)' : 'inherit'
-                  }
-                }}
+                      sx={{
+                        color: darkMode ? '#fff' : 'inherit',
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: darkMode ? 'rgba(255, 255, 255, 0.23)' : 'inherit'
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: darkMode ? 'rgba(255, 255, 255, 0.5)' : 'inherit'
+                        }
+                      }}
               >
                 {getUniqueValues('category').map(category => (
                   <MenuItem key={category} value={category}>{category}</MenuItem>
@@ -520,22 +548,22 @@ const TenantPaymentHistory = () => {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} md={3}>
+                <Grid item xs={12} sm={6} md={3}>
             <FormControl fullWidth>
-              <InputLabel sx={{ color: darkMode ? 'rgba(255, 255, 255, 0.6)' : 'inherit' }}>Property</InputLabel>
+                    <InputLabel sx={{ color: darkMode ? 'rgba(255, 255, 255, 0.6)' : 'inherit' }}>Property</InputLabel>
               <Select
                 value={filterProperty}
                 onChange={(e) => setFilterProperty(e.target.value)}
                 label="Property"
-                sx={{
-                  color: darkMode ? '#fff' : 'inherit',
-                  '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: darkMode ? 'rgba(255, 255, 255, 0.23)' : 'inherit'
-                  },
-                  '&:hover .MuiOutlinedInput-notchedOutline': {
-                    borderColor: darkMode ? 'rgba(255, 255, 255, 0.5)' : 'inherit'
-                  }
-                }}
+                      sx={{
+                        color: darkMode ? '#fff' : 'inherit',
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: darkMode ? 'rgba(255, 255, 255, 0.23)' : 'inherit'
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: darkMode ? 'rgba(255, 255, 255, 0.5)' : 'inherit'
+                        }
+                      }}
               >
                 {getUniqueValues('property').map(property => (
                   <MenuItem key={property} value={property}>{property}</MenuItem>
@@ -543,7 +571,7 @@ const TenantPaymentHistory = () => {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} md={3}>
+                <Grid item xs={12} sm={6} md={3}>
             <TextField
               fullWidth
               label="Search"
@@ -551,33 +579,35 @@ const TenantPaymentHistory = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               InputProps={{
-                startAdornment: <SearchIcon sx={{ mr: 1, color: darkMode ? 'rgba(255, 255, 255, 0.6)' : 'inherit' }} />
-              }}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  color: darkMode ? '#fff' : 'inherit',
-                  '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: darkMode ? 'rgba(255, 255, 255, 0.23)' : 'inherit'
-                  },
-                  '&:hover .MuiOutlinedInput-notchedOutline': {
-                    borderColor: darkMode ? 'rgba(255, 255, 255, 0.5)' : 'inherit'
-                  }
-                },
-                '& .MuiInputLabel-root': {
-                  color: darkMode ? 'rgba(255, 255, 255, 0.6)' : 'inherit'
-                }
+                      startAdornment: <SearchIcon sx={{ mr: 1, color: darkMode ? 'rgba(255, 255, 255, 0.6)' : 'inherit' }} />
+                    }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        color: darkMode ? '#fff' : 'inherit',
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: darkMode ? 'rgba(255, 255, 255, 0.23)' : 'inherit'
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: darkMode ? 'rgba(255, 255, 255, 0.5)' : 'inherit'
+                        }
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: darkMode ? 'rgba(255, 255, 255, 0.6)' : 'inherit'
+                      }
               }}
             />
           </Grid>
         </Grid>
       </Paper>
+          </Grid>
 
       {/* Data Grid */}
-      <Paper sx={{ 
-        p: 2, 
-        height: 600,
-        backgroundColor: darkMode ? '#252525' : '#fff'
-      }}>
+          <Grid item xs={12}>
+            <Paper sx={{ 
+              p: { xs: 1, sm: 2 }, 
+              height: { xs: 500, sm: 600 },
+              backgroundColor: darkMode ? '#252525' : '#fff'
+            }}>
         <DataGrid
           rows={filteredPayments}
           columns={columns}
@@ -592,80 +622,83 @@ const TenantPaymentHistory = () => {
           }}
           onSortModelChange={(model) => setSortModel(model)}
           sx={{
-            border: 'none',
-            backgroundColor: darkMode ? '#252525' : '#fff',
-            '& .MuiDataGrid-main': {
-              backgroundColor: darkMode ? '#252525' : '#fff',
-              color: darkMode ? '#fff' : 'inherit',
-            },
-            '& .MuiDataGrid-columnHeaders': {
-              backgroundColor: darkMode ? '#333' : 'primary.main',
-              color: '#fff',
-              borderBottom: `1px solid ${darkMode ? '#333' : '#e0e0e0'}`,
-            },
-            '& .MuiDataGrid-columnHeadersInner': {
-              backgroundColor: darkMode ? '#333' : 'primary.main',
-            },
-            '& .MuiDataGrid-columnHeader': {
-              backgroundColor: darkMode ? '#333' : 'primary.main',
-            },
-            '& .MuiDataGrid-virtualScroller': {
-              backgroundColor: darkMode ? '#252525' : '#fff',
-              '&::-webkit-scrollbar': {
-                width: '8px',
-                height: '8px',
-              },
-              '&::-webkit-scrollbar-thumb': {
-                backgroundColor: darkMode ? '#555' : '#ccc',
-                borderRadius: '4px',
-              },
-              '&::-webkit-scrollbar-track': {
-                backgroundColor: darkMode ? '#252525' : '#f5f5f5',
-              },
-            },
-            '& .MuiDataGrid-virtualScrollerContent': {
-              backgroundColor: darkMode ? '#252525' : '#fff',
-            },
-            '& .MuiDataGrid-virtualScrollerRenderZone': {
-              backgroundColor: darkMode ? '#252525' : '#fff',
-            },
+                  border: 'none',
+                  backgroundColor: darkMode ? '#252525' : '#fff',
+                  '& .MuiDataGrid-main': {
+                    backgroundColor: darkMode ? '#252525' : '#fff',
+                    color: darkMode ? '#fff' : 'inherit',
+                  },
+                  '& .MuiDataGrid-columnHeaders': {
+                    backgroundColor: darkMode ? '#333' : 'primary.main',
+                    color: '#fff',
+                    borderBottom: `1px solid ${darkMode ? '#333' : '#e0e0e0'}`,
+                  },
+                  '& .MuiDataGrid-columnHeadersInner': {
+                    backgroundColor: darkMode ? '#333' : 'primary.main',
+                  },
+                  '& .MuiDataGrid-columnHeader': {
+                    backgroundColor: darkMode ? '#333' : 'primary.main',
+                  },
+                  '& .MuiDataGrid-virtualScroller': {
+                    backgroundColor: darkMode ? '#252525' : '#fff',
+                    '&::-webkit-scrollbar': {
+                      width: '8px',
+                      height: '8px',
+                    },
+                    '&::-webkit-scrollbar-thumb': {
+                      backgroundColor: darkMode ? '#555' : '#ccc',
+                      borderRadius: '4px',
+                    },
+                    '&::-webkit-scrollbar-track': {
+                      backgroundColor: darkMode ? '#252525' : '#f5f5f5',
+                    },
+                  },
+                  '& .MuiDataGrid-virtualScrollerContent': {
+                    backgroundColor: darkMode ? '#252525' : '#fff',
+                  },
+                  '& .MuiDataGrid-virtualScrollerRenderZone': {
+                    backgroundColor: darkMode ? '#252525' : '#fff',
+                  },
             '& .MuiDataGrid-cell': {
               borderBottom: 'none',
-              color: darkMode ? '#fff' : 'inherit'
-            },
-            '& .MuiDataGrid-row': {
-              backgroundColor: darkMode ? '#252525' : '#fff',
-              '&:hover': {
-                backgroundColor: darkMode ? '#333' : 'rgba(0, 0, 0, 0.04)'
-              }
-            },
-            '& .MuiDataGrid-footerContainer': {
-              backgroundColor: darkMode ? '#252525' : '#fff',
-              color: darkMode ? '#fff' : 'inherit',
-              borderTop: darkMode ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid rgba(0, 0, 0, 0.12)'
-            },
-            '& .MuiCheckbox-root': {
-              color: darkMode ? '#fff' : 'inherit'
-            },
-            '& .MuiTablePagination-root': {
-              color: darkMode ? '#fff' : 'inherit'
-            },
-            '& .MuiButton-root': {
-              color: darkMode ? '#fff' : 'inherit'
-            },
-            '& .MuiIconButton-root': {
-              color: darkMode ? '#fff' : 'inherit'
-            },
-            '& .MuiDataGrid-toolbarContainer': {
-              backgroundColor: darkMode ? '#1e1e1e' : '#fff',
-              padding: '8px',
-              '& button': {
-                color: darkMode ? '#fff' : 'inherit'
-              }
-            }
+                    color: darkMode ? '#fff' : 'inherit'
+                  },
+                  '& .MuiDataGrid-row': {
+                    backgroundColor: darkMode ? '#252525' : '#fff',
+                    '&:hover': {
+                      backgroundColor: darkMode ? '#333' : 'rgba(0, 0, 0, 0.04)'
+                    }
+                  },
+                  '& .MuiDataGrid-footerContainer': {
+                    backgroundColor: darkMode ? '#252525' : '#fff',
+                    color: darkMode ? '#fff' : 'inherit',
+                    borderTop: darkMode ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid rgba(0, 0, 0, 0.12)'
+                  },
+                  '& .MuiCheckbox-root': {
+                    color: darkMode ? '#fff' : 'inherit'
+                  },
+                  '& .MuiTablePagination-root': {
+                    color: darkMode ? '#fff' : 'inherit'
+                  },
+                  '& .MuiButton-root': {
+                    color: darkMode ? '#fff' : 'inherit'
+                  },
+                  '& .MuiIconButton-root': {
+                    color: darkMode ? '#fff' : 'inherit'
+                  },
+                  '& .MuiDataGrid-toolbarContainer': {
+                    backgroundColor: darkMode ? '#1e1e1e' : '#fff',
+                    padding: '8px',
+                    '& button': {
+                      color: darkMode ? '#fff' : 'inherit'
+                    }
+                  }
           }}
         />
       </Paper>
+          </Grid>
+        </Grid>
+      </Container>
 
       {/* Payment Dialog */}
       <Dialog 
@@ -673,6 +706,12 @@ const TenantPaymentHistory = () => {
         onClose={handleClosePaymentModal}
         maxWidth="sm"
         fullWidth
+        PaperProps={{
+          sx: {
+            bgcolor: darkMode ? '#252525' : '#fff',
+            color: darkMode ? '#fff' : 'inherit',
+          }
+        }}
       >
         <DialogTitle sx={{ display: 'flex', alignItems: 'center' }}>
           <PaymentIcon sx={{ mr: 1 }} />

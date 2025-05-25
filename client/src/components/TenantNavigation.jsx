@@ -1,8 +1,5 @@
 import React, { useState } from 'react';
 import { 
-  AppBar, 
-  Toolbar, 
-  Button, 
   Box, 
   IconButton, 
   Drawer, 
@@ -13,7 +10,12 @@ import {
   Divider,
   Typography,
   useMediaQuery,
-  useTheme
+  useTheme,
+  AppBar,
+  Toolbar,
+  BottomNavigation,
+  BottomNavigationAction,
+  Fab
 } from '@mui/material';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
@@ -23,20 +25,49 @@ import {
   Build as MaintenanceIcon,
   Notifications as NotificationsIcon,
   Person as ProfileIcon,
-  ExitToApp as LogoutIcon
+  ExitToApp as LogoutIcon,
+  LightMode,
+  DarkMode,
+  ChevronLeft,
+  ChevronRight,
+  Close
 } from '@mui/icons-material';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
+import { useDarkMode } from '../context/DarkModeContext';
 
-const TenantNavigation = () => {
+const DRAWER_WIDTH = 240;
+
+const TenantNavigation = ({ onSidebarToggle }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { darkMode, toggleDarkMode } = useDarkMode();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
+  };
+
+  const handleSidebarToggle = () => {
+    const newState = !sidebarCollapsed;
+    setSidebarCollapsed(newState);
+    onSidebarToggle?.(newState);
+  };
+
+  const handleNavigation = (path) => {
+    navigate(path);
+    // Close mobile drawer if open
+    if (mobileOpen) {
+      setMobileOpen(false);
+    }
+    // Collapse sidebar on desktop
+    if (!isMobile && !sidebarCollapsed) {
+      setSidebarCollapsed(true);
+      onSidebarToggle?.(true);
+    }
   };
 
   const handleLogout = async () => {
@@ -57,261 +88,278 @@ const TenantNavigation = () => {
     { text: "Profile", path: "/tenant/profile", icon: <ProfileIcon /> }
   ];
 
+  const drawer = (
+    <Box sx={{ 
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      bgcolor: 'primary.main',
+      color: 'white'
+    }}>
+      <Box sx={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between',
+        p: 2,
+        flexShrink: 0
+      }}>
+        <Typography variant="h6" sx={{ fontWeight: 700 }}>
+          Tenant Portal
+        </Typography>
+        {!isMobile ? (
+          <IconButton
+            onClick={handleSidebarToggle}
+            sx={{ 
+              color: 'white',
+              '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.1)' }
+            }}
+          >
+            <ChevronLeft />
+          </IconButton>
+        ) : (
+          <IconButton
+            onClick={handleDrawerToggle}
+            sx={{ 
+              color: 'white',
+              '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.1)' }
+            }}
+          >
+            <Close />
+          </IconButton>
+        )}
+      </Box>
+
+      <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.12)' }} />
+
+      <List sx={{ 
+        flexGrow: 1, 
+        px: 1,
+        overflowY: 'auto',
+        '&::-webkit-scrollbar': {
+          width: '4px',
+        },
+        '&::-webkit-scrollbar-track': {
+          background: 'rgba(255, 255, 255, 0.1)',
+        },
+        '&::-webkit-scrollbar-thumb': {
+          background: 'rgba(255, 255, 255, 0.2)',
+          borderRadius: '4px',
+        },
+        '&::-webkit-scrollbar-thumb:hover': {
+          background: 'rgba(255, 255, 255, 0.3)',
+        }
+      }}>
+        {navItems.map((item) => (
+          <ListItem
+            button
+            onClick={() => handleNavigation(item.path)}
+            sx={{
+              borderRadius: 1,
+              mb: 0.5,
+              justifyContent: 'flex-start',
+              bgcolor: location.pathname.startsWith(item.path) 
+                ? 'rgba(255, 255, 255, 0.15)' 
+                : 'transparent',
+              '&:hover': {
+                bgcolor: 'rgba(255, 255, 255, 0.25)'
+              }
+            }}
+          >
+            <ListItemIcon sx={{ 
+              color: 'inherit',
+              minWidth: 40,
+              justifyContent: 'center'
+            }}>
+              {item.icon}
+            </ListItemIcon>
+            <ListItemText 
+              primary={item.text}
+              primaryTypographyProps={{
+                fontWeight: location.pathname.startsWith(item.path) ? 600 : 400
+              }}
+            />
+          </ListItem>
+        ))}
+      </List>
+
+      <Box sx={{ 
+        p: 1,
+        flexShrink: 0,
+        borderTop: '1px solid rgba(255, 255, 255, 0.12)'
+      }}>
+        <ListItem
+          button
+          onClick={toggleDarkMode}
+          sx={{
+            borderRadius: 1,
+            justifyContent: 'flex-start',
+            '&:hover': {
+              bgcolor: 'rgba(255, 255, 255, 0.25)'
+            }
+          }}
+        >
+          <ListItemIcon sx={{ 
+            color: 'inherit',
+            minWidth: 40,
+            justifyContent: 'center'
+          }}>
+            {darkMode ? <LightMode /> : <DarkMode />}
+          </ListItemIcon>
+          <ListItemText primary={darkMode ? 'Light Mode' : 'Dark Mode'} />
+        </ListItem>
+
+        <ListItem
+          button
+          onClick={handleLogout}
+          sx={{
+            borderRadius: 1,
+            justifyContent: 'flex-start',
+            '&:hover': {
+              bgcolor: 'rgba(255, 255, 255, 0.25)'
+            }
+          }}
+        >
+          <ListItemIcon sx={{ 
+            color: 'inherit',
+            minWidth: 40,
+            justifyContent: 'center'
+          }}>
+            <LogoutIcon />
+          </ListItemIcon>
+          <ListItemText primary="Logout" />
+        </ListItem>
+      </Box>
+    </Box>
+  );
+
   return (
     <>
-      <AppBar 
-        position="static" 
+      {/* Desktop Sidebar */}
+      <Box
+        component="nav"
         sx={{
-          background: "linear-gradient(90deg, #1a237e 0%, #283593 100%)",
-          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
-          backdropFilter: "blur(10px)",
-          WebkitBackdropFilter: "blur(10px)"
+          width: { md: sidebarCollapsed ? 0 : DRAWER_WIDTH },
+          flexShrink: 0,
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          height: '100vh',
+          zIndex: (theme) => theme.zIndex.appBar - 1,
+          display: { xs: 'none', md: 'block' },
+          transition: theme.transitions.create('width', {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.enteringScreen,
+          }),
+          overflow: 'hidden'
         }}
       >
-        <Toolbar sx={{ 
-          display: "flex", 
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: { xs: '0 8px', md: '0 24px' },
-          minHeight: '64px'
-        }}>
-          {/* Left side - Brand and Menu Button */}
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center',
-            flexGrow: { xs: 1, md: 0 }
-          }}>
-            <IconButton
-              edge="start"
-              color="inherit"
-              aria-label="menu"
-              onClick={handleDrawerToggle}
-              sx={{ 
-                display: { xs: 'flex', md: 'none' },
-                marginLeft: '4px',
-                mr: 2
-              }}
-            >
-              <MenuIcon />
-            </IconButton>
+        {drawer}
+      </Box>
 
-            <Box 
-              component={Link} 
-              to="/tenant/dashboard" 
-              sx={{ 
-                display: 'flex',
-                alignItems: 'center',
-                textDecoration: 'none',
-                color: 'inherit',
-                mr: { xs: 0, md: 3 }
-              }}
-            >
-              <Box 
-                component="img" 
-                src="/assets/home.png" 
-                alt="Logo" 
-                sx={{ 
-                  height: 40,
-                  mr: 1,
-                  display: { xs: 'none', sm: 'block' }
-                }} 
-              />
-              <Typography 
-                variant="h6" 
-                component="div" 
-                sx={{ 
-                  fontWeight: 700,
-                  letterSpacing: 1,
-                  display: { xs: 'none', sm: 'block' }
-                }}
-              >
-                Tenant Portal
-              </Typography>
-            </Box>
-          </Box>
-
-          {/* Center - Navigation Links (Desktop) */}
-          <Box sx={{ 
+      {/* Floating Toggle Button for Desktop */}
+      {!isMobile && (
+        <Fab
+          size="small"
+          onClick={handleSidebarToggle}
+          sx={{
+            position: 'fixed',
+            left: 16,
+            top: 16,
+            zIndex: (theme) => theme.zIndex.drawer + 1,
+            bgcolor: 'primary.main',
+            color: 'white',
             display: { xs: 'none', md: 'flex' },
-            flexGrow: 1,
-            justifyContent: 'center',
-            mx: 2
-          }}>
-            {navItems.map((item) => (
-              <Button
-                key={item.text}
-                component={Link}
-                to={item.path}
-                startIcon={item.icon}
-                sx={{
-                  color: 'white',
-                  mx: 0.5,
-                  px: 2,
-                  py: 1,
-                  borderRadius: 2,
-                  textTransform: 'none',
-                  fontWeight: location.pathname.startsWith(item.path) ? 600 : 400,
-                  background: location.pathname.startsWith(item.path) 
-                    ? 'rgba(255, 255, 255, 0.15)' 
-                    : 'transparent',
-                  '&:hover': {
-                    background: 'rgba(255, 255, 255, 0.25)',
-                    transform: 'translateY(-1px)',
-                  },
-                  transition: 'all 0.3s ease',
-                  minWidth: 'auto'
-                }}
-              >
-                {item.text}
-              </Button>
-            ))}
-          </Box>
+            '&:hover': {
+              bgcolor: 'primary.dark'
+            }
+          }}
+        >
+          {sidebarCollapsed ? <ChevronRight /> : <ChevronLeft />}
+        </Fab>
+      )}
 
-          {/* Right side - Logout Button */}
-          <Box sx={{ 
-            display: 'flex',
-            justifyContent: 'flex-end',
-            flexGrow: { xs: 0, md: 0 }
-          }}>
-            <Button
-              color="inherit"
-              onClick={handleLogout}
-              startIcon={<LogoutIcon />}
-              sx={{
-                textTransform: 'none',
-                fontWeight: 600,
-                borderRadius: 2,
-                px: 2,
-                py: 1,
-                whiteSpace: 'nowrap',
-                '&:hover': {
-                  background: 'rgba(255, 255, 255, 0.25)',
-                  transform: 'translateY(-1px)'
-                },
-                transition: 'all 0.3s ease'
-              }}
-            >
-              {!isMobile && 'Logout'}
-            </Button>
-          </Box>
+      {/* Mobile Top App Bar */}
+      <AppBar 
+        position="fixed" 
+        sx={{ 
+          display: { xs: 'block', md: 'none' },
+          bgcolor: 'primary.main',
+          color: 'white',
+          boxShadow: 1,
+          zIndex: (theme) => theme.zIndex.drawer + 2,
+          height: '56px'
+        }}
+      >
+        <Toolbar sx={{ minHeight: '56px !important' }}>
+          <IconButton
+            color="inherit"
+            edge="start"
+            onClick={handleDrawerToggle}
+            sx={{ mr: 2 }}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Typography variant="h6" noWrap component="div">
+            Tenant Portal
+          </Typography>
         </Toolbar>
       </AppBar>
 
-      {/* Mobile Drawer */}
-      <Drawer
-        anchor="left"
-        open={mobileOpen}
-        onClose={handleDrawerToggle}
+      {/* Mobile Bottom Navigation */}
+      <BottomNavigation
+        value={location.pathname}
+        onChange={(event, newValue) => {
+          handleNavigation(newValue);
+        }}
         sx={{
-          '& .MuiDrawer-paper': {
-            width: 280,
-            background: "linear-gradient(180deg, #1a237e 0%, #283593 100%)",
-            color: 'white'
+          display: { xs: 'flex', md: 'none' },
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          bgcolor: 'primary.main',
+          color: 'white',
+          zIndex: (theme) => theme.zIndex.drawer + 2,
+          height: '56px',
+          '& .MuiBottomNavigationAction-root': {
+            color: 'rgba(255, 255, 255, 0.7)',
+            '&.Mui-selected': {
+              color: 'white'
+            }
           }
         }}
       >
-        <Box 
-          sx={{ 
-            height: '100%',
-            display: 'flex',
-            flexDirection: 'column'
-          }}
-        >
-          <Box 
-            component={Link} 
-            to="/tenant/dashboard" 
-            sx={{ 
-              display: 'flex',
-              alignItems: 'center',
-              textDecoration: 'none',
-              color: 'inherit',
-              p: 3,
-              mb: 1
-            }}
-            onClick={handleDrawerToggle}
-          >
-            <Box 
-              component="img" 
-              src="/logo.png" 
-              alt="Logo" 
-              sx={{ 
-                height: 40,
-                mr: 2
-              }} 
-            />
-            <Typography 
-              variant="h6" 
-              component="div" 
-              sx={{ 
-                fontWeight: 700,
-                letterSpacing: 1
-              }}
-            >
-              Tenant Portal
-            </Typography>
-          </Box>
+        {navItems.map((item) => (
+          <BottomNavigationAction
+            key={item.text}
+            label={item.text}
+            value={item.path}
+            icon={item.icon}
+          />
+        ))}
+      </BottomNavigation>
 
-          <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.12)' }} />
-
-          <List sx={{ flexGrow: 1 }}>
-            {navItems.map((item) => (
-              <ListItem
-                button
-                key={item.text}
-                component={Link}
-                to={item.path}
-                onClick={handleDrawerToggle}
-                sx={{
-                  px: 3,
-                  py: 1.5,
-                  my: 0.5,
-                  mx: 1,
-                  borderRadius: 1,
-                  background: location.pathname.startsWith(item.path) 
-                    ? 'rgba(255, 255, 255, 0.15)' 
-                    : 'transparent',
-                  '&:hover': {
-                    background: 'rgba(255, 255, 255, 0.25)'
-                  },
-                  transition: 'all 0.3s ease'
-                }}
-              >
-                <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}>
-                  {item.icon}
-                </ListItemIcon>
-                <ListItemText 
-                  primary={item.text} 
-                  primaryTypographyProps={{ 
-                    fontWeight: location.pathname.startsWith(item.path) ? 600 : 400 
-                  }} 
-                />
-              </ListItem>
-            ))}
-          </List>
-
-          <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.12)' }} />
-
-          <ListItem
-            button
-            onClick={handleLogout}
-            sx={{
-              px: 3,
-              py: 1.5,
-              my: 0.5,
-              mx: 1,
-              borderRadius: 1,
-              '&:hover': {
-                background: 'rgba(255, 255, 255, 0.25)'
-              },
-              transition: 'all 0.3s ease'
-            }}
-          >
-            <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}>
-              <LogoutIcon />
-            </ListItemIcon>
-            <ListItemText primary="Logout" />
-          </ListItem>
-        </Box>
+      {/* Mobile Drawer */}
+      <Drawer
+        variant="temporary"
+        open={mobileOpen}
+        onClose={handleDrawerToggle}
+        ModalProps={{
+          keepMounted: true
+        }}
+        sx={{
+          display: { xs: 'block', md: 'none' },
+          '& .MuiDrawer-paper': {
+            width: DRAWER_WIDTH,
+            bgcolor: 'primary.main',
+            color: 'white',
+            height: 'calc(100% - 56px)',
+            mt: '56px',
+            zIndex: (theme) => theme.zIndex.drawer + 1
+          }
+        }}
+      >
+        {drawer}
       </Drawer>
     </>
   );

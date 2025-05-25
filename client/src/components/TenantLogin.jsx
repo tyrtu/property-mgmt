@@ -20,7 +20,7 @@ import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "../firebase"; 
 import { doc, getDoc } from "firebase/firestore";
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import GoogleIcon from '@mui/icons-material/Google';
 
 const TenantLogin = () => {
@@ -221,9 +221,10 @@ const TenantLogin = () => {
               variant={isMobile ? "h6" : "h5"} 
               sx={{ 
                 mb: 3, 
-                fontWeight: 600,
+                fontWeight: 700,
                 textAlign: "center",
-                color: "text.primary" 
+                color: "#1a237e",
+                fontSize: { xs: "1.5rem", sm: "1.75rem" }
               }}
             >
               Tenant Login
@@ -236,10 +237,51 @@ const TenantLogin = () => {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                sx={{ mb: 3 }}
+                placeholder="Enter your email"
+                sx={{ 
+                  mb: 3,
+                  '& .MuiOutlinedInput-root': {
+                    backgroundColor: '#fff',
+                    border: '1px solid rgba(0, 0, 0, 0.23)',
+                    '& fieldset': {
+                      borderColor: 'rgba(0, 0, 0, 0.23)',
+                      borderWidth: '1px',
+                    },
+                    '&:hover fieldset': {
+                      borderColor: 'primary.main',
+                      borderWidth: '2px',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: 'primary.main',
+                      borderWidth: '2px',
+                    },
+                  },
+                  '& .MuiInputLabel-root': {
+                    color: 'rgba(0, 0, 0, 0.87)',
+                    fontWeight: 500,
+                    '&.Mui-focused': {
+                      color: 'primary.main',
+                    }
+                  },
+                  '& .MuiInputBase-input': {
+                    color: 'rgba(0, 0, 0, 0.87)',
+                    '&::placeholder': {
+                      color: 'rgba(0, 0, 0, 0.25)',
+                      opacity: 0.6,
+                      fontWeight: 400
+                    }
+                  }
+                }}
                 variant="outlined"
                 InputProps={{
-                  sx: { borderRadius: 1.5 }
+                  sx: { 
+                    borderRadius: 1.5,
+                    '& input::placeholder': {
+                      color: 'rgba(0, 0, 0, 0.25)',
+                      opacity: 0.6,
+                      fontWeight: 400
+                    }
+                  }
                 }}
               />
               <TextField
@@ -249,10 +291,51 @@ const TenantLogin = () => {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                sx={{ mb: 2 }}
+                placeholder="Enter your password"
+                sx={{ 
+                  mb: 2,
+                  '& .MuiOutlinedInput-root': {
+                    backgroundColor: '#fff',
+                    border: '1px solid rgba(0, 0, 0, 0.23)',
+                    '& fieldset': {
+                      borderColor: 'rgba(0, 0, 0, 0.23)',
+                      borderWidth: '1px',
+                    },
+                    '&:hover fieldset': {
+                      borderColor: 'primary.main',
+                      borderWidth: '2px',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: 'primary.main',
+                      borderWidth: '2px',
+                    },
+                  },
+                  '& .MuiInputLabel-root': {
+                    color: 'rgba(0, 0, 0, 0.87)',
+                    fontWeight: 500,
+                    '&.Mui-focused': {
+                      color: 'primary.main',
+                    }
+                  },
+                  '& .MuiInputBase-input': {
+                    color: 'rgba(0, 0, 0, 0.87)',
+                    '&::placeholder': {
+                      color: 'rgba(0, 0, 0, 0.25)',
+                      opacity: 0.6,
+                      fontWeight: 400
+                    }
+                  }
+                }}
                 variant="outlined"
                 InputProps={{
-                  sx: { borderRadius: 1.5 },
+                  sx: { 
+                    borderRadius: 1.5,
+                    '& input::placeholder': {
+                      color: 'rgba(0, 0, 0, 0.25)',
+                      opacity: 0.6,
+                      fontWeight: 400
+                    }
+                  },
                   endAdornment: (
                     <InputAdornment position="end">
                       <IconButton onClick={handleTogglePasswordVisibility} edge="end" size={isMobile ? "small" : "medium"}>
@@ -310,7 +393,7 @@ const TenantLogin = () => {
                 onClick={handleGoogleSignIn}
                 disabled={googleLoading}
                 sx={{ 
-                  mb: 2,
+                  mb: 3,
                   color: '#DB4437',
                   borderColor: '#DB4437',
                   '&:hover': {
@@ -322,18 +405,35 @@ const TenantLogin = () => {
                 {googleLoading ? <CircularProgress size={24} /> : 'Sign in with Google'}
               </Button>
 
-              <Box sx={{ textAlign: "center" }}>
-                <Typography variant="body2" sx={{ color: "text.secondary", display: "inline" }}>
-                  Don't have an account?{" "}
+              <Box sx={{ 
+                textAlign: "center",
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: 1
+              }}>
+                <Typography 
+                  variant="body1" 
+                  sx={{ 
+                    color: "rgba(0, 0, 0, 0.6)",
+                    fontWeight: 400
+                  }}
+                >
+                  Don't have an account?
                 </Typography>
                 <Button 
                   variant="text" 
                   size="small" 
                   onClick={() => navigate("/tenant/register")}
                   sx={{ 
-                    ml: 0.5,
                     textTransform: "none",
-                    fontWeight: 500
+                    fontWeight: 600,
+                    color: "primary.main",
+                    fontSize: '1rem',
+                    '&:hover': {
+                      backgroundColor: 'transparent',
+                      textDecoration: 'underline'
+                    }
                   }}
                 >
                   Register here

@@ -19,6 +19,7 @@
     "@fullcalendar/core": "^6.1.15",
     "@fullcalendar/daygrid": "^6.1.15",
     "@fullcalendar/interaction": "^6.1.15",
+    "@hookform/resolvers": "^5.0.1",
     "@mui/icons-material": "^5.16.14",
     "@mui/material": "^5.16.14",
     "@mui/x-charts": "^7.27.1",
@@ -42,10 +43,12 @@
     "react-big-calendar": "^1.18.0",
     "react-dom": "^18.2.0",
     "react-firebase-hooks": "^5.1.1",
+    "react-hook-form": "^7.56.4",
     "react-router-dom": "^7.2.0",
     "recharts": "^2.15.1",
     "resend": "^4.1.2",
-    "twilio": "^5.5.0"
+    "twilio": "^5.5.0",
+    "yup": "^1.6.1"
   },
   "devDependencies": {
     "@types/date-fns": "^2.6.3",

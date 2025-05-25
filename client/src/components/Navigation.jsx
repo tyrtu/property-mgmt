@@ -76,7 +76,7 @@ const Navigation = () => {
           justifyContent: "space-between",
           alignItems: "center",
           padding: { xs: '0 12px', md: '0 24px' },
-          minHeight: '64px'
+          minHeight: { xs: '48px', sm: '56px' }
         }}>
           {/* Left side - Brand and Menu Button */}
           <Box sx={{ 
@@ -116,7 +116,7 @@ const Navigation = () => {
                 sx={{ 
                   fontWeight: 700,
                   letterSpacing: 1,
-                  fontSize: { xs: '1.2rem', sm: '1.25rem' }
+                  fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' }
                 }}
               >
                 RentHive
@@ -141,7 +141,7 @@ const Navigation = () => {
                   color: 'white',
                   mx: 0.5,
                   px: 2,
-                  py: 1,
+                  py: 0.75,
                   borderRadius: 2,
                   textTransform: 'none',
                   fontWeight: location.pathname.startsWith(item.path) ? 600 : 400,
@@ -154,10 +154,11 @@ const Navigation = () => {
                   },
                   transition: 'all 0.3s ease',
                   minWidth: 'auto',
+                  fontSize: { xs: '0.875rem', md: '0.9rem' },
                   '& .MuiButton-startIcon': {
-                    marginRight: '6px',
+                    marginRight: '4px',
                     '& svg': {
-                      fontSize: '1.2rem'
+                      fontSize: { xs: '1.1rem', md: '1.2rem' }
                     }
                   }
                 }}
@@ -182,17 +183,18 @@ const Navigation = () => {
                 fontWeight: 600,
                 borderRadius: 2,
                 px: 2,
-                py: 1,
+                py: 0.75,
                 whiteSpace: 'nowrap',
+                fontSize: { xs: '0.875rem', md: '0.9rem' },
                 '&:hover': {
                   background: 'rgba(255, 255, 255, 0.25)',
                   transform: 'translateY(-1px)'
                 },
                 transition: 'all 0.3s ease',
                 '& .MuiButton-startIcon': {
-                  marginRight: { xs: '0px', md: '6px' },
+                  marginRight: { xs: '0px', md: '4px' },
                   '& svg': {
-                    fontSize: { xs: '1.4rem', md: '1.2rem' }
+                    fontSize: { xs: '1.1rem', md: '1.2rem' }
                   }
                 }
               }}

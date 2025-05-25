@@ -483,19 +483,6 @@ const RentPayment = () => {
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Tooltip title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>
-              <IconButton 
-                onClick={toggleDarkMode} 
-                sx={{ 
-                  color: darkMode ? '#fff' : '#000',
-                  '&:hover': {
-                    bgcolor: darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)'
-                  }
-                }}
-              >
-                {darkMode ? <LightMode /> : <DarkMode />}
-              </IconButton>
-            </Tooltip>
             <Button variant="contained" startIcon={<Receipt />}>
               Quick Payment
             </Button>

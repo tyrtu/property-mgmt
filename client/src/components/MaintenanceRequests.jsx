@@ -767,17 +767,15 @@ const MaintenanceRequests = () => {
                 gap: 1
               }}>
                 <Build sx={{ fontSize: '2rem' }} />
-                Maintenance Requests
-              </Typography>
+              Maintenance Requests
+            </Typography>
               <Typography variant="subtitle1" color="text.secondary">
                 {rows.length} requests • Last updated: {new Date().toLocaleDateString()}
               </Typography>
             </Box>
-            <Tooltip title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>
-              <IconButton onClick={toggleDarkMode} color="inherit">
-                {darkMode ? <LightMode /> : <DarkMode />}
-              </IconButton>
-            </Tooltip>
+            <Box>
+              {/* Add any other header actions here */}
+            </Box>
           </Box>
 
           {/* Summary Cards */}

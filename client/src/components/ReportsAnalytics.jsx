@@ -330,11 +330,6 @@ const ReportsAnalytics = () => {
                   <Analytics sx={{ mr: 1, fontSize: '2rem' }} />
                   Advanced Property Analytics
                 </Typography>
-                <Tooltip title={darkMode ? 'Light Mode' : 'Dark Mode'}>
-                  <IconButton onClick={toggleDarkMode} sx={{ ml: 2 }}>
-                    {darkMode ? <LightMode /> : <DarkMode />}
-                  </IconButton>
-                </Tooltip>
               </Box>
 
               {/* Loading Progress */}
