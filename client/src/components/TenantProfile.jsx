@@ -460,7 +460,7 @@ const TenantProfile = () => {
                 </Grid>
                 <Grid item xs={12} sm={6}>
         <TextField
-                    fullWidth
+          fullWidth
                     label="Phone Number"
                     value={editing ? editData.phone : profileData.phone}
                     onChange={(e) => setEditData({ ...editData, phone: e.target.value })}

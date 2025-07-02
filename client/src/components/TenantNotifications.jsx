@@ -448,7 +448,7 @@ const TenantNotifications = () => {
         p: 3,
         pt: { xs: '80px', md: 3 }
       }}>
-        {/* Header */}
+      {/* Header */}
         <Box sx={{ 
           display: 'flex', 
           flexDirection: { xs: 'column', sm: 'row' },
@@ -484,7 +484,7 @@ const TenantNotifications = () => {
                 }}
               >
                 Manage and track your notifications
-              </Typography>
+        </Typography>
             </Box>
           </Box>
           <Box sx={{ 
@@ -494,14 +494,14 @@ const TenantNotifications = () => {
             width: { xs: '100%', sm: 'auto' },
             justifyContent: { xs: 'flex-start', sm: 'flex-end' }
           }}>
-            <TextField
-              placeholder="Search notifications..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              size="small"
-              InputProps={{
-                startAdornment: <SearchIcon color="action" />,
-              }}
+          <TextField
+            placeholder="Search notifications..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            size="small"
+            InputProps={{
+              startAdornment: <SearchIcon color="action" />,
+            }}
               sx={{ 
                 backgroundColor: darkMode ? '#1e1e1e' : '#f5f5f5',
                 borderRadius: 1,
@@ -518,12 +518,12 @@ const TenantNotifications = () => {
                 minWidth: { xs: '100%', sm: '120px' }
               }}
             >
-              <MenuItem value="all">All</MenuItem>
-              <MenuItem value="unread">Unread</MenuItem>
-              <MenuItem value="read">Read</MenuItem>
-              <MenuItem value="alerts">Alerts</MenuItem>
-              <MenuItem value="info">Info</MenuItem>
-            </Select>
+            <MenuItem value="all">All</MenuItem>
+            <MenuItem value="unread">Unread</MenuItem>
+            <MenuItem value="read">Read</MenuItem>
+            <MenuItem value="alerts">Alerts</MenuItem>
+            <MenuItem value="info">Info</MenuItem>
+          </Select>
             <Select 
               value={sortOrder} 
               onChange={(e) => setSortOrder(e.target.value)} 
@@ -534,11 +534,11 @@ const TenantNotifications = () => {
                 minWidth: { xs: '100%', sm: '120px' }
               }}
             >
-              <MenuItem value="desc">Newest First</MenuItem>
-              <MenuItem value="asc">Oldest First</MenuItem>
-            </Select>
-          </Box>
+            <MenuItem value="desc">Newest First</MenuItem>
+            <MenuItem value="asc">Oldest First</MenuItem>
+          </Select>
         </Box>
+      </Box>
 
         {/* Analytics Cards */}
         <Grid container spacing={3} sx={{ mb: 4, px: 2 }}>
@@ -592,8 +592,8 @@ const TenantNotifications = () => {
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                 New notifications
               </Typography>
-            </Paper>
-          </Grid>
+          </Paper>
+        </Grid>
           <Grid item xs={6} sm={6} md={3}>
             <Paper sx={{ 
               p: 2,
@@ -617,9 +617,9 @@ const TenantNotifications = () => {
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                 Viewed notifications
-              </Typography>
-            </Paper>
-          </Grid>
+            </Typography>
+          </Paper>
+        </Grid>
           <Grid item xs={6} sm={6} md={3}>
             <Paper sx={{ 
               p: 2,
@@ -643,10 +643,10 @@ const TenantNotifications = () => {
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                 Important alerts
-              </Typography>
-            </Paper>
-          </Grid>
+            </Typography>
+          </Paper>
         </Grid>
+      </Grid>
 
         {/* Action Buttons */}
         <Box sx={{ 
@@ -657,10 +657,10 @@ const TenantNotifications = () => {
           gap: 2
         }}>
           <Box sx={{ display: 'flex', gap: 2 }}>
-          <Button
-            variant="contained"
+        <Button
+          variant="contained"
               startIcon={<DoneAllIcon />}
-            onClick={handleMarkAllRead}
+          onClick={handleMarkAllRead}
               sx={{
                 backgroundColor: darkMode ? '#1976d2' : '#1976d2',
                 color: '#fff',
@@ -679,13 +679,13 @@ const TenantNotifications = () => {
                 fontWeight: 500,
                 letterSpacing: '0.5px'
               }}
-          >
-            Mark All as Read
-          </Button>
-          <Button
+        >
+          Mark All as Read
+        </Button>
+        <Button
               variant="outlined"
               startIcon={<DeleteSweepIcon />}
-            onClick={handleDeleteAll}
+          onClick={handleDeleteAll}
               sx={{
                 borderColor: darkMode ? '#f44336' : '#f44336',
                 color: darkMode ? '#f44336' : '#f44336',
@@ -703,10 +703,10 @@ const TenantNotifications = () => {
                 },
                 transition: 'all 0.2s ease-in-out'
               }}
-          >
-            Delete All
-          </Button>
-        </Box>
+        >
+          Delete All
+        </Button>
+      </Box>
           <Typography variant="body2" sx={{ 
             color: darkMode ? 'rgba(255,255,255,0.7)' : 'text.secondary',
             display: { xs: 'none', sm: 'block' }
@@ -864,63 +864,63 @@ const TenantNotifications = () => {
           </Box>
         )}
 
-        {/* Pagination */}
-        <Box display="flex" justifyContent="center" mt={3}>
-          <Pagination
-            count={Math.ceil(filteredNotifications.length / notificationsPerPage)}
-            page={page}
-            onChange={(e, value) => setPage(value)}
-            color="primary"
+      {/* Pagination */}
+      <Box display="flex" justifyContent="center" mt={3}>
+        <Pagination
+          count={Math.ceil(filteredNotifications.length / notificationsPerPage)}
+          page={page}
+          onChange={(e, value) => setPage(value)}
+          color="primary"
+        />
+      </Box>
+
+      {/* Notification Preferences */}
+      <Box mt={4}>
+        <Typography variant="h6" mb={2} sx={{ color: "primary.main" }}>
+          <SettingsIcon sx={{ mr: 1, color: "primary.main" }} /> Notification Preferences
+        </Typography>
+        <Paper sx={{ p: 2, backgroundColor: "#f0f4f8" }}>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={notificationPreferences.emailAlerts}
+                onChange={(e) =>
+                  setNotificationPreferences((prev) => ({
+                    ...prev,
+                    emailAlerts: e.target.checked,
+                  }))
+                }
+              />
+            }
+            label="Email Alerts"
           />
-        </Box>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={notificationPreferences.pushNotifications}
+                onChange={(e) =>
+                  setNotificationPreferences((prev) => ({
+                    ...prev,
+                    pushNotifications: e.target.checked,
+                  }))
+                }
+              />
+            }
+            label="Push Notifications"
+          />
+        </Paper>
+      </Box>
 
-        {/* Notification Preferences */}
-        <Box mt={4}>
-          <Typography variant="h6" mb={2} sx={{ color: "primary.main" }}>
-            <SettingsIcon sx={{ mr: 1, color: "primary.main" }} /> Notification Preferences
-          </Typography>
-          <Paper sx={{ p: 2, backgroundColor: "#f0f4f8" }}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={notificationPreferences.emailAlerts}
-                  onChange={(e) =>
-                    setNotificationPreferences((prev) => ({
-                      ...prev,
-                      emailAlerts: e.target.checked,
-                    }))
-                  }
-                />
-              }
-              label="Email Alerts"
-            />
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={notificationPreferences.pushNotifications}
-                  onChange={(e) =>
-                    setNotificationPreferences((prev) => ({
-                      ...prev,
-                      pushNotifications: e.target.checked,
-                    }))
-                  }
-                />
-              }
-              label="Push Notifications"
-            />
-          </Paper>
-        </Box>
-
-        {/* Notification Details Modal */}
+      {/* Notification Details Modal */}
         <Modal 
           open={modalOpen} 
           onClose={() => setModalOpen(false)} 
           closeAfterTransition 
           BackdropComponent={Backdrop}
         >
-          <Fade in={modalOpen}>
-            <Box
-              sx={{
+        <Fade in={modalOpen}>
+          <Box
+            sx={{
                 position: 'absolute',
                 top: '50%',
                 left: '50%',
@@ -929,7 +929,7 @@ const TenantNotifications = () => {
                 bgcolor: darkMode ? '#252525' : '#fff',
                 boxShadow: 24,
                 p: 4,
-                borderRadius: 2,
+              borderRadius: 2,
                 maxHeight: '80vh',
                 overflow: 'auto'
               }}
@@ -951,7 +951,7 @@ const TenantNotifications = () => {
                 <TimeIcon sx={{ mr: 1, color: 'text.secondary' }} />
                 <Typography variant="body2" color="text.secondary">
                   {selectedNotification?.createdAt && format(selectedNotification.createdAt, 'MMM dd, yyyy HH:mm')}
-                </Typography>
+            </Typography>
               </Box>
 
               <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 2 }}>
@@ -979,9 +979,9 @@ const TenantNotifications = () => {
                   Delete
                 </Button>
               </Box>
-            </Box>
-          </Fade>
-        </Modal>
+          </Box>
+        </Fade>
+      </Modal>
       </Box>
     </Box>
   );
