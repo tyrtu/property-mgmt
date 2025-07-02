@@ -414,7 +414,7 @@ const TenantDashboard = () => {
     }}>
       {/* Enhanced Header */}
       <AppBar 
-        position="static" 
+        position="fixed" 
         elevation={0}
         sx={{ 
           mb: 3,
@@ -505,6 +505,9 @@ const TenantDashboard = () => {
           </Stack>
         </Toolbar>
       </AppBar>
+
+      {/* Offset for fixed AppBar */}
+      <Box sx={{ height: { xs: 64, sm: 70 } }} />
 
       {/* User Menu */}
       <Menu
@@ -784,7 +787,7 @@ const TenantDashboard = () => {
                   </Grid>
                 </CardContent>
               </Card>
-      </Grid>
+            </Grid>
 
             {/* Property Insights Section */}
             <Grid item xs={12} sm={6}>
