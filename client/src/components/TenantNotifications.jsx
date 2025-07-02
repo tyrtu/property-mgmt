@@ -543,110 +543,106 @@ const TenantNotifications = () => {
         {/* Analytics Cards */}
         <Grid container spacing={3} sx={{ mb: 4, px: 2 }}>
           <Grid item xs={6} sm={6} md={3}>
-            <Paper sx={{ 
-              p: 2,
+            <Card sx={{
+              p: 1.5,
               backgroundColor: darkMode ? '#252525' : '#fff',
-              borderLeft: '4px solid #4CAF50',
               boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-              height: { xs: '140px', sm: '160px' },
+              minHeight: 120,
               transition: 'transform 0.2s',
               '&:hover': {
                 transform: 'translateY(-4px)'
               }
             }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <NotificationsIcon sx={{ color: '#4CAF50', mr: 1 }} />
-                <Typography variant="subtitle2" color="text.secondary">
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                <NotificationsIcon sx={{ color: 'primary.main', mr: 1, fontSize: 20 }} />
+                <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.95rem' }}>
                   Total Notifications
                 </Typography>
               </Box>
-              <Typography variant="h4" sx={{ mt: 1, fontWeight: 600 }}>
+              <Typography variant="h5" sx={{ mt: 0.5, fontWeight: 600 }}>
                 {notifications.length}
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontSize: '0.85rem' }}>
                 All notifications
               </Typography>
-            </Paper>
+            </Card>
           </Grid>
           <Grid item xs={6} sm={6} md={3}>
-            <Paper sx={{ 
-              p: 2,
+            <Card sx={{
+              p: 1.5,
               backgroundColor: darkMode ? '#252525' : '#fff',
-              borderLeft: '4px solid #FFA726',
               boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-              height: { xs: '140px', sm: '160px' },
+              minHeight: 120,
               transition: 'transform 0.2s',
               '&:hover': {
                 transform: 'translateY(-4px)'
               }
             }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <WarningIcon sx={{ color: '#FFA726', mr: 1 }} />
-                <Typography variant="subtitle2" color="text.secondary">
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                <WarningIcon sx={{ color: '#FFA726', mr: 1, fontSize: 20 }} />
+                <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.95rem' }}>
                   Unread
                 </Typography>
               </Box>
-              <Typography variant="h4" sx={{ mt: 1, fontWeight: 600 }}>
+              <Typography variant="h5" sx={{ mt: 0.5, fontWeight: 600 }}>
                 {notifications.filter(n => !n.isRead).length}
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontSize: '0.85rem' }}>
                 New notifications
               </Typography>
-          </Paper>
-        </Grid>
+            </Card>
+          </Grid>
           <Grid item xs={6} sm={6} md={3}>
-            <Paper sx={{ 
-              p: 2,
+            <Card sx={{
+              p: 1.5,
               backgroundColor: darkMode ? '#252525' : '#fff',
-              borderLeft: '4px solid #29B6F6',
               boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-              height: { xs: '140px', sm: '160px' },
+              minHeight: 120,
               transition: 'transform 0.2s',
               '&:hover': {
                 transform: 'translateY(-4px)'
               }
             }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <InfoIcon sx={{ color: '#29B6F6', mr: 1 }} />
-                <Typography variant="subtitle2" color="text.secondary">
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                <InfoIcon sx={{ color: '#29B6F6', mr: 1, fontSize: 20 }} />
+                <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.95rem' }}>
                   Read
                 </Typography>
               </Box>
-              <Typography variant="h4" sx={{ mt: 1, fontWeight: 600 }}>
+              <Typography variant="h5" sx={{ mt: 0.5, fontWeight: 600 }}>
                 {notifications.filter(n => n.isRead).length}
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontSize: '0.85rem' }}>
                 Viewed notifications
-            </Typography>
-          </Paper>
-        </Grid>
+              </Typography>
+            </Card>
+          </Grid>
           <Grid item xs={6} sm={6} md={3}>
-            <Paper sx={{ 
-              p: 2,
+            <Card sx={{
+              p: 1.5,
               backgroundColor: darkMode ? '#252525' : '#fff',
-              borderLeft: '4px solid #F44336',
               boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-              height: { xs: '140px', sm: '160px' },
+              minHeight: 120,
               transition: 'transform 0.2s',
               '&:hover': {
                 transform: 'translateY(-4px)'
               }
             }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <ErrorIcon sx={{ color: '#F44336', mr: 1 }} />
-                <Typography variant="subtitle2" color="text.secondary">
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                <ErrorIcon sx={{ color: '#F44336', mr: 1, fontSize: 20 }} />
+                <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.95rem' }}>
                   Alerts
                 </Typography>
               </Box>
-              <Typography variant="h4" sx={{ mt: 1, fontWeight: 600 }}>
+              <Typography variant="h5" sx={{ mt: 0.5, fontWeight: 600 }}>
                 {notifications.filter(n => n.type === 'alert').length}
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontSize: '0.85rem' }}>
                 Important alerts
-            </Typography>
-          </Paper>
+              </Typography>
+            </Card>
+          </Grid>
         </Grid>
-      </Grid>
 
         {/* Action Buttons */}
         <Box sx={{ 

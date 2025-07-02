@@ -407,160 +407,160 @@ const TenantMaintenance = () => {
             <Grid container spacing={3}>
               <Grid item xs={6} sm={6} md={4}>
                 <Paper sx={{ 
-                  p: 2,
+                  p: 1.5,
                   backgroundColor: darkMode ? '#252525' : '#fff',
                   borderLeft: '4px solid #4CAF50',
                   boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                  height: '100%',
+                  minHeight: 120,
                   transition: 'transform 0.2s',
                   '&:hover': {
                     transform: 'translateY(-4px)'
                   }
                 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <CheckCircleIcon sx={{ color: '#4CAF50', mr: 1 }} />
-                    <Typography variant="subtitle2" color="text.secondary">
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                    <CheckCircleIcon sx={{ color: '#4CAF50', mr: 1, fontSize: 20 }} />
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.95rem' }}>
                       Completed
                     </Typography>
                   </Box>
-                  <Typography variant="h4" sx={{ mt: 1, fontWeight: 600 }}>
+                  <Typography variant="h5" sx={{ mt: 0.5, fontWeight: 600 }}>
                     {requests.filter(req => req.status === 'Completed').length}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontSize: '0.85rem' }}>
                     Successfully resolved issues
                   </Typography>
                 </Paper>
               </Grid>
               <Grid item xs={6} sm={6} md={4}>
                 <Paper sx={{ 
-                  p: 2,
+                  p: 1.5,
                   backgroundColor: darkMode ? '#252525' : '#fff',
                   borderLeft: '4px solid #FFA726',
                   boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                  height: '100%',
+                  minHeight: 120,
                   transition: 'transform 0.2s',
                   '&:hover': {
                     transform: 'translateY(-4px)'
                   }
                 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <PendingIcon sx={{ color: '#FFA726', mr: 1 }} />
-                    <Typography variant="subtitle2" color="text.secondary">
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                    <PendingIcon sx={{ color: '#FFA726', mr: 1, fontSize: 20 }} />
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.95rem' }}>
                       Pending
                     </Typography>
                   </Box>
-                  <Typography variant="h4" sx={{ mt: 1, fontWeight: 600 }}>
+                  <Typography variant="h5" sx={{ mt: 0.5, fontWeight: 600 }}>
                     {requests.filter(req => req.status === 'Pending').length}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontSize: '0.85rem' }}>
                     Awaiting resolution
                   </Typography>
                 </Paper>
               </Grid>
               <Grid item xs={6} sm={6} md={4}>
                 <Paper sx={{ 
-                  p: 2,
+                  p: 1.5,
                   backgroundColor: darkMode ? '#252525' : '#fff',
                   borderLeft: '4px solid #29B6F6',
                   boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                  height: '100%',
+                  minHeight: 120,
                   transition: 'transform 0.2s',
                   '&:hover': {
                     transform: 'translateY(-4px)'
                   }
                 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <BuildIcon sx={{ color: '#29B6F6', mr: 1 }} />
-                    <Typography variant="subtitle2" color="text.secondary">
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                    <BuildIcon sx={{ color: '#29B6F6', mr: 1, fontSize: 20 }} />
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.95rem' }}>
                       In Progress
                     </Typography>
                   </Box>
-                  <Typography variant="h4" sx={{ mt: 1, fontWeight: 600 }}>
+                  <Typography variant="h5" sx={{ mt: 0.5, fontWeight: 600 }}>
                     {requests.filter(req => req.status === 'In Progress').length}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontSize: '0.85rem' }}>
                     Currently being addressed
                   </Typography>
                 </Paper>
               </Grid>
               <Grid item xs={6} sm={6} md={4}>
                 <Paper sx={{ 
-                  p: 2,
+                  p: 1.5,
                   backgroundColor: darkMode ? '#252525' : '#fff',
                   borderLeft: '4px solid #66BB6A',
                   boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                  height: '100%',
+                  minHeight: 120,
                   transition: 'transform 0.2s',
                   '&:hover': {
                     transform: 'translateY(-4px)'
                   }
                 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <ScheduledIcon sx={{ color: '#66BB6A', mr: 1 }} />
-                    <Typography variant="subtitle2" color="text.secondary">
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                    <ScheduledIcon sx={{ color: '#66BB6A', mr: 1, fontSize: 20 }} />
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.95rem' }}>
                       Scheduled
                     </Typography>
                   </Box>
-                  <Typography variant="h4" sx={{ mt: 1, fontWeight: 600 }}>
+                  <Typography variant="h5" sx={{ mt: 0.5, fontWeight: 600 }}>
                     {requests.filter(req => req.status === 'Scheduled').length}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontSize: '0.85rem' }}>
                     Planned maintenance
                   </Typography>
                 </Paper>
               </Grid>
               <Grid item xs={6} sm={6} md={4}>
                 <Paper sx={{ 
-                  p: 2,
+                  p: 1.5,
                   backgroundColor: darkMode ? '#252525' : '#fff',
                   borderLeft: '4px solid #EF5350',
                   boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                  height: '100%',
+                  minHeight: 120,
                   transition: 'transform 0.2s',
                   '&:hover': {
                     transform: 'translateY(-4px)'
                   }
                 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <CancelledIcon sx={{ color: '#EF5350', mr: 1 }} />
-                    <Typography variant="subtitle2" color="text.secondary">
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                    <CancelledIcon sx={{ color: '#EF5350', mr: 1, fontSize: 20 }} />
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.95rem' }}>
                       Cancelled
                     </Typography>
                   </Box>
-                  <Typography variant="h4" sx={{ mt: 1, fontWeight: 600 }}>
+                  <Typography variant="h5" sx={{ mt: 0.5, fontWeight: 600 }}>
                     {requests.filter(req => req.status === 'Cancelled').length}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontSize: '0.85rem' }}>
                     Cancelled requests
                   </Typography>
-          </Paper>
-        </Grid>
+                </Paper>
+              </Grid>
               <Grid item xs={6} sm={6} md={4}>
                 <Paper sx={{ 
-                  p: 2,
+                  p: 1.5,
                   backgroundColor: darkMode ? '#252525' : '#fff',
                   borderLeft: '4px solid #9C27B0',
                   boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                  height: '100%',
+                  minHeight: 120,
                   transition: 'transform 0.2s',
                   '&:hover': {
                     transform: 'translateY(-4px)'
                   }
                 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <InfoIcon sx={{ color: '#9C27B0', mr: 1 }} />
-                    <Typography variant="subtitle2" color="text.secondary">
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                    <InfoIcon sx={{ color: '#9C27B0', mr: 1, fontSize: 20 }} />
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.95rem' }}>
                       Total Requests
                     </Typography>
                   </Box>
-                  <Typography variant="h4" sx={{ mt: 1, fontWeight: 600 }}>
+                  <Typography variant="h5" sx={{ mt: 0.5, fontWeight: 600 }}>
                     {requests.length}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontSize: '0.85rem' }}>
                     All maintenance requests
             </Typography>
-          </Paper>
-        </Grid>
+                </Paper>
+              </Grid>
             </Grid>
           </Grid>
           <Grid item xs={12}>
