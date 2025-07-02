@@ -464,6 +464,8 @@ const RentPayment = () => {
     }}>
       {/* Navigation Component - Now properly placed at the top */}
       <Navigation darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+      {/* Offset for fixed Navigation on mobile */}
+      <Box sx={{ height: 56, display: { xs: 'block', md: 'none' } }} />
 
       <Container maxWidth="xl" sx={{ py: 4 }}>
         {/* Header Section */}
