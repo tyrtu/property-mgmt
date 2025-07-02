@@ -22,8 +22,8 @@ const TenantLayout = ({ children }) => {
       position: 'relative'
     }}>
       <TenantNavigation onSidebarToggle={handleSidebarToggle} />
-      {/* Top offset for fixed AppBar on mobile */}
-      <Box sx={{ height: 56, display: { xs: 'block', md: 'none' } }} />
+      {/* Mobile Top Offset for AppBar */}
+      <Box sx={{ height: { xs: 56, md: 0 }, display: { xs: 'block', md: 'none' } }} />
       <Box
         component="main"
         sx={{
@@ -52,8 +52,8 @@ const TenantLayout = ({ children }) => {
           height: '100%'
         }}>
           {children}
-          {/* Bottom offset for fixed BottomNavigation on mobile */}
-          <Box sx={{ height: 56, display: { xs: 'block', md: 'none' } }} />
+          {/* Mobile Bottom Offset for BottomNavigation */}
+          <Box sx={{ height: { xs: 56, md: 0 }, display: { xs: 'block', md: 'none' } }} />
         </Box>
       </Box>
     </Box>
