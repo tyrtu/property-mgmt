@@ -42,7 +42,7 @@ const TenantLayout = ({ children }) => {
           backgroundColor: theme.palette.background.default,
           minHeight: '100vh',
           mt: { xs: '56px', md: 0 },
-          mb: { xs: '56px', md: 0 },
+          mb: { xs: 0, md: 0 },
           overflow: 'auto'
         }}
       >
