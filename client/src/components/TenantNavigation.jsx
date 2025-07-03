@@ -314,12 +314,33 @@ const TenantNavigation = ({ onSidebarToggle }) => {
             width: DRAWER_WIDTH,
             bgcolor: 'primary.main',
             color: 'white',
-            height: 'calc(100% - 56px)',
-            mt: '56px',
+            height: '100%',
+            mt: 0,
             zIndex: (theme) => theme.zIndex.drawer + 1
           }
         }}
       >
+        <Box sx={{
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          p: 2,
+          flexShrink: 0,
+          pl: 5
+        }}>
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>
+            Tenant Portal
+          </Typography>
+          <IconButton
+            onClick={handleDrawerToggle}
+            sx={{ 
+              color: 'white',
+              '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.1)' }
+            }}
+          >
+            <Close />
+          </IconButton>
+        </Box>
         {drawer}
       </Drawer>
     </>
