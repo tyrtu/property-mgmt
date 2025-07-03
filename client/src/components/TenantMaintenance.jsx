@@ -404,14 +404,14 @@ const TenantMaintenance = () => {
             </Card>
           </Grid>
           <Grid item xs={12}>
-            <Grid container spacing={3}>
-              <Grid item xs={6} sm={6} md={4}>
-                <Paper sx={{ 
+            <Grid container spacing={1}>
+              <Grid item xs={12} sm={6} md={2.4}>
+                <Paper sx={{
                   p: 1.5,
                   backgroundColor: darkMode ? '#252525' : '#fff',
-                  borderLeft: '4px solid #4CAF50',
                   boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                   minHeight: 120,
+                  width: '100%',
                   transition: 'transform 0.2s',
                   '&:hover': {
                     transform: 'translateY(-4px)'
@@ -431,13 +431,13 @@ const TenantMaintenance = () => {
                   </Typography>
                 </Paper>
               </Grid>
-              <Grid item xs={6} sm={6} md={4}>
-                <Paper sx={{ 
+              <Grid item xs={12} sm={6} md={2.4}>
+                <Paper sx={{
                   p: 1.5,
                   backgroundColor: darkMode ? '#252525' : '#fff',
-                  borderLeft: '4px solid #FFA726',
                   boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                   minHeight: 120,
+                  width: '100%',
                   transition: 'transform 0.2s',
                   '&:hover': {
                     transform: 'translateY(-4px)'
@@ -457,13 +457,13 @@ const TenantMaintenance = () => {
                   </Typography>
                 </Paper>
               </Grid>
-              <Grid item xs={6} sm={6} md={4}>
-                <Paper sx={{ 
+              <Grid item xs={12} sm={6} md={2.4}>
+                <Paper sx={{
                   p: 1.5,
                   backgroundColor: darkMode ? '#252525' : '#fff',
-                  borderLeft: '4px solid #29B6F6',
                   boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                   minHeight: 120,
+                  width: '100%',
                   transition: 'transform 0.2s',
                   '&:hover': {
                     transform: 'translateY(-4px)'
@@ -483,13 +483,13 @@ const TenantMaintenance = () => {
                   </Typography>
                 </Paper>
               </Grid>
-              <Grid item xs={6} sm={6} md={4}>
-                <Paper sx={{ 
+              <Grid item xs={12} sm={6} md={2.4}>
+                <Paper sx={{
                   p: 1.5,
                   backgroundColor: darkMode ? '#252525' : '#fff',
-                  borderLeft: '4px solid #66BB6A',
                   boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                   minHeight: 120,
+                  width: '100%',
                   transition: 'transform 0.2s',
                   '&:hover': {
                     transform: 'translateY(-4px)'
@@ -509,13 +509,13 @@ const TenantMaintenance = () => {
                   </Typography>
                 </Paper>
               </Grid>
-              <Grid item xs={6} sm={6} md={4}>
-                <Paper sx={{ 
+              <Grid item xs={12} sm={6} md={2.4}>
+                <Paper sx={{
                   p: 1.5,
                   backgroundColor: darkMode ? '#252525' : '#fff',
-                  borderLeft: '4px solid #EF5350',
                   boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                   minHeight: 120,
+                  width: '100%',
                   transition: 'transform 0.2s',
                   '&:hover': {
                     transform: 'translateY(-4px)'
@@ -535,13 +535,13 @@ const TenantMaintenance = () => {
                   </Typography>
                 </Paper>
               </Grid>
-              <Grid item xs={6} sm={6} md={4}>
-                <Paper sx={{ 
+              <Grid item xs={12} sm={6} md={2.4}>
+                <Paper sx={{
                   p: 1.5,
                   backgroundColor: darkMode ? '#252525' : '#fff',
-                  borderLeft: '4px solid #9C27B0',
                   boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                   minHeight: 120,
+                  width: '100%',
                   transition: 'transform 0.2s',
                   '&:hover': {
                     transform: 'translateY(-4px)'

@@ -612,13 +612,14 @@ const RentPayment = () => {
         </Card>
 
         {/* Stats Cards - Added icons and improved layout */}
-        <Grid container spacing={3} sx={{ mb: 3 }}>
-          <Grid item xs={12} sm={6} md={3}>
+        <Grid container spacing={1} sx={{ mb: 3 }}>
+          <Grid item xs={12} sm={6} md={2.4}>
             <Card sx={{
               p: 1.5,
               backgroundColor: darkMode ? '#252525' : '#fff',
               boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
               minHeight: 120,
+              width: '100%',
               transition: 'transform 0.2s',
               '&:hover': {
                 transform: 'translateY(-4px)'
@@ -638,12 +639,13 @@ const RentPayment = () => {
               </Typography>
             </Card>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={2.4}>
             <Card sx={{
               p: 1.5,
               backgroundColor: darkMode ? '#252525' : '#fff',
               boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
               minHeight: 120,
+              width: '100%',
               transition: 'transform 0.2s',
               '&:hover': {
                 transform: 'translateY(-4px)'
@@ -663,12 +665,13 @@ const RentPayment = () => {
               </Typography>
             </Card>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={2.4}>
             <Card sx={{
               p: 1.5,
               backgroundColor: darkMode ? '#252525' : '#fff',
               boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
               minHeight: 120,
+              width: '100%',
               transition: 'transform 0.2s',
               '&:hover': {
                 transform: 'translateY(-4px)'
@@ -688,12 +691,13 @@ const RentPayment = () => {
               </Typography>
             </Card>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={2.4}>
             <Card sx={{
               p: 1.5,
               backgroundColor: darkMode ? '#252525' : '#fff',
               boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
               minHeight: 120,
+              width: '100%',
               transition: 'transform 0.2s',
               '&:hover': {
                 transform: 'translateY(-4px)'

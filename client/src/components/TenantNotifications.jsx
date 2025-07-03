@@ -541,13 +541,14 @@ const TenantNotifications = () => {
       </Box>
 
         {/* Analytics Cards */}
-        <Grid container spacing={3} sx={{ mb: 4, px: 2 }}>
-          <Grid item xs={6} sm={6} md={3}>
+        <Grid container spacing={1} sx={{ mb: 4, px: 2 }}>
+          <Grid item xs={12} sm={6} md={2.4}>
             <Card sx={{
               p: 1.5,
               backgroundColor: darkMode ? '#252525' : '#fff',
               boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
               minHeight: 120,
+              width: '100%',
               transition: 'transform 0.2s',
               '&:hover': {
                 transform: 'translateY(-4px)'
@@ -567,12 +568,13 @@ const TenantNotifications = () => {
               </Typography>
             </Card>
           </Grid>
-          <Grid item xs={6} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={2.4}>
             <Card sx={{
               p: 1.5,
               backgroundColor: darkMode ? '#252525' : '#fff',
               boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
               minHeight: 120,
+              width: '100%',
               transition: 'transform 0.2s',
               '&:hover': {
                 transform: 'translateY(-4px)'
@@ -592,12 +594,13 @@ const TenantNotifications = () => {
               </Typography>
             </Card>
           </Grid>
-          <Grid item xs={6} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={2.4}>
             <Card sx={{
               p: 1.5,
               backgroundColor: darkMode ? '#252525' : '#fff',
               boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
               minHeight: 120,
+              width: '100%',
               transition: 'transform 0.2s',
               '&:hover': {
                 transform: 'translateY(-4px)'
@@ -614,15 +617,16 @@ const TenantNotifications = () => {
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontSize: '0.85rem' }}>
                 Viewed notifications
-              </Typography>
+            </Typography>
             </Card>
           </Grid>
-          <Grid item xs={6} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={2.4}>
             <Card sx={{
               p: 1.5,
               backgroundColor: darkMode ? '#252525' : '#fff',
               boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
               minHeight: 120,
+              width: '100%',
               transition: 'transform 0.2s',
               '&:hover': {
                 transform: 'translateY(-4px)'
@@ -639,10 +643,10 @@ const TenantNotifications = () => {
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontSize: '0.85rem' }}>
                 Important alerts
-              </Typography>
+            </Typography>
             </Card>
           </Grid>
-        </Grid>
+      </Grid>
 
         {/* Action Buttons */}
         <Box sx={{ 
