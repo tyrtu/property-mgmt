@@ -418,6 +418,7 @@ const TenantDashboard = () => {
         alignItems: 'center',
         gap: 2,
         mb: 3,
+        mt: { xs: 7, sm: 0 },
         bgcolor: darkMode ? '#1e1e1e' : '#ffffff',
         borderBottom: 1,
         borderColor: darkMode ? '#333' : '#e0e0e0',
@@ -436,7 +437,7 @@ const TenantDashboard = () => {
             borderColor: darkMode ? 'primary.dark' : 'primary.main'
           }} 
         />
-        <Box>
+          <Box>
           <Typography 
             variant="subtitle1" 
             fontWeight="medium"
@@ -447,7 +448,7 @@ const TenantDashboard = () => {
             }}
           >
             Welcome back,
-          </Typography>
+            </Typography>
           <Typography 
             variant="h6" 
             fontWeight="bold"
@@ -469,9 +470,9 @@ const TenantDashboard = () => {
             }}
           >
             <Home sx={{ fontSize: 14 }} />
-            {tenantData.property} • {tenantData.unit}
-          </Typography>
-        </Box>
+              {tenantData.property} • {tenantData.unit}
+            </Typography>
+          </Box>
         <Box sx={{ flexGrow: 1 }} />
         <Stack direction="row" spacing={1}>
           <IconButton 
@@ -481,8 +482,8 @@ const TenantDashboard = () => {
                 bgcolor: darkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)'
               }
             }}
-            onClick={() => navigate("/tenant/notifications")}
-          >
+          onClick={() => navigate("/tenant/notifications")}
+        >
             <Badge badgeContent={notifications.length} color="primary">
               <Notifications />
             </Badge>
