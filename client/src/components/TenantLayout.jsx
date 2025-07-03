@@ -19,7 +19,9 @@ const TenantLayout = ({ children }) => {
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', position: 'relative' }}>
       {/* Sidebar / Navigation */}
-      <TenantNavigation onSidebarToggle={handleSidebarToggle} />
+      <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
+        <TenantNavigation onSidebarToggle={handleSidebarToggle} />
+      </Box>
 
       {/* Main Content Area */}
       <Box
