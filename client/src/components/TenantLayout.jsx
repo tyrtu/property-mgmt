@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Box } from '@mui/material';
-import { useMediaQuery, useTheme } from '@mui/material';
+import { Box, useMediaQuery, useTheme } from '@mui/material';
 import TenantNavigation from './TenantNavigation';
 
 const DRAWER_WIDTH = 240;
@@ -15,24 +14,25 @@ const TenantLayout = ({ children }) => {
     setSidebarCollapsed(collapsed);
   };
 
+  const sidebarWidth = isMobile ? 0 : (sidebarCollapsed ? COLLAPSED_WIDTH : DRAWER_WIDTH);
+  const topBarHeight = isMobile ? 112 : 0; // Adjust if desktop has a top bar too
+
   return (
-    <Box sx={{ 
-      display: 'flex',
-      minHeight: '100vh',
-      position: 'relative'
-    }}>
+    <Box
+      sx={{
+        display: 'flex',
+        minHeight: '100vh',
+        position: 'relative',
+      }}
+    >
       <TenantNavigation onSidebarToggle={handleSidebarToggle} />
+
       <Box
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
-          width: { 
-            md: `calc(100% - ${isMobile ? 0 : (sidebarCollapsed ? COLLAPSED_WIDTH : DRAWER_WIDTH)}px)` 
-          },
-          ml: { 
-            md: `${isMobile ? 0 : (sidebarCollapsed ? COLLAPSED_WIDTH : DRAWER_WIDTH)}px` 
-          },
+          width: { md: `calc(100% - ${sidebarWidth}px)` },
+          ml: { md: `${sidebarWidth}px` },
           transition: theme.transitions.create(['margin', 'width'], {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
@@ -42,22 +42,30 @@ const TenantLayout = ({ children }) => {
           backgroundColor: theme.palette.background.default,
           minHeight: '100vh',
           overflow: 'auto',
-          mt: { xs: '112px', md: 0 }
         }}
       >
-        <Box sx={{ 
-          position: 'relative',
-          zIndex: 2,
-          height: '100%',
-          pt: { xs: '112px', md: 0 }
-        }}>
+        <Box
+          sx={{
+            position: 'relative',
+            zIndex: 2,
+            height: '100%',
+            pt: `${topBarHeight}px`, // Top padding for mobile top bar
+            px: 3, // Optional: horizontal padding for content spacing
+          }}
+        >
           {children}
-          {/* Mobile Bottom Offset for BottomNavigation */}
-          <Box sx={{ height: { xs: 56, md: 0 }, display: { xs: 'block', md: 'none' } }} />
+
+          {/* Bottom offset for mobile BottomNavigation */}
+          <Box
+            sx={{
+              height: { xs: 56, md: 0 },
+              display: { xs: 'block', md: 'none' },
+            }}
+          />
         </Box>
       </Box>
     </Box>
   );
 };
 
-export default TenantLayout; 
+export default TenantLayout;
