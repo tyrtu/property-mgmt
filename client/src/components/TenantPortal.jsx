@@ -95,6 +95,11 @@ const TenantPortal = () => {
           >
             <Box sx={{ width: 240, p: 2 }}>
               <Typography variant="h6">Sidebar</Typography>
+              {/* Add sidebar content here */}
+            </Box>
+          </Drawer>
+        </>
+      )}
       {/* Offset for fixed AppBar on small screens */}
       {isMobile && <Box sx={{ height: 64 }} />}
       <Routes>
