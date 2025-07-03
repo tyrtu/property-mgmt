@@ -419,7 +419,6 @@ const TenantDashboard = () => {
           alignItems: 'center',
           gap: 2,
           mb: 3,
-          mt: { xs: 10, sm: 0 },
           bgcolor: darkMode ? '#1e1e1e' : '#ffffff',
           borderBottom: 1,
           borderColor: darkMode ? '#333' : '#e0e0e0',
@@ -782,7 +781,7 @@ const TenantDashboard = () => {
                   </Grid>
                 </CardContent>
               </Card>
-      </Grid>
+            </Grid>
 
             {/* Property Insights Section */}
             <Grid item xs={12} sm={6}>

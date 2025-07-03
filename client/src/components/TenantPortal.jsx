@@ -89,24 +89,22 @@ const TenantPortal = () => {
 
   return (
     <>
-      {/* Top NavBar with Hamburger, only on small screens */}
-      {isMobile && (
-        <AppBar position="fixed" color="primary" sx={{ zIndex: theme.zIndex.drawer + 1 }}>
-          <Toolbar>
-            <IconButton
-              color="inherit"
-              edge="start"
-              onClick={handleDrawerToggle}
-              sx={{ mr: 2 }}
-            >
-              <MenuIcon />
-            </IconButton>
-            <Typography variant="h6" noWrap component="div">
-              Tenant Portal
-            </Typography>
-          </Toolbar>
-        </AppBar>
-      )}
+      {/* Top NavBar with Hamburger, on all screens, smaller height on large screens */}
+      <AppBar position="fixed" color="primary" sx={{ zIndex: theme.zIndex.drawer + 1 }}>
+        <Toolbar sx={{ minHeight: { xs: 56, sm: 48 } }}>
+          <IconButton
+            color="inherit"
+            edge="start"
+            onClick={handleDrawerToggle}
+            sx={{ mr: 2 }}
+          >
+            <MenuIcon fontSize="small" />
+          </IconButton>
+          <Typography variant="h6" noWrap component="div" sx={{ fontSize: { xs: '1.1rem', sm: '1rem' } }}>
+            Tenant Portal
+          </Typography>
+        </Toolbar>
+      </AppBar>
       {/* Sidebar Drawer, only on small screens */}
       {isMobile && (
         <Drawer
@@ -127,21 +125,6 @@ const TenantPortal = () => {
       {/* Floating Hamburger FAB and Drawer for large screens */}
       {isLargeScreen && (
         <>
-          <Fab
-            color="primary"
-            aria-label="open drawer"
-            size="small"
-            onClick={handleDrawerToggle}
-            sx={{
-              position: 'fixed',
-              top: 24,
-              left: drawerOpen ? 264 : 24,
-              zIndex: theme.zIndex.drawer + 2,
-              display: { xs: 'none', sm: 'flex' },
-            }}
-          >
-            <MenuIcon fontSize="small" />
-          </Fab>
           <Drawer
             anchor="left"
             open={drawerOpen}
@@ -158,8 +141,8 @@ const TenantPortal = () => {
           </Drawer>
         </>
       )}
-      {/* Offset for fixed AppBar on small screens */}
-      {isMobile && <Box sx={{ height: 64 }} />}
+      {/* Offset for fixed AppBar on all screens */}
+      <Box sx={{ height: { xs: 56, sm: 48 } }} />
       <Routes>
         <Route path="dashboard" element={<PrivateRoute><TenantDashboard /></PrivateRoute>} />
         <Route path="payments" element={<PrivateRoute><TenantPaymentHistory /></PrivateRoute>} />
