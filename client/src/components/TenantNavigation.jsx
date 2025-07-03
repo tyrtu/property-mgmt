@@ -285,4 +285,26 @@ const TenantNavigation = ({ onSidebarToggle }) => {
             left: 0,
             bgcolor: 'primary.main',
             color: 'white',
-            zIndex: theme.zIndex.drawer
+            zIndex: theme.zIndex.drawer + 2,
+            px: 2,
+            boxShadow: 1
+          }}
+        >
+          <IconButton
+            color="inherit"
+            edge="start"
+            onClick={handleDrawerToggle}
+            sx={{ mr: 2 }}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 700 }}>
+            Tenant Portal
+          </Typography>
+        </Box>
+      )}
+    </>
+  );
+};
+
+export default TenantNavigation;
