@@ -70,6 +70,7 @@ const TenantPortal = () => {
           <Fab
             color="primary"
             aria-label="open drawer"
+            size="small"
             onClick={handleDrawerToggle}
             sx={{
               position: 'fixed',
@@ -79,7 +80,7 @@ const TenantPortal = () => {
               display: { xs: 'none', sm: 'flex' },
             }}
           >
-            <MenuIcon />
+            <MenuIcon fontSize="small" />
           </Fab>
           <Drawer
             anchor="left"
