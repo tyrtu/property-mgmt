@@ -278,6 +278,28 @@ const TenantNavigation = ({ onSidebarToggle }) => {
         </Fab>
       )}
 
+      {/* Hamburger Button for Small Screens Only */}
+      {isMobile && (
+        <Fab
+          size="small"
+          onClick={handleDrawerToggle}
+          sx={{
+            position: 'fixed',
+            left: 16,
+            top: 16,
+            zIndex: (theme) => theme.zIndex.drawer + 2,
+            bgcolor: 'primary.main',
+            color: 'white',
+            display: { xs: 'flex', md: 'flex', lg: 'none' },
+            '&:hover': {
+              bgcolor: 'primary.dark'
+            }
+          }}
+        >
+          <MenuIcon />
+        </Fab>
+      )}
+
       {/* Mobile Drawer */}
       <Drawer
         variant="temporary"
