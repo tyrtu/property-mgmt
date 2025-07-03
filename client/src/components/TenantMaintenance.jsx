@@ -533,8 +533,8 @@ const TenantMaintenance = () => {
                   <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontSize: '0.85rem' }}>
                     Cancelled requests
                   </Typography>
-                </Paper>
-              </Grid>
+          </Paper>
+        </Grid>
               <Grid item xs={12} sm={6} md={2.4}>
                 <Paper sx={{
                   p: 1.5,
@@ -559,8 +559,8 @@ const TenantMaintenance = () => {
                   <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontSize: '0.85rem' }}>
                     All maintenance requests
             </Typography>
-                </Paper>
-              </Grid>
+          </Paper>
+        </Grid>
             </Grid>
           </Grid>
           <Grid item xs={12}>

@@ -593,7 +593,7 @@ const TenantNotifications = () => {
                 New notifications
               </Typography>
             </Card>
-          </Grid>
+        </Grid>
           <Grid item xs={12} sm={6} md={2.4}>
             <Card sx={{
               p: 1.5,
@@ -619,7 +619,7 @@ const TenantNotifications = () => {
                 Viewed notifications
             </Typography>
             </Card>
-          </Grid>
+        </Grid>
           <Grid item xs={12} sm={6} md={2.4}>
             <Card sx={{
               p: 1.5,
@@ -645,7 +645,7 @@ const TenantNotifications = () => {
                 Important alerts
             </Typography>
             </Card>
-          </Grid>
+        </Grid>
       </Grid>
 
         {/* Action Buttons */}

@@ -278,26 +278,36 @@ const TenantNavigation = ({ onSidebarToggle }) => {
         </Fab>
       )}
 
-      {/* Hamburger Button for Small Screens Only */}
+      {/* Top Bar with Hamburger and Title for Small Screens Only */}
       {isMobile && (
-        <Fab
-          size="small"
-          onClick={handleDrawerToggle}
+        <Box
           sx={{
+            width: '100%',
+            height: 56,
+            display: { xs: 'flex', md: 'flex', lg: 'none' },
+            alignItems: 'center',
             position: 'fixed',
-            left: 16,
-            top: 16,
-            zIndex: (theme) => theme.zIndex.drawer + 2,
+            top: 0,
+            left: 0,
             bgcolor: 'primary.main',
             color: 'white',
-            display: { xs: 'flex', md: 'flex', lg: 'none' },
-            '&:hover': {
-              bgcolor: 'primary.dark'
-            }
+            zIndex: (theme) => theme.zIndex.drawer + 2,
+            px: 2,
+            boxShadow: 1
           }}
         >
-          <MenuIcon />
-        </Fab>
+          <IconButton
+            color="inherit"
+            edge="start"
+            onClick={handleDrawerToggle}
+            sx={{ mr: 2 }}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 700 }}>
+            Tenant Portal
+          </Typography>
+        </Box>
       )}
 
       {/* Mobile Drawer */}
