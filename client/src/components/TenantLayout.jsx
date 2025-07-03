@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Box, useMediaQuery, useTheme } from '@mui/material';
-import TenantNavigation from './TenantNavigation';
 
 const DRAWER_WIDTH = 240;
 const COLLAPSED_WIDTH = 42;
@@ -18,11 +17,6 @@ const TenantLayout = ({ children }) => {
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', position: 'relative' }}>
-      {/* Only render navigation for small screens */}
-      {isMobile && (
-        <TenantNavigation onSidebarToggle={handleSidebarToggle} />
-      )}
-
       {/* Main Content Area */}
       <Box
         component="main"
