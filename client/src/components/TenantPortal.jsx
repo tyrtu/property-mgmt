@@ -1,7 +1,6 @@
 // src/components/TenantPortal.jsx
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import TenantNavigation from './TenantNavigation';
 import TenantDashboard from './TenantDashboard';
 import TenantPaymentHistory from './TenantPaymentHistory';
 import TenantMaintenance from './TenantMaintenance';
@@ -16,7 +15,6 @@ const TenantPortal = () => {
 
   return (
     <>
-      <TenantNavigation /> {/* Always visible */}
       <Routes>
         <Route path="dashboard" element={<PrivateRoute><TenantDashboard /></PrivateRoute>} />
         <Route path="payments" element={<PrivateRoute><TenantPaymentHistory /></PrivateRoute>} />
