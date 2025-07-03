@@ -415,7 +415,7 @@ const TenantDashboard = () => {
       {/* Enhanced Header */}
       <Box
         sx={{
-          display: 'flex',
+          display: { xs: 'flex', sm: 'none' },
           alignItems: 'center',
           gap: 2,
           mb: 3,
