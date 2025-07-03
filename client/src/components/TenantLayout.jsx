@@ -43,7 +43,8 @@ const TenantLayout = ({ children }) => {
           zIndex: 1,
           backgroundColor: theme.palette.background.default,
           minHeight: '100vh',
-          overflow: 'auto'
+          overflow: 'auto',
+          mt: { xs: '112px', md: 0 }
         }}
       >
         <Box sx={{ 
