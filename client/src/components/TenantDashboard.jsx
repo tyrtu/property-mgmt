@@ -782,7 +782,7 @@ const TenantDashboard = () => {
                   </Grid>
                 </CardContent>
               </Card>
-            </Grid>
+      </Grid>
 
             {/* Property Insights Section */}
             <Grid item xs={12} sm={6}>
