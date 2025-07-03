@@ -303,6 +303,28 @@ const TenantNavigation = ({ onSidebarToggle }) => {
           </Typography>
         </Box>
       )}
+
+      {/* Drawer for Mobile */}
+      <Drawer
+        variant="temporary"
+        open={mobileOpen}
+        onClose={handleDrawerToggle}
+        ModalProps={{
+          keepMounted: true,
+        }}
+        sx={{
+          display: { xs: 'block', md: 'none' },
+          '& .MuiDrawer-paper': {
+            width: DRAWER_WIDTH,
+            bgcolor: 'primary.main',
+            color: 'white',
+            height: '100%',
+            zIndex: theme.zIndex.drawer + 3,
+          },
+        }}
+      >
+        {drawer}
+      </Drawer>
     </>
   );
 };

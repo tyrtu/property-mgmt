@@ -18,8 +18,10 @@ const TenantLayout = ({ children }) => {
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', position: 'relative' }}>
+      {/* Sidebar / Navigation */}
       <TenantNavigation onSidebarToggle={handleSidebarToggle} />
 
+      {/* Main Content Area */}
       <Box
         component="main"
         sx={{
@@ -35,17 +37,11 @@ const TenantLayout = ({ children }) => {
           backgroundColor: theme.palette.background.default,
           minHeight: '100vh',
           overflow: 'auto',
-          pt: { xs: '56px', md: 0 }, // ✅ Push down content below top bar on mobile
+          pt: isMobile ? '56px' : 0, // ✅ Push content below top bar (FIX APPLIED HERE)
         }}
       >
-        <Box
-          sx={{
-            p: 2,
-            position: 'relative',
-            zIndex: 2,
-            height: '100%',
-          }}
-        >
+        {/* Inner Content */}
+        <Box sx={{ p: 2 }}>
           {children}
 
           {/* Bottom offset for mobile BottomNavigation */}
