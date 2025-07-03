@@ -279,69 +279,65 @@ const TenantNavigation = ({ onSidebarToggle }) => {
       )}
 
       {/* Mobile Top App Bar */}
-      {isMobile && (
-        <AppBar 
-          position="fixed" 
-          sx={{ 
-            display: { xs: 'block', md: 'none' },
-            bgcolor: 'primary.main',
-            color: 'white',
-            boxShadow: 1,
-            zIndex: (theme) => theme.zIndex.drawer + 2,
-            height: '56px'
-          }}
-        >
-          <Toolbar sx={{ minHeight: '56px !important' }}>
-            <IconButton
-              color="inherit"
-              edge="start"
-              onClick={handleDrawerToggle}
-              sx={{ mr: 2 }}
-            >
-              <MenuIcon />
-            </IconButton>
-            <Typography variant="h6" noWrap component="div">
-              Tenant Portal
-            </Typography>
-          </Toolbar>
-        </AppBar>
-      )}
+      <AppBar 
+        position="fixed" 
+        sx={{ 
+          display: { xs: 'block', md: 'none' },
+          bgcolor: 'primary.main',
+          color: 'white',
+          boxShadow: 1,
+          zIndex: (theme) => theme.zIndex.drawer + 2,
+          height: '56px'
+        }}
+      >
+        <Toolbar sx={{ minHeight: '56px !important' }}>
+          <IconButton
+            color="inherit"
+            edge="start"
+            onClick={handleDrawerToggle}
+            sx={{ mr: 2 }}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Typography variant="h6" noWrap component="div">
+            Tenant Portal
+          </Typography>
+        </Toolbar>
+      </AppBar>
 
       {/* Mobile Bottom Navigation */}
-      {isMobile && (
-        <BottomNavigation
-          value={location.pathname}
-          onChange={(event, newValue) => {
-            handleNavigation(newValue);
-          }}
-          sx={{
-            display: { xs: 'flex', md: 'none' },
-            position: 'fixed',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            bgcolor: 'primary.main',
-            color: 'white',
-            zIndex: (theme) => theme.zIndex.drawer + 2,
-            height: '56px',
-            '& .MuiBottomNavigationAction-root': {
-              color: 'rgba(255, 255, 255, 0.7)',
-              '&.Mui-selected': {
-                color: 'white'
-              }
+      <BottomNavigation
+        value={location.pathname}
+        onChange={(event, newValue) => {
+          handleNavigation(newValue);
+        }}
+        sx={{
+          display: { xs: 'flex', md: 'none' },
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          bgcolor: 'primary.main',
+          color: 'white',
+          zIndex: (theme) => theme.zIndex.drawer + 2,
+          height: '56px',
+          '& .MuiBottomNavigationAction-root': {
+            color: 'rgba(255, 255, 255, 0.7)',
+            '&.Mui-selected': {
+              color: 'white'
             }
-          }}
-        >
-          {navItems.map((item) => (
-            <BottomNavigationAction
-              key={item.text}
-              label={item.text}
-              value={item.path}
-              icon={item.icon}
-            />
-          ))}
-        </BottomNavigation>
-      )}
+          }
+        }}
+      >
+        {navItems.map((item) => (
+          <BottomNavigationAction
+            key={item.text}
+            label={item.text}
+            value={item.path}
+            icon={item.icon}
+          />
+        ))}
+      </BottomNavigation>
 
       {/* Mobile Drawer */}
       <Drawer
