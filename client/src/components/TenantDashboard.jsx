@@ -413,101 +413,93 @@ const TenantDashboard = () => {
       pb: { xs: 8, sm: 4 }
     }}>
       {/* Enhanced Header */}
-      <AppBar 
-        position="fixed" 
-        elevation={0}
-        sx={{ 
-          mb: 3,
-          bgcolor: darkMode ? '#1e1e1e' : '#ffffff',
-          borderBottom: 1,
-          borderColor: darkMode ? '#333' : '#e0e0e0',
-          color: darkMode ? '#fff' : 'text.primary'
-        }}
-      >
-        <Toolbar sx={{ minHeight: { xs: 64, sm: 70 } }}>
-          <Box sx={{ 
-            flexGrow: 1, 
-            display: 'flex', 
-            alignItems: 'center',
-            gap: 2
-          }}>
-            <Avatar 
-              src={tenantData.avatar} 
-              sx={{ 
-                width: { xs: 36, sm: 42 }, 
-                height: { xs: 36, sm: 42 },
-                border: 2,
-                borderColor: darkMode ? 'primary.dark' : 'primary.main'
-              }} 
-            />
-          <Box>
-              <Typography 
-                variant="subtitle1" 
-                fontWeight="medium"
-                sx={{ 
-                  fontSize: { xs: '0.9rem', sm: '1rem' },
-                  color: darkMode ? '#fff' : 'text.primary',
-                  lineHeight: 1.2
-                }}
-              >
-                Welcome back,
-            </Typography>
-              <Typography 
-                variant="h6" 
-                fontWeight="bold"
-                sx={{ 
-                  fontSize: { xs: '1.1rem', sm: '1.25rem' },
-                  color: darkMode ? '#fff' : 'text.primary',
-                  lineHeight: 1.2
-                }}
-              >
-                {tenantData.name}
-              </Typography>
-              <Typography 
-                variant="caption" 
-                sx={{ 
-                  color: darkMode ? '#aaa' : 'text.secondary',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 0.5
-                }}
-              >
-                <Home sx={{ fontSize: 14 }} />
-              {tenantData.property} • {tenantData.unit}
-            </Typography>
-          </Box>
+      <Box sx={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 2,
+        mb: 3,
+        bgcolor: darkMode ? '#1e1e1e' : '#ffffff',
+        borderBottom: 1,
+        borderColor: darkMode ? '#333' : '#e0e0e0',
+        color: darkMode ? '#fff' : 'text.primary',
+        px: 2,
+        py: 2,
+        borderRadius: 2,
+        boxShadow: '0 2px 4px rgba(0,0,0,0.04)'
+      }}>
+        <Avatar 
+          src={tenantData.avatar} 
+          sx={{ 
+            width: { xs: 36, sm: 42 }, 
+            height: { xs: 36, sm: 42 },
+            border: 2,
+            borderColor: darkMode ? 'primary.dark' : 'primary.main'
+          }} 
+        />
+        <Box>
+          <Typography 
+            variant="subtitle1" 
+            fontWeight="medium"
+            sx={{ 
+              fontSize: { xs: '0.9rem', sm: '1rem' },
+              color: darkMode ? '#fff' : 'text.primary',
+              lineHeight: 1.2
+            }}
+          >
+            Welcome back,
+          </Typography>
+          <Typography 
+            variant="h6" 
+            fontWeight="bold"
+            sx={{ 
+              fontSize: { xs: '1.1rem', sm: '1.25rem' },
+              color: darkMode ? '#fff' : 'text.primary',
+              lineHeight: 1.2
+            }}
+          >
+            {tenantData.name}
+          </Typography>
+          <Typography 
+            variant="caption" 
+            sx={{ 
+              color: darkMode ? '#aaa' : 'text.secondary',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.5
+            }}
+          >
+            <Home sx={{ fontSize: 14 }} />
+            {tenantData.property} • {tenantData.unit}
+          </Typography>
         </Box>
-          <Stack direction="row" spacing={1}>
-            <IconButton 
-              sx={{ 
-                color: darkMode ? '#fff' : 'inherit',
-                '&:hover': {
-                  bgcolor: darkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)'
-                }
-              }}
-          onClick={() => navigate("/tenant/notifications")}
-        >
-              <Badge badgeContent={notifications.length} color="primary">
-                <Notifications />
-              </Badge>
-            </IconButton>
-            <IconButton 
-              sx={{ 
-                color: darkMode ? '#fff' : 'inherit',
-                '&:hover': {
-                  bgcolor: darkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)'
-                }
-              }}
-              onClick={handleMenuClick}
-            >
-              <MoreVert />
-            </IconButton>
-          </Stack>
-        </Toolbar>
-      </AppBar>
-
-      {/* Offset for fixed AppBar */}
-      <Box sx={{ height: { xs: 64, sm: 70 } }} />
+        <Box sx={{ flexGrow: 1 }} />
+        <Stack direction="row" spacing={1}>
+          <IconButton 
+            sx={{ 
+              color: darkMode ? '#fff' : 'inherit',
+              '&:hover': {
+                bgcolor: darkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)'
+              }
+            }}
+            onClick={() => navigate("/tenant/notifications")}
+          >
+            <Badge badgeContent={notifications.length} color="primary">
+              <Notifications />
+            </Badge>
+          </IconButton>
+          <IconButton 
+            sx={{ 
+              color: darkMode ? '#fff' : 'inherit',
+              '&:hover': {
+                bgcolor: darkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)'
+              }
+            }}
+            onClick={handleMenuClick}
+          >
+            <MoreVert />
+          </IconButton>
+        </Stack>
+      </Box>
 
       {/* User Menu */}
       <Menu
@@ -787,7 +779,7 @@ const TenantDashboard = () => {
                   </Grid>
                 </CardContent>
               </Card>
-      </Grid>
+            </Grid>
 
             {/* Property Insights Section */}
             <Grid item xs={12} sm={6}>
