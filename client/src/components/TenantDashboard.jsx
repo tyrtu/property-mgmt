@@ -413,21 +413,23 @@ const TenantDashboard = () => {
       pb: { xs: 8, sm: 4 }
     }}>
       {/* Enhanced Header */}
-      <Box sx={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 2,
-        mb: 3,
-        mt: { xs: 10, sm: 0 },
-        bgcolor: darkMode ? '#1e1e1e' : '#ffffff',
-        borderBottom: 1,
-        borderColor: darkMode ? '#333' : '#e0e0e0',
-        color: darkMode ? '#fff' : 'text.primary',
-        px: 2,
-        py: 2,
-        borderRadius: 2,
-        boxShadow: '0 2px 4px rgba(0,0,0,0.04)'
-      }}>
+      <Box
+        sx={{
+          display: { xs: 'flex', sm: 'none' },
+          alignItems: 'center',
+          gap: 2,
+          mb: 3,
+          mt: { xs: 10, sm: 0 },
+          bgcolor: darkMode ? '#1e1e1e' : '#ffffff',
+          borderBottom: 1,
+          borderColor: darkMode ? '#333' : '#e0e0e0',
+          color: darkMode ? '#fff' : 'text.primary',
+          px: 2,
+          py: 2,
+          borderRadius: 2,
+          boxShadow: '0 2px 4px rgba(0,0,0,0.04)'
+        }}
+      >
         <Avatar 
           src={tenantData.avatar} 
           sx={{ 
