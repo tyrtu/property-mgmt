@@ -8,7 +8,7 @@ import TenantNotifications from './TenantNotifications';
 import TenantProfile from './TenantProfile';
 import PrivateRoute from './PrivateRoute';
 import useAutoLogout from '../hooks/useAutoLogout'; // ✅ Import the auto-logout hook
-import { AppBar, Toolbar, IconButton, Typography, Drawer, Box, useTheme, useMediaQuery } from '@mui/material';
+import { AppBar, Toolbar, IconButton, Typography, Drawer, Box, useTheme, useMediaQuery, Fab } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 
 const TenantPortal = () => {
@@ -17,6 +17,7 @@ const TenantPortal = () => {
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.only('xs'));
+  const isLargeScreen = useMediaQuery(theme.breakpoints.up('sm'));
   const [drawerOpen, setDrawerOpen] = React.useState(false);
 
   const handleDrawerToggle = () => {
@@ -63,6 +64,37 @@ const TenantPortal = () => {
           </Box>
         </Drawer>
       )}
+      {/* Floating Hamburger FAB and Drawer for large screens */}
+      {isLargeScreen && (
+        <>
+          <Fab
+            color="primary"
+            aria-label="open drawer"
+            onClick={handleDrawerToggle}
+            sx={{
+              position: 'fixed',
+              top: 24,
+              left: 24,
+              zIndex: theme.zIndex.drawer + 2,
+              display: { xs: 'none', sm: 'flex' },
+            }}
+          >
+            <MenuIcon />
+          </Fab>
+          <Drawer
+            anchor="left"
+            open={drawerOpen}
+            onClose={handleDrawerToggle}
+            ModalProps={{ keepMounted: true }}
+            sx={{
+              '& .MuiDrawer-paper': {
+                width: 240,
+                boxSizing: 'border-box',
+              },
+            }}
+          >
+            <Box sx={{ width: 240, p: 2 }}>
+              <Typography variant="h6">Sidebar</Typography>
       {/* Offset for fixed AppBar on small screens */}
       {isMobile && <Box sx={{ height: 64 }} />}
       <Routes>
