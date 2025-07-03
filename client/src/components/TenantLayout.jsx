@@ -15,18 +15,11 @@ const TenantLayout = ({ children }) => {
   };
 
   const sidebarWidth = isMobile ? 0 : (sidebarCollapsed ? COLLAPSED_WIDTH : DRAWER_WIDTH);
-  const topBarHeight = isMobile ? 112 : 0; // Adjust if desktop has a top bar too
+  const topBarHeight = isMobile ? 112 : 0; // 112px for mobile top bar, 0 for desktop
 
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        minHeight: '100vh',
-        position: 'relative',
-      }}
-    >
+    <Box sx={{ display: 'flex', minHeight: '100vh', position: 'relative' }}>
       <TenantNavigation onSidebarToggle={handleSidebarToggle} />
-
       <Box
         component="main"
         sx={{
@@ -50,11 +43,9 @@ const TenantLayout = ({ children }) => {
             zIndex: 2,
             height: '100%',
             pt: `${topBarHeight}px`, // Top padding for mobile top bar
-            px: 3, // Optional: horizontal padding for content spacing
           }}
         >
           {children}
-
           {/* Bottom offset for mobile BottomNavigation */}
           <Box
             sx={{
