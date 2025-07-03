@@ -418,7 +418,7 @@ const TenantDashboard = () => {
         alignItems: 'center',
         gap: 2,
         mb: 3,
-        mt: { xs: 7, sm: 0 },
+        mt: { xs: 10, sm: 0 },
         bgcolor: darkMode ? '#1e1e1e' : '#ffffff',
         borderBottom: 1,
         borderColor: darkMode ? '#333' : '#e0e0e0',
