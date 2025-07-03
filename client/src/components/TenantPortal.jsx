@@ -10,6 +10,69 @@ import PrivateRoute from './PrivateRoute';
 import useAutoLogout from '../hooks/useAutoLogout'; // ✅ Import the auto-logout hook
 import { AppBar, Toolbar, IconButton, Typography, Drawer, Box, useTheme, useMediaQuery, Fab } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import { List, ListItem, ListItemText, ListItemIcon, Divider } from '@mui/material';
+import {
+  Dashboard as DashboardIcon,
+  Payment as PaymentsIcon,
+  Build as MaintenanceIcon,
+  Notifications as NotificationsIcon,
+  Person as ProfileIcon,
+  ExitToApp as LogoutIcon,
+  LightMode,
+  DarkMode
+} from '@mui/icons-material';
+import { useLocation, useNavigate } from 'react-router-dom';
+
+const DrawerContent = ({ onNavigate }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const navItems = [
+    { text: 'Dashboard', path: '/tenant/dashboard', icon: <DashboardIcon /> },
+    { text: 'Payments', path: '/tenant/payments', icon: <PaymentsIcon /> },
+    { text: 'Maintenance', path: '/tenant/maintenance', icon: <MaintenanceIcon /> },
+    { text: 'Notifications', path: '/tenant/notifications', icon: <NotificationsIcon /> },
+    { text: 'Profile', path: '/tenant/profile', icon: <ProfileIcon /> },
+  ];
+  return (
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'primary.main', color: 'white' }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2, flexShrink: 0 }}>
+        <Typography variant="h6" sx={{ fontWeight: 700 }}>Tenant Portal</Typography>
+      </Box>
+      <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.12)' }} />
+      <List sx={{ flexGrow: 1, px: 1, overflowY: 'auto' }}>
+        {navItems.map((item) => (
+          <ListItem
+            key={item.path}
+            button
+            onClick={() => { navigate(item.path); onNavigate && onNavigate(); }}
+            sx={{
+              borderRadius: 1,
+              mb: 0.5,
+              justifyContent: 'flex-start',
+              bgcolor: location.pathname.startsWith(item.path)
+                ? 'rgba(255, 255, 255, 0.15)'
+                : 'transparent',
+              '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.25)' },
+            }}
+          >
+            <ListItemIcon sx={{ color: 'inherit', minWidth: 40, justifyContent: 'center' }}>{item.icon}</ListItemIcon>
+            <ListItemText primary={item.text} primaryTypographyProps={{ fontWeight: location.pathname.startsWith(item.path) ? 600 : 400 }} />
+          </ListItem>
+        ))}
+      </List>
+      <Box sx={{ p: 1, flexShrink: 0, borderTop: '1px solid rgba(255, 255, 255, 0.12)' }}>
+        <ListItem button sx={{ borderRadius: 1, justifyContent: 'flex-start', '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.25)' } }}>
+          <ListItemIcon sx={{ color: 'inherit', minWidth: 40, justifyContent: 'center' }}><LightMode /></ListItemIcon>
+          <ListItemText primary={'Light/Dark Mode'} />
+        </ListItem>
+        <ListItem button sx={{ borderRadius: 1, justifyContent: 'flex-start', '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.25)' } }}>
+          <ListItemIcon sx={{ color: 'inherit', minWidth: 40, justifyContent: 'center' }}><LogoutIcon /></ListItemIcon>
+          <ListItemText primary="Logout" />
+        </ListItem>
+      </Box>
+    </Box>
+  );
+};
 
 const TenantPortal = () => {
   // ✅ Enable auto-logout after 1 minute of inactivity
@@ -58,10 +121,7 @@ const TenantPortal = () => {
             },
           }}
         >
-          <Box sx={{ width: 240, p: 2 }}>
-            <Typography variant="h6">Sidebar</Typography>
-            {/* Add sidebar content here */}
-          </Box>
+          <DrawerContent onNavigate={handleDrawerToggle} />
         </Drawer>
       )}
       {/* Floating Hamburger FAB and Drawer for large screens */}
@@ -75,7 +135,7 @@ const TenantPortal = () => {
             sx={{
               position: 'fixed',
               top: 24,
-              left: 24,
+              left: drawerOpen ? 264 : 24,
               zIndex: theme.zIndex.drawer + 2,
               display: { xs: 'none', sm: 'flex' },
             }}
@@ -94,10 +154,7 @@ const TenantPortal = () => {
               },
             }}
           >
-            <Box sx={{ width: 240, p: 2 }}>
-              <Typography variant="h6">Sidebar</Typography>
-              {/* Add sidebar content here */}
-            </Box>
+            <DrawerContent onNavigate={handleDrawerToggle} />
           </Drawer>
         </>
       )}
