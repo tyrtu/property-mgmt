@@ -176,7 +176,7 @@ const App = () => {
       <AuthProvider>
         <AppContent />
       </AuthProvider>
-    </DarkModeProvider>
+      </DarkModeProvider>
   );
 };
 

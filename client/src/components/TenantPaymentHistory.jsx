@@ -410,7 +410,7 @@ const TenantPaymentHistory = () => {
             <Grid item xs={6} sm={6} md={3}>
               <Paper sx={{ 
                 p: 2, 
-                height: '100%',
+                height: '85%',
                 backgroundColor: darkMode ? '#252525' : '#fff',
                 borderLeft: '4px solid #4CAF50'
               }}>
@@ -431,7 +431,7 @@ const TenantPaymentHistory = () => {
             <Grid item xs={6} sm={6} md={3}>
               <Paper sx={{ 
                 p: 2, 
-                height: '100%',
+                height: '85%',
                 backgroundColor: darkMode ? '#252525' : '#fff',
                 borderLeft: '4px solid #FFC107'
               }}>
@@ -452,7 +452,7 @@ const TenantPaymentHistory = () => {
             <Grid item xs={6} sm={6} md={3}>
               <Paper sx={{ 
                 p: 2, 
-                height: '100%',
+                height: '85%',
                 backgroundColor: darkMode ? '#252525' : '#fff',
                 borderLeft: '4px solid #F44336'
               }}>
@@ -473,7 +473,7 @@ const TenantPaymentHistory = () => {
             <Grid item xs={6} sm={6} md={3}>
               <Paper sx={{ 
                 p: 2, 
-                height: '100%',
+                height: '85%',
                 backgroundColor: darkMode ? '#252525' : '#fff',
                 borderLeft: '4px solid #2196F3'
               }}>

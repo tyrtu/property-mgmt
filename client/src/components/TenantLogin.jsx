@@ -34,7 +34,7 @@ const TenantLogin = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
-  const { login, signInWithGoogle } = useAuth();
+  //const { login, signInWithGoogle } = useAuth();
 
   // Toggle password visibility
   const handleTogglePasswordVisibility = () => {
